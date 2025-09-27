@@ -55,18 +55,49 @@ public class AuthUI extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(80, 100, 80, 100));  // Increased padding
         
+        // Stylish tagline with gradient - perfectly centered
+        GradientTextLabel taglineLabel = new GradientTextLabel(
+            "⚡ Level Up Your Coding Journey ⚡",
+            new Font("Trebuchet MS", Font.ITALIC, 14),
+            new Color(135, 206, 250), // Light Sky Blue
+            new Color(70, 130, 180)   // Steel Blue
+        );
+        taglineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Create a centered wrapper panel for perfect alignment
+        JPanel taglineWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        taglineWrapper.setOpaque(false);
+        taglineWrapper.add(taglineLabel);
+        
+        // Create the gaming controller logo
+        JPanel logoPanel = new GamingControllerLogo();
+        logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+panel.add(Box.createVerticalGlue());
+panel.add(logoPanel);
+
+// Add the tagline label below the logo
+JLabel milestoneTagline = new JLabel("ForgeGrid – Where coding challenges become milestones.");
+milestoneTagline.setFont(new Font("Trebuchet MS", Font.ITALIC, 18));
+milestoneTagline.setForeground(new Color(255, 221, 0)); // Optional: yellow color
+milestoneTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
+panel.add(Box.createRigidArea(new Dimension(0, 4)));
+panel.add(milestoneTagline);
+
+panel.add(Box.createRigidArea(new Dimension(0, 5)));
+panel.add(taglineWrapper);
         // Title with gradient text
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleRow.setOpaque(false);
         titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
         
         JLabel welcomePart = new JLabel("Welcome to ");
-        welcomePart.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        welcomePart.setFont(new Font("Trebuchet MS", Font.BOLD, 36));
         welcomePart.setForeground(Color.WHITE);
         
         GradientTextLabel brandPart = new GradientTextLabel(
             "ForgeGrid",
-            new Font("Serif", Font.BOLD, 42),
+            new Font("Trebuchet MS", Font.BOLD, 42),
             new Color(255, 221, 0), // yellow
             new Color(236, 72, 153)  // pink
         );
@@ -80,7 +111,7 @@ public class AuthUI extends JFrame {
         titleRow.add(titleContainer);
         
         JLabel subtitleLabel = new JLabel("Level up your productivity");
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 22));  // Larger font
+        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 22));  // Larger font
         subtitleLabel.setForeground(new Color(200, 200, 220));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
@@ -99,6 +130,10 @@ public class AuthUI extends JFrame {
         
         // Layout with better spacing
         panel.add(Box.createVerticalGlue());
+        panel.add(logoPanel);
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(taglineWrapper);
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(titleRow);
         panel.add(Box.createRigidArea(new Dimension(0, 8)));
         panel.add(subtitleLabel);
@@ -123,12 +158,12 @@ public class AuthUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(50, 60, 50, 60));
         
         JLabel titleLabel = new JLabel("Join ForgeGrid");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel subtitleLabel = new JLabel("Start your productivity journey");
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
         subtitleLabel.setForeground(new Color(200, 200, 220));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
@@ -168,7 +203,7 @@ public class AuthUI extends JFrame {
         JTextField field = new JTextField();
         field.setMaximumSize(new Dimension(520, 70));  // Larger field
         field.setPreferredSize(new Dimension(520, 70));  // Larger field
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));  // Larger font
+        field.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));  // Larger font
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.WHITE, 2),
             BorderFactory.createEmptyBorder(12, 16, 12, 16)
@@ -210,7 +245,7 @@ public class AuthUI extends JFrame {
         JPasswordField field = new JPasswordField();
         field.setMaximumSize(new Dimension(520, 70));  // Larger field
         field.setPreferredSize(new Dimension(520, 70));  // Larger field
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));  // Larger font
+        field.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));  // Larger font
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.WHITE, 2),
             BorderFactory.createEmptyBorder(12, 16, 12, 16)
@@ -277,7 +312,7 @@ public class AuthUI extends JFrame {
         
         button.setMaximumSize(new Dimension(520, 70));  // Larger button
         button.setPreferredSize(new Dimension(520, 70));  // Larger button
-        button.setFont(new Font("Segoe UI", Font.BOLD, 22));  // Larger font
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));  // Larger font
         button.setForeground(Color.WHITE);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -314,7 +349,7 @@ public class AuthUI extends JFrame {
         
         button.setMaximumSize(new Dimension(520, 65));  // Larger button
         button.setPreferredSize(new Dimension(520, 65));  // Larger button
-        button.setFont(new Font("Segoe UI", Font.PLAIN, 20));  // Larger font
+        button.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));  // Larger font
         button.setForeground(new Color(200, 200, 220));
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -344,9 +379,9 @@ public class AuthUI extends JFrame {
             }
         };
 
-        button.setMaximumSize(new Dimension(320, 45));
-        button.setPreferredSize(new Dimension(320, 45));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setMaximumSize(new Dimension(520, 70));
+        button.setPreferredSize(new Dimension(520, 70));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
         button.setForeground(foregroundColor);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -472,7 +507,7 @@ public class AuthUI extends JFrame {
     
     private void applyCustomStyling() {
         // Set larger default font for all components
-        Font defaultFont = new Font("Segoe UI", Font.PLAIN, 18);
+        Font defaultFont = new Font("Trebuchet MS", Font.PLAIN, 18);
         UIManager.put("Button.font", defaultFont);
         UIManager.put("Label.font", defaultFont);
         UIManager.put("TextField.font", defaultFont);
@@ -487,4 +522,128 @@ public class AuthUI extends JFrame {
     }
     
     // Main method removed since we're using Main.java
+    
+    // Custom Gaming Controller Logo Component
+    private static class GamingControllerLogo extends JPanel {
+        private static final int LOGO_WIDTH = 80;
+        private static final int LOGO_HEIGHT = 50;
+        
+        public GamingControllerLogo() {
+            setPreferredSize(new Dimension(LOGO_WIDTH, LOGO_HEIGHT));
+            setMaximumSize(new Dimension(LOGO_WIDTH, LOGO_HEIGHT));
+            setOpaque(false);
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            int centerX = getWidth() / 2;
+            int centerY = getHeight() / 2;
+            
+            // Draw controller body (yellow with texture)
+            g2d.setColor(new Color(255, 215, 0)); // Bright yellow
+            g2d.fillRoundRect(centerX - 80, centerY - 30, 160, 60, 20, 20);
+            
+            // Add texture strokes
+            g2d.setColor(new Color(255, 182, 193, 100)); // Pink texture
+            g2d.fillRoundRect(centerX - 75, centerY - 25, 150, 50, 15, 15);
+            
+            g2d.setColor(new Color(70, 130, 180, 100)); // Blue texture
+            g2d.fillRoundRect(centerX - 70, centerY - 20, 140, 40, 10, 10);
+            
+            // Draw D-pad (left side - pink)
+            g2d.setColor(new Color(255, 105, 180)); // Hot pink
+            g2d.fillRoundRect(centerX - 65, centerY - 15, 25, 25, 5, 5);
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Arial", Font.BOLD, 16));
+            g2d.drawString("+", centerX - 58, centerY + 2);
+            
+            // Draw action buttons (right side - pink)
+            g2d.setColor(new Color(255, 105, 180)); // Hot pink
+            int buttonSize = 12;
+            int buttonSpacing = 15;
+            int startX = centerX + 25;
+            int startY = centerY - 15;
+            
+            // Top button
+            g2d.fillOval(startX, startY, buttonSize, buttonSize);
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval(startX + 4, startY + 4, 4, 4);
+            
+            // Right button
+            g2d.setColor(new Color(255, 105, 180));
+            g2d.fillOval(startX + buttonSpacing, startY + buttonSpacing, buttonSize, buttonSize);
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval(startX + buttonSpacing + 4, startY + buttonSpacing + 4, 4, 4);
+            
+            // Bottom button
+            g2d.setColor(new Color(255, 105, 180));
+            g2d.fillOval(startX, startY + buttonSpacing * 2, buttonSize, buttonSize);
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval(startX + 4, startY + buttonSpacing * 2 + 4, 4, 4);
+            
+            // Left button
+            g2d.setColor(new Color(255, 105, 180));
+            g2d.fillOval(startX - buttonSpacing, startY + buttonSpacing, buttonSize, buttonSize);
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval(startX - buttonSpacing + 4, startY + buttonSpacing + 4, 4, 4);
+            
+            // Draw center screen (dark blue)
+            g2d.setColor(new Color(25, 25, 112)); // Dark blue
+            g2d.fillRoundRect(centerX - 20, centerY - 25, 40, 15, 5, 5);
+            
+            // Draw center buttons (light blue)
+            g2d.setColor(new Color(135, 206, 250)); // Light sky blue
+            g2d.fillOval(centerX - 8, centerY + 5, 8, 8);
+            g2d.fillOval(centerX + 2, centerY + 5, 8, 8);
+            
+            // Draw coding symbols above controller
+            drawCodingSymbols(g2d, centerX, centerY - 50);
+            
+            g2d.dispose();
+        }
+        
+        private void drawCodingSymbols(Graphics2D g2d, int centerX, int y) {
+            int symbolSize = 20;
+            int spacing = 25;
+            int startX = centerX - (spacing * 2);
+            
+            // Symbol 1: {/}
+            g2d.setColor(new Color(70, 130, 180)); // Steel blue
+            g2d.fillOval(startX, y, symbolSize, symbolSize);
+            g2d.setColor(new Color(255, 105, 180)); // Pink border
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawOval(startX, y, symbolSize, symbolSize);
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Courier New", Font.BOLD, 12));
+            g2d.drawString("{/}", startX + 2, y + 14);
+            
+            // Symbol 2: </>  
+            g2d.setColor(new Color(70, 130, 180));
+            g2d.fillOval(startX + spacing, y, symbolSize, symbolSize);
+            g2d.setColor(new Color(255, 105, 180));
+            g2d.drawOval(startX + spacing, y, symbolSize, symbolSize);
+            g2d.setColor(Color.WHITE);
+            g2d.drawString("</>", startX + spacing + 2, y + 14);
+            
+            // Symbol 3: >_
+            g2d.setColor(new Color(70, 130, 180));
+            g2d.fillOval(startX + spacing * 2, y, symbolSize, symbolSize);
+            g2d.setColor(new Color(255, 105, 180));
+            g2d.drawOval(startX + spacing * 2, y, symbolSize, symbolSize);
+            g2d.setColor(Color.WHITE);
+            g2d.drawString(">_", startX + spacing * 2 + 2, y + 14);
+            
+            // Symbol 4: *
+            g2d.setColor(new Color(70, 130, 180));
+            g2d.fillOval(startX + spacing * 3, y, symbolSize, symbolSize);
+            g2d.setColor(new Color(255, 105, 180));
+            g2d.drawOval(startX + spacing * 3, y, symbolSize, symbolSize);
+            g2d.setColor(Color.WHITE);
+            g2d.drawString("*", startX + spacing * 3 + 6, y + 14);
+        }
+    }
 }
