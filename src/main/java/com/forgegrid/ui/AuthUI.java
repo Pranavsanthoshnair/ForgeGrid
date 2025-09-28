@@ -1,5 +1,6 @@
 package com.forgegrid.ui;
 
+import com.forgegrid.ui.components.OfflineIndicator;
 import com.forgegrid.config.AppConfig;
 import com.forgegrid.managers.HybridAuthManager;
 import com.forgegrid.managers.UserManager;
@@ -27,6 +28,7 @@ public class AuthUI extends JFrame {
     private LoadingScreen loadingScreen;
     private boolean isOnlineMode;
     private AppConfig config;
+    private OfflineIndicator offlineIndicator;
     
     public AuthUI() {
         this.userManager = UserManager.getInstance();
@@ -84,8 +86,15 @@ public class AuthUI extends JFrame {
         loadingScreen = new LoadingScreen();
         cardPanel.add(loadingScreen, "LOADING");
         
-        // Create status indicator
-        createStatusIndicator();
+        // Create offline indicator
+        offlineIndicator = new OfflineIndicator();
+        
+        // Create main content panel with offline indicator at top
+        JPanel mainContentPanel = new JPanel(new BorderLayout());
+        mainContentPanel.add(offlineIndicator, BorderLayout.NORTH);
+        mainContentPanel.add(cardPanel, BorderLayout.CENTER);
+        
+        add(mainContentPanel);
         
         // Create login and signup panels
         JPanel loginPanel = createLoginPanel();
@@ -1692,101 +1701,49 @@ panel.add(mainTagline);
      * Initialize authentication system and determine online/offline mode
      */
     private void initializeAuthentication() {
-        // Initialize hybrid auth manager
-        hybridAuthManager = new HybridAuthManager(
-            config.getSupabaseUrl(), 
-            config.getSupabaseAnonKey()
-        );
+        // Initialize HybridAuthManager with Supabase credentials
+        String supabaseUrl = config.getSupabaseUrl();
+        String supabaseAnonKey = config.getSupabaseAnonKey();
         
-        // Check online status asynchronously
-        CompletableFuture.supplyAsync(() -> {
-            return hybridAuthManager.isOnlineAvailable();
-        }).thenAccept(online -> {
+        // Initialize HybridAuthManager
+        hybridAuthManager = new HybridAuthManager(supabaseUrl, supabaseAnonKey);
+        
+        // Check online status in a background thread
+        new Thread(() -> {
+            isOnlineMode = hybridAuthManager.isOnlineAvailable();
+            
+            // Update UI on EDT
             SwingUtilities.invokeLater(() -> {
-                this.isOnlineMode = online;
-                
-                // Keep splash visible for ~5s then fade out and show auth screen
-                Timer showAuthTimer = new Timer(5000, e -> {
-                    if (loadingScreen != null) {
-                        loadingScreen.startFadeOut(() -> {
-                            cardLayout.show(cardPanel, "LOGIN");
-                            updateStatusIndicator();
-                        });
-                    } else {
-                        cardLayout.show(cardPanel, "LOGIN");
-                        updateStatusIndicator();
-                    }
-                });
-                showAuthTimer.setRepeats(false);
-                showAuthTimer.start();
+                updateStatusIndicator();
+                cardLayout.show(cardPanel, "LOGIN");
             });
-        }).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                this.isOnlineMode = false;
-                
-                // Keep splash visible for ~5s then fade out and show auth screen
-                Timer showAuthTimer = new Timer(5000, e -> {
-                    if (loadingScreen != null) {
-                        loadingScreen.startFadeOut(() -> {
-                            cardLayout.show(cardPanel, "LOGIN");
-                            updateStatusIndicator();
-                        });
-                    } else {
-                        cardLayout.show(cardPanel, "LOGIN");
-                        updateStatusIndicator();
-                    }
-                });
-                showAuthTimer.setRepeats(false);
-                showAuthTimer.start();
-            });
-            return null;
-        });
+        }).start();
     }
     
     /**
      * Update the status indicator based on current mode
      */
     private void updateStatusIndicator() {
-        if (statusLabel != null) {
-            if (isOnlineMode) {
-                // Hide status indicator when online
-                statusLabel.setVisible(false);
-            } else {
-                // Show subtle offline indicator
-                statusLabel.setText("💾 Working Offline");
-                statusLabel.setForeground(new Color(255, 152, 0)); // Orange
-                statusLabel.setVisible(true);
-            }
-        }
-    }
-    
-    /**
-     * Creates a status indicator to show online/offline mode
-     */
-    private void createStatusIndicator() {
-        statusLabel = new JLabel("", JLabel.CENTER);
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        statusLabel.setForeground(new Color(255, 152, 0)); // Orange
-        statusLabel.setOpaque(false);
-        statusLabel.setVisible(false); // Hidden by default
-        
-        // Add to the top of the card panel
-        cardPanel.add(statusLabel, "STATUS");
-        
-        // Update status periodically
-        updateConnectionStatus();
+        offlineIndicator.setOffline(!isOnlineMode);
+        revalidate();
+        repaint();
     }
     
     /**
      * Updates the connection status indicator
      */
     private void updateConnectionStatus() {
-        // Status is now updated in initializeAuthentication() and updateStatusIndicator()
-        // This method is kept for compatibility but no longer used
+        boolean wasOnline = isOnlineMode;
+        isOnlineMode = hybridAuthManager != null && hybridAuthManager.isOnlineAvailable();
+        
+        if (wasOnline != isOnlineMode) {
+            updateStatusIndicator();
+        }
     }
     
     /**
-     * Simple method to check if we're online
+     * Checks if the application is currently online
+     * @return true if online, false otherwise
      */
     private boolean checkOnlineStatus() {
         try {
