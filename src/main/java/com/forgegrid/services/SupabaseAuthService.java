@@ -49,6 +49,13 @@ public class SupabaseAuthService {
         // Start token refresh scheduler
         startTokenRefreshScheduler();
     }
+
+    // Derive a reasonable username if not provided
+    private String deriveUsernameFromEmail(String email) {
+        if (email == null) return null;
+        int at = email.indexOf('@');
+        return at > 0 ? email.substring(0, at) : email;
+    }
     
     /**
      * Registers a new user in Supabase.
@@ -77,9 +84,30 @@ public class SupabaseAuthService {
             // Save tokens to file
             saveTokens();
             
-            // Fetch user profile
+            // Fetch user profile; create if missing
             String userId = authResponse.getUser().getId();
-            PlayerProfile profile = httpClient.fetchUserProfile(currentAccessToken, userId);
+            PlayerProfile profile;
+            try {
+                profile = httpClient.fetchUserProfile(currentAccessToken, userId);
+            } catch (SupabaseHttpClient.SupabaseException e) {
+                if (e.getStatusCode() == 404) {
+                    // Create default profile in profiles table
+                    PlayerProfile newProfile = new PlayerProfile();
+                    newProfile.setId(userId);
+                    newProfile.setEmail(email);
+                    newProfile.setFullName(fullName);
+                    newProfile.setUsername(deriveUsernameFromEmail(email));
+                    newProfile.setScore(0);
+                    newProfile.setLevel(1);
+                    newProfile.setLastLogin(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    newProfile.setCreatedAt(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    newProfile.setUpdatedAt(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    httpClient.createUserProfile(currentAccessToken, newProfile);
+                    profile = newProfile;
+                } else {
+                    throw e;
+                }
+            }
             this.currentProfile = profile;
             
             return profile;
@@ -115,9 +143,34 @@ public class SupabaseAuthService {
             // Save tokens to file
             saveTokens();
             
-            // Fetch user profile
+            // Fetch user profile; create if missing
             String userId = authResponse.getUser().getId();
-            PlayerProfile profile = httpClient.fetchUserProfile(currentAccessToken, userId);
+            PlayerProfile profile;
+            try {
+                profile = httpClient.fetchUserProfile(currentAccessToken, userId);
+            } catch (SupabaseHttpClient.SupabaseException e) {
+                if (e.getStatusCode() == 404) {
+                    PlayerProfile newProfile = new PlayerProfile();
+                    newProfile.setId(userId);
+                    newProfile.setEmail(authResponse.getUser().getEmail());
+                    String fullName = null;
+                    java.util.Map<String, Object> meta = authResponse.getUser().getUserMetadata();
+                    if (meta != null && meta.get("full_name") != null) {
+                        fullName = String.valueOf(meta.get("full_name"));
+                    }
+                    newProfile.setFullName(fullName);
+                    newProfile.setUsername(deriveUsernameFromEmail(authResponse.getUser().getEmail()));
+                    newProfile.setScore(0);
+                    newProfile.setLevel(1);
+                    newProfile.setLastLogin(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    newProfile.setCreatedAt(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    newProfile.setUpdatedAt(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    httpClient.createUserProfile(currentAccessToken, newProfile);
+                    profile = newProfile;
+                } else {
+                    throw e;
+                }
+            }
             
             // Mark as online profile
             profile.setOnline(true);
@@ -133,6 +186,77 @@ public class SupabaseAuthService {
             throw new SupabaseAuthException("Authentication failed: " + e.getMessage(), SupabaseAuthException.ErrorType.AUTH_ERROR);
         } catch (Exception e) {
             throw new SupabaseAuthException("Unexpected error during authentication: " + e.getMessage(), SupabaseAuthException.ErrorType.UNKNOWN_ERROR);
+        }
+    }
+    
+    /**
+     * Authenticates a user with Google OAuth
+     * 
+     * @param googleToken The Google OAuth token
+     * @return PlayerProfile if authentication successful
+     * @throws SupabaseAuthException if authentication fails
+     */
+    public PlayerProfile authenticateWithGoogle(String googleToken) throws SupabaseAuthException {
+        try {
+            // Check if we're online
+            if (!httpClient.isOnline()) {
+                throw new SupabaseAuthException("No internet connection available", SupabaseAuthException.ErrorType.NETWORK_ERROR);
+            }
+            
+            // Authenticate with Supabase using Google token
+            SupabaseHttpClient.SupabaseAuthResponse authResponse = httpClient.authenticateWithGoogle(googleToken);
+            
+            // Store tokens
+            this.currentAccessToken = authResponse.getAccessToken();
+            this.currentRefreshToken = authResponse.getRefreshToken();
+            this.tokenExpiryTime = LocalDateTime.now().plusSeconds(authResponse.getExpiresIn());
+            
+            // Save tokens to file
+            saveTokens();
+            
+            // Fetch user profile; create if missing
+            String userId = authResponse.getUser().getId();
+            PlayerProfile profile;
+            try {
+                profile = httpClient.fetchUserProfile(currentAccessToken, userId);
+            } catch (SupabaseHttpClient.SupabaseException e) {
+                if (e.getStatusCode() == 404) {
+                    PlayerProfile newProfile = new PlayerProfile();
+                    newProfile.setId(userId);
+                    newProfile.setEmail(authResponse.getUser().getEmail());
+                    java.util.Map<String, Object> meta = authResponse.getUser().getUserMetadata();
+                    if (meta != null) {
+                        Object name = meta.get("full_name");
+                        if (name == null) name = meta.get("name");
+                        if (name != null) newProfile.setFullName(String.valueOf(name));
+                    }
+                    newProfile.setUsername(deriveUsernameFromEmail(authResponse.getUser().getEmail()));
+                    newProfile.setScore(0);
+                    newProfile.setLevel(1);
+                    newProfile.setLastLogin(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    newProfile.setCreatedAt(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    newProfile.setUpdatedAt(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    httpClient.createUserProfile(currentAccessToken, newProfile);
+                    profile = newProfile;
+                } else {
+                    throw e;
+                }
+            }
+            
+            // Mark as online profile
+            profile.setOnline(true);
+            profile.setLastSyncTime(LocalDateTime.now());
+            this.currentProfile = profile;
+            
+            // Save profile locally for offline use
+            saveProfileLocally(profile);
+            
+            return profile;
+            
+        } catch (SupabaseHttpClient.SupabaseException e) {
+            throw new SupabaseAuthException("Google authentication failed: " + e.getMessage(), SupabaseAuthException.ErrorType.AUTH_ERROR);
+        } catch (Exception e) {
+            throw new SupabaseAuthException("Unexpected error during Google authentication: " + e.getMessage(), SupabaseAuthException.ErrorType.UNKNOWN_ERROR);
         }
     }
     

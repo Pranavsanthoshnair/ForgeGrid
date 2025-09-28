@@ -63,6 +63,10 @@ public class AppConfig {
         properties.setProperty("auth.offline.enabled", "true");
         properties.setProperty("auth.online.enabled", "true");
         properties.setProperty("auth.token.refresh.interval", "3600000");
+        properties.setProperty("google.oauth.client.id", "your-google-client-id.apps.googleusercontent.com");
+        properties.setProperty("google.oauth.client.secret", "your-google-client-secret");
+        properties.setProperty("google.oauth.redirect.uri", "http://localhost:8080/callback");
+        properties.setProperty("google.oauth.scope", "openid email profile");
     }
     
     /**
@@ -119,6 +123,34 @@ public class AppConfig {
      */
     public long getTokenRefreshInterval() {
         return Long.parseLong(properties.getProperty("auth.token.refresh.interval", "3600000"));
+    }
+    
+    /**
+     * Get Google OAuth client ID
+     */
+    public String getGoogleOAuthClientId() {
+        return properties.getProperty("google.oauth.client.id", "your-google-client-id.apps.googleusercontent.com");
+    }
+    
+    /**
+     * Get Google OAuth client secret
+     */
+    public String getGoogleOAuthClientSecret() {
+        return properties.getProperty("google.oauth.client.secret", "your-google-client-secret");
+    }
+    
+    /**
+     * Get Google OAuth redirect URI
+     */
+    public String getGoogleOAuthRedirectUri() {
+        return properties.getProperty("google.oauth.redirect.uri", "http://localhost:8080/callback");
+    }
+    
+    /**
+     * Get Google OAuth scope
+     */
+    public String getGoogleOAuthScope() {
+        return properties.getProperty("google.oauth.scope", "openid email profile");
     }
     
     /**

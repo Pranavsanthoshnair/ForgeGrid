@@ -79,6 +79,7 @@ public class HybridAuthManager {
                         }
                     } catch (SupabaseAuthService.SupabaseAuthException e) {
                         System.out.println("Online authentication failed: " + e.getMessage());
+                        e.printStackTrace();
                         // Continue to offline authentication
                     }
                 }
@@ -153,6 +154,47 @@ public class HybridAuthManager {
                 
             } catch (Exception e) {
                 return new RegistrationResult(null, false, "Registration error: " + e.getMessage());
+            }
+        }, executor);
+    }
+    
+    /**
+     * Authenticates a user with Google OAuth.
+     * Only works in online mode.
+     * 
+     * @param googleToken The Google OAuth token
+     * @return AuthenticationResult containing the profile and authentication mode
+     */
+    public CompletableFuture<AuthenticationResult> authenticateWithGoogle(String googleToken) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Google authentication only works online
+                if (!isOnlineAvailable()) {
+                    return new AuthenticationResult(null, false, "Google authentication requires internet connection");
+                }
+                
+                try {
+                    PlayerProfile onlineProfile = supabaseAuth.authenticateWithGoogle(googleToken);
+                    if (onlineProfile != null) {
+                        this.currentProfile = onlineProfile;
+                        this.isOnlineMode = true;
+                        this.isAuthenticated = true;
+                        
+                        // Sync profile to offline storage for fallback
+                        syncProfileToOffline(onlineProfile);
+                        
+                        return new AuthenticationResult(onlineProfile, true, "Google authentication successful");
+                    }
+                } catch (SupabaseAuthService.SupabaseAuthException e) {
+                    System.out.println("Google authentication failed: " + e.getMessage());
+                    e.printStackTrace();
+                    return new AuthenticationResult(null, false, "Google authentication failed: " + e.getMessage());
+                }
+                
+                return new AuthenticationResult(null, false, "Google authentication failed");
+                
+            } catch (Exception e) {
+                return new AuthenticationResult(null, false, "Google authentication error: " + e.getMessage());
             }
         }, executor);
     }

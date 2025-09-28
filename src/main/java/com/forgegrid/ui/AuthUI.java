@@ -5,6 +5,7 @@ import com.forgegrid.managers.HybridAuthManager;
 import com.forgegrid.managers.UserManager;
 import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.model.User;
+import com.forgegrid.services.GoogleOAuthService;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,11 +18,11 @@ public class AuthUI extends JFrame {
     private JTextField nameField;
     private JButton loginButton;
     private JButton signupButton;
-    private JButton exitButton;
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private UserManager userManager;
     private HybridAuthManager hybridAuthManager;
+    private GoogleOAuthService googleOAuthService;
     private JLabel statusLabel;
     private LoadingScreen loadingScreen;
     private boolean isOnlineMode;
@@ -30,6 +31,7 @@ public class AuthUI extends JFrame {
     public AuthUI() {
         this.userManager = UserManager.getInstance();
         this.config = AppConfig.getInstance();
+        this.googleOAuthService = new GoogleOAuthService();
         this.isOnlineMode = false;
         initializeUI();
     }
@@ -168,12 +170,12 @@ panel.add(mainTagline);
         
         loginButton = createGradientButton("Login", new Color(138, 43, 226), new Color(168, 85, 247));
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", Color.WHITE, Color.BLACK);
-        exitButton = createGradientButton("Exit", new Color(239, 68, 68), new Color(220, 38, 127));
+        JButton googleSignInButton = createGoogleSignInButton();
         
         // Add action listeners
         loginButton.addActionListener(e -> handleLogin());
         switchToSignupButton.addActionListener(e -> cardLayout.show(cardPanel, "SIGNUP"));
-        exitButton.addActionListener(e -> System.exit(0));
+        googleSignInButton.addActionListener(e -> handleGoogleSignIn());
         
         // Layout with better spacing
         panel.add(Box.createVerticalGlue());
@@ -204,7 +206,7 @@ panel.add(mainTagline);
         panel.add(Box.createRigidArea(new Dimension(0, 15)));
         panel.add(switchToSignupButton);
         panel.add(Box.createRigidArea(new Dimension(0, 15)));
-        panel.add(exitButton);
+        panel.add(googleSignInButton);
         panel.add(Box.createVerticalGlue());
         
         return panel;
@@ -734,6 +736,80 @@ panel.add(mainTagline);
         
         return button;
     }
+    
+    private JButton createGoogleSignInButton() {
+        JButton button = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                
+                // Google-style button with white background and blue text
+                g2d.setColor(Color.WHITE);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                
+                // Border
+                g2d.setColor(new Color(218, 220, 224));
+                g2d.setStroke(new BasicStroke(1));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+                
+                // Google logo (simplified)
+                drawGoogleLogo(g2d);
+                
+                // Text
+                g2d.setColor(new Color(60, 64, 67));
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = (getWidth() - fm.stringWidth("Sign in with Google")) / 2;
+                int textY = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                g2d.drawString("Sign in with Google", textX, textY);
+                
+                g2d.dispose();
+            }
+            
+            private void drawGoogleLogo(Graphics2D g2d) {
+                int logoSize = 20;
+                int logoX = 15;
+                int logoY = (getHeight() - logoSize) / 2;
+                
+                // Draw simplified Google logo (G)
+                g2d.setColor(new Color(66, 133, 244)); // Google Blue
+                g2d.fillOval(logoX, logoY, logoSize, logoSize);
+                
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Arial", Font.BOLD, 12));
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = logoX + (logoSize - fm.stringWidth("G")) / 2;
+                int textY = logoY + (logoSize + fm.getAscent()) / 2;
+                g2d.drawString("G", textX, textY);
+            }
+        };
+        
+        // Calculate proportional scaling based on current frame size
+        double scale = calculateProportionalScale();
+        int buttonWidth = (int) (520 * scale);
+        int buttonHeight = (int) (70 * scale);
+        
+        // Ensure minimum sizes
+        buttonWidth = Math.max(250, buttonWidth);
+        buttonHeight = Math.max(50, buttonHeight);
+        
+        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        button.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        button.setForeground(new Color(60, 64, 67));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add subtle hover effect
+        addButtonHoverEffect(button);
+        
+        return button;
+    }
 
     private class GradientPanel extends JPanel {
         @Override
@@ -883,6 +959,87 @@ panel.add(mainTagline);
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
                 JOptionPane.showMessageDialog(this, "Authentication error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            });
+            return null;
+        });
+    }
+    
+    private void handleGoogleSignIn() {
+        // Show loading dialog
+        JDialog loadingDialog = new JDialog(this, "Google Sign-In", true);
+        loadingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        loadingDialog.setSize(300, 150);
+        loadingDialog.setLocationRelativeTo(this);
+        
+        JPanel loadingPanel = new JPanel(new BorderLayout());
+        JLabel loadingLabel = new JLabel("Authenticating with Google...", JLabel.CENTER);
+        loadingLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        
+        JProgressBar progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+        
+        loadingPanel.add(loadingLabel, BorderLayout.CENTER);
+        loadingPanel.add(progressBar, BorderLayout.SOUTH);
+        loadingDialog.add(loadingPanel);
+        
+        // Show loading dialog
+        SwingUtilities.invokeLater(() -> loadingDialog.setVisible(true));
+        
+        // Start Google OAuth flow with local server
+        CompletableFuture<String> googleTokenFuture = googleOAuthService.authenticateWithGoogle()
+            .whenComplete((token, throwable) -> {
+                // Ensure the loading dialog is always closed
+                SwingUtilities.invokeLater(loadingDialog::dispose);
+            });
+        
+        googleTokenFuture.thenAccept(googleToken -> {
+            SwingUtilities.invokeLater(() -> {
+                // Now authenticate with Supabase using the Google token
+                CompletableFuture<HybridAuthManager.AuthenticationResult> authFuture = 
+                    hybridAuthManager.authenticateWithGoogle(googleToken);
+                
+                authFuture.thenAccept(result -> {
+                    SwingUtilities.invokeLater(() -> {
+                        if (result.isSuccess()) {
+                            JOptionPane.showMessageDialog(this, 
+                                "🎉 Welcome to ForgeGrid!\n\n" +
+                                "Successfully signed in with Google\n" +
+                                "User: " + result.getProfile().getUsername() + "\n" +
+                                "Email: " + result.getProfile().getEmail() + "\n" +
+                                "Mode: " + (result.isOnline() ? "Online (Supabase)" : "Offline"),
+                                "Sign-In Successful", JOptionPane.INFORMATION_MESSAGE);
+                            
+                            // TODO: Proceed to main application
+                        } else {
+                            JOptionPane.showMessageDialog(this, 
+                                "❌ Google Sign-In failed: " + result.getMessage(),
+                                "Sign-In Failed", JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
+                }).exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(this, 
+                            "❌ Google Sign-In error: " + throwable.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    });
+                    return null;
+                });
+            });
+        }).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                String errorMessage = throwable.getMessage();
+                if (errorMessage == null || errorMessage.isEmpty()) {
+                    errorMessage = "Unknown error occurred";
+                }
+                
+                JOptionPane.showMessageDialog(this, 
+                    "❌ Google OAuth failed: " + errorMessage + "\n\n" +
+                    "Troubleshooting steps:\n" +
+                    "1. Make sure you have configured Google OAuth credentials\n" +
+                    "2. Add 'http://localhost:8080/callback' to Authorized Redirect URIs in Google Cloud Console\n" +
+                    "3. Enable Google Sign-In in Supabase Authentication providers\n" +
+                    "4. Check console logs for detailed error information",
+                    "OAuth Error", JOptionPane.ERROR_MESSAGE);
             });
             return null;
         });
@@ -1076,12 +1233,7 @@ panel.add(mainTagline);
             signupButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
         }
         
-        if (exitButton != null) {
-            Dimension buttonSize = new Dimension(fieldWidth, buttonHeight);
-            exitButton.setMaximumSize(buttonSize);
-            exitButton.setPreferredSize(buttonSize);
-            exitButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
-        }
+        // Google Sign-In button is handled in updateAllButtonSizes method
         
         // Update all other buttons in the panels
         updateAllButtonSizes(fieldWidth, buttonHeight, glassButtonHeight, buttonFontSize, glassButtonFontSize);
@@ -1112,7 +1264,7 @@ panel.add(mainTagline);
                 String text = button.getText();
                 
                 // Determine button type and apply appropriate sizing
-                if (text.contains("Sign Up") || text.contains("Login") || text.contains("Exit")) {
+                if (text.contains("Sign Up") || text.contains("Login") || text.contains("Sign in with Google")) {
                     button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
                     button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
                     button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));

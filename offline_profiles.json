@@ -1,6 +1,28 @@
 {
   "profiles": [
     {
+      "username": "pranavsanthoshnair",
+      "email": "pranavsanthoshnair@gmail.com",
+      "full_name": "Pranav S Nair",
+      "score": 0,
+      "level": 1,
+      "achievements": "[]",
+      "last_login": "2025-09-28T21:30:52.1371936",
+      "created_at": "2025-09-28T21:30:52.1371936",
+      "updated_at": "2025-09-28T21:30:52.1371936"
+    },
+    {
+      "username": "testuser",
+      "email": "testuser@example.com",
+      "full_name": "Test User",
+      "score": 0,
+      "level": 1,
+      "achievements": "[]",
+      "last_login": "2025-09-28T18:35:56.3478053",
+      "created_at": "2025-09-28T18:35:54.0242026",
+      "updated_at": "2025-09-28T18:35:56.3478053"
+    },
+    {
       "username": "makima",
       "email": "makima@gmail.com",
       "full_name": "kittu",
@@ -12,5 +34,5 @@
       "updated_at": "2025-09-28T12:12:56.61933"
     }
   ],
-  "last_updated": "2025-09-28T12:12:56.6215095"
+  "last_updated": "2025-09-28T21:30:52.2404501"
 }
