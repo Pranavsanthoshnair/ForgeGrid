@@ -124,7 +124,7 @@ public class AuthUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
         
         // Modern tagline with enhanced styling
-        JLabel mainTagline = new JLabel("Where coding challenges become milestones");
+        JLabel mainTagline = new JLabel("ForgeGrid – Where coding challenges become milestones.");
         mainTagline.setFont(new Font("Segoe UI", Font.ITALIC, 20));
         mainTagline.setForeground(new Color(255, 215, 0)); // Golden yellow
         mainTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -361,6 +361,7 @@ panel.add(mainTagline);
     private JPasswordField createModernPasswordField(String placeholder) {
         JPasswordField field = new JPasswordField() {
             private boolean isFocused = false;
+            private boolean isHoveringEye = false;
             
             @Override
             protected void paintComponent(Graphics g) {
@@ -385,33 +386,63 @@ panel.add(mainTagline);
                 g2d.setColor(new Color(255, 255, 255, 10));
                 g2d.fillRoundRect(1, 1, getWidth() - 2, 3, 15, 15);
                 
-                // Draw eye icon
+                // Draw eye icon with hover effect
                 drawEyeIcon(g2d);
+                
+                // Add hover effect for eye icon
+                Boolean hoveringEye = (Boolean) getClientProperty("isHoveringEye");
+                if (Boolean.TRUE.equals(hoveringEye)) {
+                    int eyeX = getWidth() - 40;
+                    int eyeY = (getHeight() - 16) / 2;
+                    g2d.setColor(new Color(255, 215, 0, 20));
+                    g2d.fillOval(eyeX - 5, eyeY - 5, 30, 26);
+                }
                 
                 g2d.dispose();
                 super.paintComponent(g);
             }
             
             private void drawEyeIcon(Graphics2D g2d) {
-                int eyeX = getWidth() - 35;
-                int eyeY = (getHeight() - 12) / 2;
+                int eyeX = getWidth() - 40;
+                int eyeY = (getHeight() - 16) / 2;
                 
-                g2d.setColor(new Color(255, 255, 255, 90));
-                g2d.setStroke(new BasicStroke(1.5f));
+                // More realistic eye icon
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 Boolean showPasswordProperty = (Boolean) getClientProperty("showPassword");
                 boolean showPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
+                
                 if (showPassword) {
-                    // Open eye - smaller and more realistic
-                    g2d.drawOval(eyeX, eyeY, 18, 12); // Eye outline
-                    g2d.fillOval(eyeX + 4, eyeY + 3, 10, 6); // Pupil
-                    g2d.setColor(new Color(255, 255, 255, 120));
-                    g2d.fillOval(eyeX + 6, eyeY + 4, 2, 2); // Eye highlight
+                    // Open eye - more realistic with proper shading
+                    g2d.setColor(new Color(255, 255, 255, 200)); // White eye
+                    g2d.fillOval(eyeX, eyeY, 20, 16); // Eye white
+                    
+                    g2d.setColor(new Color(50, 50, 50)); // Dark pupil
+                    g2d.fillOval(eyeX + 6, eyeY + 4, 8, 8); // Pupil
+                    
+                    g2d.setColor(new Color(255, 255, 255, 150)); // Highlight
+                    g2d.fillOval(eyeX + 7, eyeY + 5, 3, 3); // Eye highlight
+                    
+                    g2d.setColor(new Color(200, 200, 200, 100)); // Eyelid shadow
+                    g2d.setStroke(new BasicStroke(1.5f));
+                    g2d.drawArc(eyeX + 1, eyeY + 1, 18, 14, 0, 180); // Top eyelid
+                    
                 } else {
-                    // Closed eye - simple line across
-                    g2d.drawOval(eyeX, eyeY, 18, 12); // Eye outline
-                    g2d.setStroke(new BasicStroke(2));
-                    g2d.drawLine(eyeX + 2, eyeY + 6, eyeX + 16, eyeY + 6); // Horizontal line
+                    // Closed eye - more realistic with eyelashes
+                    g2d.setColor(new Color(255, 255, 255, 200)); // White eye
+                    g2d.fillOval(eyeX, eyeY, 20, 16); // Eye white
+                    
+                    g2d.setColor(new Color(100, 100, 100)); // Dark eyelid
+                    g2d.setStroke(new BasicStroke(2.5f));
+                    g2d.drawArc(eyeX + 2, eyeY + 2, 16, 12, 0, 180); // Closed eyelid
+                    
+                    // Add eyelashes for more realism
+                    g2d.setColor(new Color(80, 80, 80));
+                    g2d.setStroke(new BasicStroke(1.2f));
+                    for (int i = 0; i < 5; i++) {
+                        int lashX = eyeX + 4 + (i * 3);
+                        g2d.drawLine(lashX, eyeY + 8, lashX + 1, eyeY + 6);
+                    }
                 }
             }
             
@@ -457,12 +488,16 @@ panel.add(mainTagline);
         // Placeholder behavior
         field.putClientProperty("placeholderActive", Boolean.TRUE);
         
-        // Add click listener for eye icon
+        // Add click listener for eye icon with cursor changes
         field.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                int eyeX = field.getWidth() - 35;
-                if (e.getX() >= eyeX && e.getX() <= eyeX + 18) {
+                int eyeX = field.getWidth() - 40;
+                int eyeY = (field.getHeight() - 16) / 2;
+                // Larger click area for better usability
+                if (e.getX() >= eyeX - 5 && e.getX() <= eyeX + 25 && 
+                    e.getY() >= eyeY - 5 && e.getY() <= eyeY + 21) {
+                    
                     // Add micro-animation for eye icon click
                     addEyeIconAnimation(field);
                     
@@ -473,6 +508,34 @@ panel.add(mainTagline);
                     
                     field.putClientProperty("showPassword", newShowPassword);
                     field.setEchoChar(newShowPassword ? (char) 0 : '•');
+                    field.repaint();
+                }
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                // Reset cursor when mouse leaves the field
+                field.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+            }
+        });
+        
+        // Add separate mouse motion listener for cursor changes
+        field.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(java.awt.event.MouseEvent e) {
+                int eyeX = field.getWidth() - 40;
+                int eyeY = (field.getHeight() - 16) / 2;
+                // Change cursor when hovering over eye icon
+                if (e.getX() >= eyeX - 5 && e.getX() <= eyeX + 25 && 
+                    e.getY() >= eyeY - 5 && e.getY() <= eyeY + 21) {
+                    field.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                    // Set hover state for visual feedback
+                    field.putClientProperty("isHoveringEye", Boolean.TRUE);
+                    field.repaint();
+                } else {
+                    field.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+                    // Clear hover state
+                    field.putClientProperty("isHoveringEye", Boolean.FALSE);
                     field.repaint();
                 }
             }
@@ -1490,10 +1553,17 @@ panel.add(mainTagline);
             SwingUtilities.invokeLater(() -> {
                 this.isOnlineMode = online;
                 
-                // Wait a moment then show auth screen
-                Timer showAuthTimer = new Timer(2000, e -> {
-                    cardLayout.show(cardPanel, "LOGIN");
-                    updateStatusIndicator();
+                // Keep splash visible for ~5s then fade out and show auth screen
+                Timer showAuthTimer = new Timer(5000, e -> {
+                    if (loadingScreen != null) {
+                        loadingScreen.startFadeOut(() -> {
+                            cardLayout.show(cardPanel, "LOGIN");
+                            updateStatusIndicator();
+                        });
+                    } else {
+                        cardLayout.show(cardPanel, "LOGIN");
+                        updateStatusIndicator();
+                    }
                 });
                 showAuthTimer.setRepeats(false);
                 showAuthTimer.start();
@@ -1502,10 +1572,17 @@ panel.add(mainTagline);
             SwingUtilities.invokeLater(() -> {
                 this.isOnlineMode = false;
                 
-                // Wait a moment then show auth screen
-                Timer showAuthTimer = new Timer(2000, e -> {
-                    cardLayout.show(cardPanel, "LOGIN");
-                    updateStatusIndicator();
+                // Keep splash visible for ~5s then fade out and show auth screen
+                Timer showAuthTimer = new Timer(5000, e -> {
+                    if (loadingScreen != null) {
+                        loadingScreen.startFadeOut(() -> {
+                            cardLayout.show(cardPanel, "LOGIN");
+                            updateStatusIndicator();
+                        });
+                    } else {
+                        cardLayout.show(cardPanel, "LOGIN");
+                        updateStatusIndicator();
+                    }
                 });
                 showAuthTimer.setRepeats(false);
                 showAuthTimer.start();
