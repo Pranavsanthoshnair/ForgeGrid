@@ -1,6 +1,8 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.managers.GameManager;
+import com.forgegrid.managers.UserManager;
+import com.forgegrid.model.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,9 +18,11 @@ public class AuthUI extends JFrame {
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private GameManager gameManager;
+    private UserManager userManager;
     
     public AuthUI() {
         this.gameManager = GameManager.getInstance();
+        this.userManager = UserManager.getInstance();
         initializeUI();
     }
     
@@ -755,19 +759,39 @@ panel.add(mainTagline);
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
         
+        // Check if fields are empty or contain placeholder text
         if (email.isEmpty() || password.isEmpty() || email.equals("Email") || email.equals("Username") || password.equals("Password")) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        // Placeholder for actual authentication
-        boolean loginSuccess = true; // Replace with actual authentication
-        
-        if (loginSuccess) {
-            JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            // Proceed to main application
-        } else {
-            JOptionPane.showMessageDialog(this, "Invalid email or password.", "Error", JOptionPane.ERROR_MESSAGE);
+        try {
+            // Authenticate user using email (since the field is labeled as email)
+            User authenticatedUser = userManager.authenticateUserByEmail(email, password);
+            
+            if (authenticatedUser != null) {
+                JOptionPane.showMessageDialog(this, 
+                    "Login successful!\nWelcome back, " + authenticatedUser.getFullName() + "!", 
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Clear the password field for security
+                passwordField.setText("");
+                passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
+                passwordField.setForeground(new Color(200, 200, 220));
+                passwordField.setEchoChar((char) 0);
+                passwordField.setText("Password");
+                
+                // TODO: Proceed to main application
+                // For now, we'll just show success message
+                
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid email or password.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Login error: " + e.getMessage());
         }
     }
     
@@ -776,29 +800,53 @@ panel.add(mainTagline);
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
         
+        // Check if fields are empty or contain placeholder text
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || 
             name.equals("Full Name") || email.equals("Email") || password.equals("Password")) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        if (password.length() < 6) {
-            JOptionPane.showMessageDialog(this, "Password must be at least 6 characters long.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        // Placeholder for actual registration
-        boolean registrationSuccess = true; // Replace with actual registration
-        
-        if (registrationSuccess) {
-            JOptionPane.showMessageDialog(this, "Account created successfully! Please login.", "Success", JOptionPane.INFORMATION_MESSAGE);
-            cardLayout.show(cardPanel, "LOGIN");
-            // Clear signup fields
-            nameField.setText("");
-            emailField.setText("");
-            passwordField.setText("");
-        } else {
-            JOptionPane.showMessageDialog(this, "An account with this email already exists.", "Error", JOptionPane.ERROR_MESSAGE);
+        try {
+            // Generate username from email (part before @)
+            String username = email.split("@")[0];
+            
+            // Register the new user
+            boolean registrationSuccess = userManager.registerUser(username, password, email, name);
+            
+            if (registrationSuccess) {
+                JOptionPane.showMessageDialog(this, 
+                    "Account created successfully!\nWelcome to ForgeGrid, " + name + "!\nPlease login with your credentials.", 
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Switch to login panel
+                cardLayout.show(cardPanel, "LOGIN");
+                
+                // Clear signup fields
+                nameField.setText("");
+                nameField.putClientProperty("placeholderActive", Boolean.TRUE);
+                nameField.setForeground(new Color(200, 200, 220));
+                nameField.setText("Full Name");
+                
+                emailField.setText("");
+                emailField.putClientProperty("placeholderActive", Boolean.TRUE);
+                emailField.setForeground(new Color(200, 200, 220));
+                emailField.setText("Email");
+                
+                passwordField.setText("");
+                passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
+                passwordField.setForeground(new Color(200, 200, 220));
+                passwordField.setEchoChar((char) 0);
+                passwordField.setText("Password");
+                
+            } else {
+                JOptionPane.showMessageDialog(this, "An account with this username already exists.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Registration error: " + e.getMessage());
         }
     }
     

@@ -3,6 +3,7 @@ com\forgegrid\ui\AuthUI$11.class
 com\forgegrid\ui\AuthUI$GradientPanel.class
 com\forgegrid\ui\AuthUI$GradientTextLabel.class
 com\forgegrid\utils\AnimationUtils$5.class
+com\forgegrid\model\User.class
 com\forgegrid\ui\AuthUI$1.class
 com\forgegrid\ui\AuthUI$6.class
 com\forgegrid\ui\AuthUI$GamingControllerLogo.class
@@ -27,11 +28,14 @@ com\forgegrid\utils\AnimationUtils.class
 com\forgegrid\ui\AuthUI$12.class
 com\forgegrid\ui\AuthUI$15.class
 com\forgegrid\ui\AuthUI$5$1.class
+com\forgegrid\utils\PasswordUtils.class
+com\forgegrid\demo\AuthDemo.class
 com\forgegrid\utils\AnimationUtils$4.class
 com\forgegrid\ui\AuthUI$12$2.class
 com\forgegrid\ui\AuthUI$13.class
 com\forgegrid\ui\AuthUI$13$2.class
 com\forgegrid\ui\AuthUI$3.class
+com\forgegrid\managers\UserManager.class
 com\forgegrid\managers\GameManager.class
 com\forgegrid\ui\AuthUI$12$4.class
 com\forgegrid\utils\AnimationUtils$2.class
