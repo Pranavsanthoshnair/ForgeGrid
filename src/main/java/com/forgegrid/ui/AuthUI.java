@@ -1,8 +1,11 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.managers.GameManager;
+import com.forgegrid.utils.AnimationUtils;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class AuthUI extends JFrame {
     private JTextField emailField;
@@ -37,6 +40,22 @@ public class AuthUI extends JFrame {
         setMinimumSize(new Dimension(600, 700)); // Prevent components from disappearing
         setLocationRelativeTo(null);
         setResizable(true);
+        
+        // Set the window icon to your custom logo
+        try {
+            java.net.URL iconUrl = getClass().getResource("/com/forgegrid/icon/logo.jpg");
+            if (iconUrl == null) {
+                iconUrl = getClass().getResource("/com/forgegrid/icon/logo.png");
+            }
+            if (iconUrl != null) {
+                ImageIcon icon = new ImageIcon(iconUrl);
+                // Scale the icon to a smaller size for the title bar
+                Image iconImage = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+                setIconImage(iconImage);
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading window icon: " + e.getMessage());
+        }
         
         // Set modern look and feel
         try {
@@ -355,6 +374,9 @@ panel.add(mainTagline);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         
+        // Add subtle hover effect
+        addButtonHoverEffect(button);
+        
         return button;
     }
     
@@ -401,6 +423,9 @@ panel.add(mainTagline);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         
+        // Add subtle hover effect
+        addButtonHoverEffect(button);
+        
         return button;
     }
 
@@ -441,6 +466,10 @@ panel.add(mainTagline);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add subtle hover effect
+        addButtonHoverEffect(button);
+        
         return button;
     }
 
@@ -566,10 +595,13 @@ panel.add(mainTagline);
         try {
             // Try to load the logo from resources (try .jpg first, then .png)
             java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo.jpg");
+            System.out.println("Logo URL: " + logoUrl); // Debug output
             if (logoUrl == null) {
                 logoUrl = getClass().getResource("/com/forgegrid/icon/logo.png");
+                System.out.println("PNG Logo URL: " + logoUrl); // Debug output
             }
             if (logoUrl != null) {
+                System.out.println("Logo found! Loading..."); // Debug output
                 ImageIcon logoIcon = new ImageIcon(logoUrl);
                 Image logoImage = logoIcon.getImage();
                 
@@ -729,6 +761,60 @@ panel.add(mainTagline);
                                    buttonFontSize, glassButtonFontSize);
             }
         }
+    }
+    
+    
+    private void addButtonHoverEffect(JButton button) {
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            private Timer hoverTimer;
+            private float scale = 1.0f;
+            
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (hoverTimer != null) hoverTimer.stop();
+                
+                hoverTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
+                        
+                        scale = 1.0f + (progress * 0.05f); // 5% scale increase
+                        button.repaint();
+                        
+                        if (progress >= 1.0f) {
+                            hoverTimer.stop();
+                        }
+                    }
+                });
+                hoverTimer.start();
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (hoverTimer != null) hoverTimer.stop();
+                
+                hoverTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
+                        
+                        scale = 1.05f - (progress * 0.05f); // Return to normal scale
+                        button.repaint();
+                        
+                        if (progress >= 1.0f) {
+                            hoverTimer.stop();
+                        }
+                    }
+                });
+                hoverTimer.start();
+            }
+        });
     }
     
     private void applyCustomStyling() {
