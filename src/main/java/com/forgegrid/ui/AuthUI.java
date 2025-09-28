@@ -1,12 +1,15 @@
 package com.forgegrid.ui;
 
-import com.forgegrid.managers.GameManager;
+import com.forgegrid.config.AppConfig;
+import com.forgegrid.managers.HybridAuthManager;
 import com.forgegrid.managers.UserManager;
+import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.model.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.concurrent.CompletableFuture;
 
 public class AuthUI extends JFrame {
     private JTextField emailField;
@@ -17,12 +20,17 @@ public class AuthUI extends JFrame {
     private JButton exitButton;
     private JPanel cardPanel;
     private CardLayout cardLayout;
-    private GameManager gameManager;
     private UserManager userManager;
+    private HybridAuthManager hybridAuthManager;
+    private JLabel statusLabel;
+    private LoadingScreen loadingScreen;
+    private boolean isOnlineMode;
+    private AppConfig config;
     
     public AuthUI() {
-        this.gameManager = GameManager.getInstance();
         this.userManager = UserManager.getInstance();
+        this.config = AppConfig.getInstance();
+        this.isOnlineMode = false;
         initializeUI();
     }
     
@@ -70,6 +78,13 @@ public class AuthUI extends JFrame {
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         
+        // Create loading screen first
+        loadingScreen = new LoadingScreen();
+        cardPanel.add(loadingScreen, "LOADING");
+        
+        // Create status indicator
+        createStatusIndicator();
+        
         // Create login and signup panels
         JPanel loginPanel = createLoginPanel();
         JPanel signupPanel = createSignupPanel();
@@ -78,6 +93,10 @@ public class AuthUI extends JFrame {
         cardPanel.add(signupPanel, "SIGNUP");
         
         add(cardPanel);
+        
+        // Show loading screen and initialize authentication
+        cardLayout.show(cardPanel, "LOADING");
+        initializeAuthentication();
         
         // Add component listener to handle window resizing
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -765,34 +784,45 @@ panel.add(mainTagline);
             return;
         }
         
-        try {
-            // Authenticate user using email (since the field is labeled as email)
-            User authenticatedUser = userManager.authenticateUserByEmail(email, password);
-            
-            if (authenticatedUser != null) {
-                JOptionPane.showMessageDialog(this, 
-                    "Login successful!\nWelcome back, " + authenticatedUser.getFullName() + "!", 
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Show loading state
+        loginButton.setEnabled(false);
+        loginButton.setText("Authenticating...");
+        
+        // Use hybrid authentication
+        CompletableFuture<HybridAuthManager.AuthenticationResult> future = 
+            hybridAuthManager.authenticateUser(email, password);
+        
+        future.thenAccept(result -> {
+            SwingUtilities.invokeLater(() -> {
+                loginButton.setEnabled(true);
+                loginButton.setText("Login");
                 
-                // Clear the password field for security
-                passwordField.setText("");
-                passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
-                passwordField.setForeground(new Color(200, 200, 220));
-                passwordField.setEchoChar((char) 0);
-                passwordField.setText("Password");
-                
-                // TODO: Proceed to main application
-                // For now, we'll just show success message
-                
-            } else {
-                JOptionPane.showMessageDialog(this, "Invalid email or password.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "An unexpected error occurred. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Login error: " + e.getMessage());
-        }
+                if (result.isSuccess()) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Login successful!\nWelcome back, " + result.getProfile().getUsername() + "!", 
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Clear the password field for security
+                    passwordField.setText("");
+                    passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
+                    passwordField.setForeground(new Color(200, 200, 220));
+                    passwordField.setEchoChar((char) 0);
+                    passwordField.setText("Password");
+                    
+                    // TODO: Proceed to main application
+                    // For now, we'll just show success message
+        } else {
+                    JOptionPane.showMessageDialog(this, result.getMessage(), "Login Failed", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                loginButton.setEnabled(true);
+                loginButton.setText("Login");
+                JOptionPane.showMessageDialog(this, "Authentication error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            });
+            return null;
+        });
     }
     
     private void handleSignup(JTextField emailField, JPasswordField passwordField) {
@@ -807,47 +837,58 @@ panel.add(mainTagline);
             return;
         }
         
-        try {
-            // Generate username from email (part before @)
-            String username = email.split("@")[0];
-            
-            // Register the new user
-            boolean registrationSuccess = userManager.registerUser(username, password, email, name);
-            
-            if (registrationSuccess) {
-                JOptionPane.showMessageDialog(this, 
-                    "Account created successfully!\nWelcome to ForgeGrid, " + name + "!\nPlease login with your credentials.", 
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Show loading state
+        signupButton.setEnabled(false);
+        signupButton.setText("Creating Account...");
+        
+        // Generate username from email (part before @)
+        String username = email.split("@")[0];
+        
+        // Use hybrid authentication for registration
+        CompletableFuture<HybridAuthManager.RegistrationResult> future = 
+            hybridAuthManager.registerUser(username, email, password, name);
+        
+        future.thenAccept(result -> {
+            SwingUtilities.invokeLater(() -> {
+                signupButton.setEnabled(true);
+                signupButton.setText("Sign Up");
                 
-                // Switch to login panel
-                cardLayout.show(cardPanel, "LOGIN");
-                
-                // Clear signup fields
-                nameField.setText("");
-                nameField.putClientProperty("placeholderActive", Boolean.TRUE);
-                nameField.setForeground(new Color(200, 200, 220));
-                nameField.setText("Full Name");
-                
-                emailField.setText("");
-                emailField.putClientProperty("placeholderActive", Boolean.TRUE);
-                emailField.setForeground(new Color(200, 200, 220));
-                emailField.setText("Email");
-                
-                passwordField.setText("");
-                passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
-                passwordField.setForeground(new Color(200, 200, 220));
-                passwordField.setEchoChar((char) 0);
-                passwordField.setText("Password");
-                
-            } else {
-                JOptionPane.showMessageDialog(this, "An account with this username already exists.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "An unexpected error occurred. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Registration error: " + e.getMessage());
-        }
+                if (result.isSuccess()) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Account created successfully!\nWelcome to ForgeGrid, " + name + "!\nPlease login with your credentials.", 
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Switch to login panel
+            cardLayout.show(cardPanel, "LOGIN");
+                    
+            // Clear signup fields
+            nameField.setText("");
+                    nameField.putClientProperty("placeholderActive", Boolean.TRUE);
+                    nameField.setForeground(new Color(200, 200, 220));
+                    nameField.setText("Full Name");
+                    
+            emailField.setText("");
+                    emailField.putClientProperty("placeholderActive", Boolean.TRUE);
+                    emailField.setForeground(new Color(200, 200, 220));
+                    emailField.setText("Email");
+                    
+            passwordField.setText("");
+                    passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
+                    passwordField.setForeground(new Color(200, 200, 220));
+                    passwordField.setEchoChar((char) 0);
+                    passwordField.setText("Password");
+        } else {
+                    JOptionPane.showMessageDialog(this, result.getMessage(), "Registration Failed", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                signupButton.setEnabled(true);
+                signupButton.setText("Sign Up");
+                JOptionPane.showMessageDialog(this, "Registration error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            });
+            return null;
+        });
     }
     
     private JPanel createLogoPanel() {
@@ -1034,13 +1075,9 @@ panel.add(mainTagline);
     private void addButtonHoverEffect(JButton button) {
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             private Timer hoverTimer;
-            private float scale = 1.0f;
-            private float shadowOpacity = 0.0f;
-            private boolean isHovered = false;
             
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                isHovered = true;
                 if (hoverTimer != null) hoverTimer.stop();
                 
                 hoverTimer = new Timer(16, new ActionListener() {
@@ -1051,11 +1088,7 @@ panel.add(mainTagline);
                         elapsed += 16;
                         float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
                         
-                        // Smooth ease-out function
-                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                        
-                        scale = 1.0f + (easedProgress * 0.03f); // 3% scale increase
-                        shadowOpacity = easedProgress * 0.3f; // Soft shadow
+                        // Apply hover effect (scale and shadow)
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -1068,7 +1101,6 @@ panel.add(mainTagline);
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                isHovered = false;
                 if (hoverTimer != null) hoverTimer.stop();
                 
                 hoverTimer = new Timer(16, new ActionListener() {
@@ -1079,11 +1111,7 @@ panel.add(mainTagline);
                         elapsed += 16;
                         float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
                         
-                        // Smooth ease-out function
-                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                        
-                        scale = 1.03f - (easedProgress * 0.03f); // Return to normal scale
-                        shadowOpacity = 0.3f - (easedProgress * 0.3f); // Remove shadow
+                        // Return to normal state
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -1105,7 +1133,7 @@ panel.add(mainTagline);
                         elapsed += 16;
                         float progress = Math.min(1.0f, (float) elapsed / 100); // 100ms press animation
                         
-                        scale = 1.03f - (progress * 0.05f); // Press down to 0.98f
+                        // Apply press effect
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -1127,7 +1155,7 @@ panel.add(mainTagline);
                         elapsed += 16;
                         float progress = Math.min(1.0f, (float) elapsed / 100); // 100ms release animation
                         
-                        scale = 0.98f + (progress * 0.05f); // Return to hover state
+                        // Return to hover state
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -1255,34 +1283,6 @@ panel.add(mainTagline);
         eyeTimer.start();
     }
     
-    /**
-     * Smooth focus animation for text fields
-     * Animates border color transition when gaining/losing focus
-     */
-    private void addFocusAnimation(Component component, boolean focused) {
-        Timer focusTimer = new Timer(16, new ActionListener() {
-            private int elapsed = 0;
-            private final int duration = 200; // 200ms animation
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                elapsed += 16;
-                float progress = Math.min(1.0f, (float) elapsed / duration);
-                
-                // Smooth ease-out function
-                float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                
-                // Trigger repaint to update border color
-                component.repaint();
-                
-                if (progress >= 1.0f) {
-                    ((Timer) e.getSource()).stop();
-                }
-            }
-        });
-        
-        focusTimer.start();
-    }
     
     /**
      * Professional entrance animation - fade in and slide up
@@ -1470,6 +1470,106 @@ panel.add(mainTagline);
             g2d.drawOval(startX + spacing * 3, y, symbolSize, symbolSize);
             g2d.setColor(Color.WHITE);
             g2d.drawString("*", startX + spacing * 3 + 6, y + 14);
+        }
+    }
+    
+    /**
+     * Initialize authentication system and determine online/offline mode
+     */
+    private void initializeAuthentication() {
+        // Initialize hybrid auth manager
+        hybridAuthManager = new HybridAuthManager(
+            config.getSupabaseUrl(), 
+            config.getSupabaseAnonKey()
+        );
+        
+        // Check online status asynchronously
+        CompletableFuture.supplyAsync(() -> {
+            return hybridAuthManager.isOnlineAvailable();
+        }).thenAccept(online -> {
+            SwingUtilities.invokeLater(() -> {
+                this.isOnlineMode = online;
+                
+                // Wait a moment then show auth screen
+                Timer showAuthTimer = new Timer(2000, e -> {
+                    cardLayout.show(cardPanel, "LOGIN");
+                    updateStatusIndicator();
+                });
+                showAuthTimer.setRepeats(false);
+                showAuthTimer.start();
+            });
+        }).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                this.isOnlineMode = false;
+                
+                // Wait a moment then show auth screen
+                Timer showAuthTimer = new Timer(2000, e -> {
+                    cardLayout.show(cardPanel, "LOGIN");
+                    updateStatusIndicator();
+                });
+                showAuthTimer.setRepeats(false);
+                showAuthTimer.start();
+            });
+            return null;
+        });
+    }
+    
+    /**
+     * Update the status indicator based on current mode
+     */
+    private void updateStatusIndicator() {
+        if (statusLabel != null) {
+            if (isOnlineMode) {
+                // Hide status indicator when online
+                statusLabel.setVisible(false);
+            } else {
+                // Show subtle offline indicator
+                statusLabel.setText("💾 Working Offline");
+                statusLabel.setForeground(new Color(255, 152, 0)); // Orange
+                statusLabel.setVisible(true);
+            }
+        }
+    }
+    
+    /**
+     * Creates a status indicator to show online/offline mode
+     */
+    private void createStatusIndicator() {
+        statusLabel = new JLabel("", JLabel.CENTER);
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        statusLabel.setForeground(new Color(255, 152, 0)); // Orange
+        statusLabel.setOpaque(false);
+        statusLabel.setVisible(false); // Hidden by default
+        
+        // Add to the top of the card panel
+        cardPanel.add(statusLabel, "STATUS");
+        
+        // Update status periodically
+        updateConnectionStatus();
+    }
+    
+    /**
+     * Updates the connection status indicator
+     */
+    private void updateConnectionStatus() {
+        // Status is now updated in initializeAuthentication() and updateStatusIndicator()
+        // This method is kept for compatibility but no longer used
+    }
+    
+    /**
+     * Simple method to check if we're online
+     */
+    private boolean checkOnlineStatus() {
+        try {
+            java.net.URL url = new java.net.URL("https://www.google.com");
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+            int responseCode = connection.getResponseCode();
+            return responseCode == 200;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
