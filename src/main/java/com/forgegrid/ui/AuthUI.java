@@ -1,7 +1,6 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.managers.GameManager;
-import com.forgegrid.utils.AnimationUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -86,6 +85,9 @@ public class AuthUI extends JFrame {
         
         // Apply custom styling
         applyCustomStyling();
+        
+        // Add professional entrance animation
+        addProfessionalEntranceAnimation();
     }
     
     private JPanel createLoginPanel() {
@@ -169,16 +171,21 @@ panel.add(mainTagline);
         forgotPasswordLink.setAlignmentX(Component.CENTER_ALIGNMENT);
         forgotPasswordLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Add hover effect for forgot password link
+        // Enhanced hover effect for forgot password link
         forgotPasswordLink.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                forgotPasswordLink.setForeground(new Color(255, 255, 255));
+                forgotPasswordLink.setForeground(new Color(255, 165, 0)); // Orange on hover
             }
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                forgotPasswordLink.setForeground(new Color(255, 215, 0));
+                forgotPasswordLink.setForeground(new Color(255, 215, 0)); // Golden yellow
+            }
+            
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                forgotPasswordLink.setForeground(new Color(255, 140, 0)); // Darker orange on click
             }
         });
         
@@ -249,10 +256,18 @@ panel.add(mainTagline);
     
     private JTextField createModernTextField(String placeholder) {
         JTextField field = new JTextField() {
+            private boolean isFocused = false;
+            
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Focus glow effect
+                if (isFocused) {
+                    g2d.setColor(new Color(255, 215, 0, 30));
+                    g2d.fillRoundRect(-2, -2, getWidth() + 4, getHeight() + 4, 19, 19);
+                }
                 
                 // Neumorphic background
                 g2d.setColor(new Color(25, 35, 55));
@@ -268,6 +283,24 @@ panel.add(mainTagline);
                 
                 g2d.dispose();
                 super.paintComponent(g);
+            }
+            
+            @Override
+            public void setFocusable(boolean focusable) {
+                super.setFocusable(focusable);
+                addFocusListener(new java.awt.event.FocusAdapter() {
+                    @Override
+                    public void focusGained(java.awt.event.FocusEvent e) {
+                        isFocused = true;
+                        repaint();
+                    }
+                    
+                    @Override
+                    public void focusLost(java.awt.event.FocusEvent e) {
+                        isFocused = false;
+                        repaint();
+                    }
+                });
             }
         };
         
@@ -319,10 +352,18 @@ panel.add(mainTagline);
 
     private JPasswordField createModernPasswordField(String placeholder) {
         JPasswordField field = new JPasswordField() {
+            private boolean isFocused = false;
+            
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Focus glow effect
+                if (isFocused) {
+                    g2d.setColor(new Color(255, 215, 0, 30));
+                    g2d.fillRoundRect(-2, -2, getWidth() + 4, getHeight() + 4, 19, 19);
+                }
                 
                 // Neumorphic background
                 g2d.setColor(new Color(25, 35, 55));
@@ -336,8 +377,52 @@ panel.add(mainTagline);
                 g2d.setColor(new Color(255, 255, 255, 10));
                 g2d.fillRoundRect(1, 1, getWidth() - 2, 3, 15, 15);
                 
+                // Draw eye icon
+                drawEyeIcon(g2d);
+                
                 g2d.dispose();
                 super.paintComponent(g);
+            }
+            
+            private void drawEyeIcon(Graphics2D g2d) {
+                int eyeX = getWidth() - 35;
+                int eyeY = (getHeight() - 12) / 2;
+                
+                g2d.setColor(new Color(255, 255, 255, 90));
+                g2d.setStroke(new BasicStroke(1.5f));
+                
+                Boolean showPasswordProperty = (Boolean) getClientProperty("showPassword");
+                boolean showPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
+                if (showPassword) {
+                    // Open eye - smaller and more realistic
+                    g2d.drawOval(eyeX, eyeY, 18, 12); // Eye outline
+                    g2d.fillOval(eyeX + 4, eyeY + 3, 10, 6); // Pupil
+                    g2d.setColor(new Color(255, 255, 255, 120));
+                    g2d.fillOval(eyeX + 6, eyeY + 4, 2, 2); // Eye highlight
+                } else {
+                    // Closed eye - simple line across
+                    g2d.drawOval(eyeX, eyeY, 18, 12); // Eye outline
+                    g2d.setStroke(new BasicStroke(2));
+                    g2d.drawLine(eyeX + 2, eyeY + 6, eyeX + 16, eyeY + 6); // Horizontal line
+                }
+            }
+            
+            @Override
+            public void setFocusable(boolean focusable) {
+                super.setFocusable(focusable);
+                addFocusListener(new java.awt.event.FocusAdapter() {
+                    @Override
+                    public void focusGained(java.awt.event.FocusEvent e) {
+                        isFocused = true;
+                        repaint();
+                    }
+                    
+                    @Override
+                    public void focusLost(java.awt.event.FocusEvent e) {
+                        isFocused = false;
+                        repaint();
+                    }
+                });
             }
         };
         
@@ -359,10 +444,30 @@ panel.add(mainTagline);
         field.setCaretColor(new Color(255, 215, 0));
         field.setOpaque(false);
         field.setText(placeholder);
-        field.setEchoChar((char) 0);
+        field.setEchoChar((char) 0); // Show placeholder text initially
 
         // Placeholder behavior
         field.putClientProperty("placeholderActive", Boolean.TRUE);
+        
+        // Add click listener for eye icon
+        field.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int eyeX = field.getWidth() - 35;
+                if (e.getX() >= eyeX && e.getX() <= eyeX + 18) {
+                    // Toggle password visibility
+                    Boolean showPasswordProperty = (Boolean) field.getClientProperty("showPassword");
+                    boolean currentShowPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
+                    boolean newShowPassword = !currentShowPassword;
+                    
+                    field.putClientProperty("showPassword", newShowPassword);
+                    field.setEchoChar(newShowPassword ? (char) 0 : '•');
+                    field.repaint();
+                }
+            }
+        });
+        
+        // Add key listener for placeholder behavior
         field.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
             public void keyPressed(java.awt.event.KeyEvent e) {
@@ -372,10 +477,11 @@ panel.add(mainTagline);
                     field.setText("");
                     field.putClientProperty("placeholderActive", Boolean.FALSE);
                     field.setForeground(Color.WHITE);
-                    field.setEchoChar('•');
+                    field.setEchoChar('•'); // Always hide password by default
                 }
             }
         });
+        
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
@@ -400,7 +506,7 @@ panel.add(mainTagline);
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
-                // Modern gradient with enhanced colors
+                // Diagonal gradient for login button
                 GradientPaint gradient = new GradientPaint(0, 0, color1, getWidth(), getHeight(), color2);
                 g2d.setPaint(gradient);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
@@ -408,6 +514,10 @@ panel.add(mainTagline);
                 // Add subtle inner glow
                 g2d.setColor(new Color(255, 255, 255, 20));
                 g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() / 2, 18, 18);
+                
+                // Add soft shadow for depth
+                g2d.setColor(new Color(0, 0, 0, 20));
+                g2d.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 18, 18);
                 
                 // Text with shadow
                 g2d.setColor(new Color(0, 0, 0, 30));
@@ -559,24 +669,53 @@ panel.add(mainTagline);
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-            // Modern dark gradient with subtle depth
+            // Enhanced dark gradient with smoother transitions
             GradientPaint gradient = new GradientPaint(
-                0, 0, new Color(8, 20, 40), // deeper dark navy
-                getWidth(), getHeight(), new Color(15, 30, 55) // slightly lighter with more blue
+                0, 0, new Color(6, 15, 35), // deeper dark navy
+                getWidth(), getHeight(), new Color(12, 25, 50) // slightly lighter with more blue
             );
             g2d.setPaint(gradient);
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
-            // Add subtle radial gradient overlay for depth
+            // Enhanced radial gradient with brighter center
             RadialGradientPaint radialGradient = new RadialGradientPaint(
-                getWidth() / 2, getHeight() / 2, Math.max(getWidth(), getHeight()) / 2,
-                new float[]{0.0f, 0.7f, 1.0f},
-                new Color[]{new Color(255, 255, 255, 5), new Color(255, 255, 255, 2), new Color(0, 0, 0, 0)}
+                getWidth() / 2, getHeight() / 2, Math.max(getWidth(), getHeight()) / 1.5f,
+                new float[]{0.0f, 0.4f, 0.8f, 1.0f},
+                new Color[]{
+                    new Color(255, 255, 255, 8), // brighter center
+                    new Color(255, 255, 255, 4), 
+                    new Color(255, 255, 255, 1), 
+                    new Color(0, 0, 0, 0)
+                }
             );
             g2d.setPaint(radialGradient);
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
+            // Add subtle geometric pattern overlay
+            drawGeometricPattern(g2d);
+
             g2d.dispose();
+        }
+        
+        private void drawGeometricPattern(Graphics2D g2d) {
+            g2d.setColor(new Color(255, 255, 255, 2));
+            g2d.setStroke(new BasicStroke(1));
+            
+            int spacing = 60;
+            int patternSize = 20;
+            
+            for (int x = 0; x < getWidth(); x += spacing) {
+                for (int y = 0; y < getHeight(); y += spacing) {
+                    // Draw subtle coding-themed patterns
+                    if ((x + y) % (spacing * 2) == 0) {
+                        // Draw small squares (like code blocks)
+                        g2d.drawRect(x, y, patternSize, patternSize);
+                    } else {
+                        // Draw small circles (like code elements)
+                        g2d.drawOval(x, y, patternSize, patternSize);
+                    }
+                }
+            }
         }
     }
 
@@ -856,9 +995,11 @@ panel.add(mainTagline);
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             private Timer hoverTimer;
             private float scale = 1.0f;
+            private boolean isHovered = false;
             
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
+                isHovered = true;
                 if (hoverTimer != null) hoverTimer.stop();
                 
                 hoverTimer = new Timer(16, new ActionListener() {
@@ -867,9 +1008,9 @@ panel.add(mainTagline);
                     @Override
                     public void actionPerformed(ActionEvent evt) {
                         elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
+                        float progress = Math.min(1.0f, (float) elapsed / 150); // 150ms transition
                         
-                        scale = 1.0f + (progress * 0.05f); // 5% scale increase
+                        scale = 1.0f + (progress * 0.03f); // 3% scale increase
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -882,6 +1023,7 @@ panel.add(mainTagline);
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
+                isHovered = false;
                 if (hoverTimer != null) hoverTimer.stop();
                 
                 hoverTimer = new Timer(16, new ActionListener() {
@@ -890,9 +1032,9 @@ panel.add(mainTagline);
                     @Override
                     public void actionPerformed(ActionEvent evt) {
                         elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
+                        float progress = Math.min(1.0f, (float) elapsed / 150); // 150ms transition
                         
-                        scale = 1.05f - (progress * 0.05f); // Return to normal scale
+                        scale = 1.03f - (progress * 0.03f); // Return to normal scale
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -902,7 +1044,49 @@ panel.add(mainTagline);
                 });
                 hoverTimer.start();
             }
+            
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                // Press-down effect
+                scale = 0.98f;
+                button.repaint();
+            }
+            
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                // Return to hover state or normal
+                scale = isHovered ? 1.03f : 1.0f;
+                button.repaint();
+            }
         });
+    }
+    
+    private void addProfessionalEntranceAnimation() {
+        // Professional fade-in animation - no sliding, just smooth opacity
+        cardPanel.setVisible(true);
+        
+        Timer entranceTimer = new Timer(16, new ActionListener() {
+            private int elapsed = 0;
+            private float alpha = 0.0f;
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                elapsed += 16;
+                float progress = Math.min(1.0f, (float) elapsed / 400); // 400ms animation
+                
+                // Smooth ease-out function
+                alpha = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                
+                // Apply subtle fade effect by repainting
+                cardPanel.repaint();
+                
+                if (progress >= 1.0f) {
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        });
+        
+        entranceTimer.start();
     }
     
     private void applyCustomStyling() {
