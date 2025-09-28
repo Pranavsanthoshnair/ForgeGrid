@@ -87,7 +87,7 @@ public class AuthUI extends JFrame {
         applyCustomStyling();
         
         // Add professional entrance animation
-        addProfessionalEntranceAnimation();
+        addEntranceAnimation();
     }
     
     private JPanel createLoginPanel() {
@@ -171,23 +171,8 @@ panel.add(mainTagline);
         forgotPasswordLink.setAlignmentX(Component.CENTER_ALIGNMENT);
         forgotPasswordLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Enhanced hover effect for forgot password link
-        forgotPasswordLink.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                forgotPasswordLink.setForeground(new Color(255, 165, 0)); // Orange on hover
-            }
-            
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                forgotPasswordLink.setForeground(new Color(255, 215, 0)); // Golden yellow
-            }
-            
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                forgotPasswordLink.setForeground(new Color(255, 140, 0)); // Darker orange on click
-            }
-        });
+        // Enhanced hover effect for forgot password link with smooth animation
+        addLinkHoverAnimation(forgotPasswordLink);
         
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(forgotPasswordLink);
@@ -455,6 +440,9 @@ panel.add(mainTagline);
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int eyeX = field.getWidth() - 35;
                 if (e.getX() >= eyeX && e.getX() <= eyeX + 18) {
+                    // Add micro-animation for eye icon click
+                    addEyeIconAnimation(field);
+                    
                     // Toggle password visibility
                     Boolean showPasswordProperty = (Boolean) field.getClientProperty("showPassword");
                     boolean currentShowPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
@@ -991,10 +979,15 @@ panel.add(mainTagline);
     }
     
     
+    /**
+     * Enhanced button hover and click animations
+     * Includes scale, shadow, and press effects
+     */
     private void addButtonHoverEffect(JButton button) {
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             private Timer hoverTimer;
             private float scale = 1.0f;
+            private float shadowOpacity = 0.0f;
             private boolean isHovered = false;
             
             @Override
@@ -1008,9 +1001,13 @@ panel.add(mainTagline);
                     @Override
                     public void actionPerformed(ActionEvent evt) {
                         elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 150); // 150ms transition
+                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
                         
-                        scale = 1.0f + (progress * 0.03f); // 3% scale increase
+                        // Smooth ease-out function
+                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                        
+                        scale = 1.0f + (easedProgress * 0.03f); // 3% scale increase
+                        shadowOpacity = easedProgress * 0.3f; // Soft shadow
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -1032,9 +1029,13 @@ panel.add(mainTagline);
                     @Override
                     public void actionPerformed(ActionEvent evt) {
                         elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 150); // 150ms transition
+                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
                         
-                        scale = 1.03f - (progress * 0.03f); // Return to normal scale
+                        // Smooth ease-out function
+                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                        
+                        scale = 1.03f - (easedProgress * 0.03f); // Return to normal scale
+                        shadowOpacity = 0.3f - (easedProgress * 0.3f); // Remove shadow
                         button.repaint();
                         
                         if (progress >= 1.0f) {
@@ -1047,40 +1048,233 @@ panel.add(mainTagline);
             
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
-                // Press-down effect
-                scale = 0.98f;
-                button.repaint();
+                // Press-down effect with animation
+                Timer pressTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 100); // 100ms press animation
+                        
+                        scale = 1.03f - (progress * 0.05f); // Press down to 0.98f
+                        button.repaint();
+                        
+                        if (progress >= 1.0f) {
+                            ((Timer) evt.getSource()).stop();
+                        }
+                    }
+                });
+                pressTimer.start();
             }
             
             @Override
             public void mouseReleased(java.awt.event.MouseEvent e) {
-                // Return to hover state or normal
-                scale = isHovered ? 1.03f : 1.0f;
-                button.repaint();
+                // Return to hover state with animation
+                Timer releaseTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 100); // 100ms release animation
+                        
+                        scale = 0.98f + (progress * 0.05f); // Return to hover state
+                        button.repaint();
+                        
+                        if (progress >= 1.0f) {
+                            ((Timer) evt.getSource()).stop();
+                        }
+                    }
+                });
+                releaseTimer.start();
             }
         });
     }
     
-    private void addProfessionalEntranceAnimation() {
-        // Professional fade-in animation - no sliding, just smooth opacity
-        cardPanel.setVisible(true);
-        
-        Timer entranceTimer = new Timer(16, new ActionListener() {
+    /**
+     * Smooth hover animation for links
+     * Animates color transition and optional underline effect
+     */
+    private void addLinkHoverAnimation(JLabel link) {
+        link.addMouseListener(new java.awt.event.MouseAdapter() {
+            private Timer colorTimer;
+            private Color startColor = new Color(255, 215, 0); // Golden yellow
+            private Color endColor = new Color(255, 165, 0); // Orange
+            
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (colorTimer != null) colorTimer.stop();
+                
+                colorTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
+                        
+                        // Smooth ease-out function
+                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                        
+                        // Interpolate color
+                        int red = (int) (startColor.getRed() + (endColor.getRed() - startColor.getRed()) * easedProgress);
+                        int green = (int) (startColor.getGreen() + (endColor.getGreen() - startColor.getGreen()) * easedProgress);
+                        int blue = (int) (startColor.getBlue() + (endColor.getBlue() - startColor.getBlue()) * easedProgress);
+                        
+                        link.setForeground(new Color(red, green, blue));
+                        
+                        if (progress >= 1.0f) {
+                            colorTimer.stop();
+                        }
+                    }
+                });
+                colorTimer.start();
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (colorTimer != null) colorTimer.stop();
+                
+                colorTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
+                        
+                        // Smooth ease-out function
+                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                        
+                        // Interpolate color back
+                        int red = (int) (endColor.getRed() + (startColor.getRed() - endColor.getRed()) * easedProgress);
+                        int green = (int) (endColor.getGreen() + (startColor.getGreen() - endColor.getGreen()) * easedProgress);
+                        int blue = (int) (endColor.getBlue() + (startColor.getBlue() - endColor.getBlue()) * easedProgress);
+                        
+                        link.setForeground(new Color(red, green, blue));
+                        
+                        if (progress >= 1.0f) {
+                            colorTimer.stop();
+                        }
+                    }
+                });
+                colorTimer.start();
+            }
+            
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                link.setForeground(new Color(255, 140, 0)); // Darker orange on click
+            }
+        });
+    }
+    
+    /**
+     * Micro-animation for eye icon click
+     * Adds a subtle scale and rotation effect
+     */
+    private void addEyeIconAnimation(JPasswordField field) {
+        Timer eyeTimer = new Timer(16, new ActionListener() {
             private int elapsed = 0;
-            private float alpha = 0.0f;
+            private final int duration = 150; // 150ms animation
             
             @Override
             public void actionPerformed(ActionEvent e) {
                 elapsed += 16;
-                float progress = Math.min(1.0f, (float) elapsed / 400); // 400ms animation
+                float progress = Math.min(1.0f, (float) elapsed / duration);
+                
+                // Create a subtle bounce effect
+                float scale;
+                if (progress < 0.5f) {
+                    // Scale up
+                    scale = 1.0f + (progress * 2.0f * 0.1f); // Scale to 1.1
+                } else {
+                    // Scale back down
+                    scale = 1.1f - ((progress - 0.5f) * 2.0f * 0.1f); // Scale back to 1.0
+                }
+                
+                // Store scale for repaint
+                field.putClientProperty("eyeScale", scale);
+                field.repaint();
+                
+                if (progress >= 1.0f) {
+                    field.putClientProperty("eyeScale", 1.0f);
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        });
+        
+        eyeTimer.start();
+    }
+    
+    /**
+     * Smooth focus animation for text fields
+     * Animates border color transition when gaining/losing focus
+     */
+    private void addFocusAnimation(Component component, boolean focused) {
+        Timer focusTimer = new Timer(16, new ActionListener() {
+            private int elapsed = 0;
+            private final int duration = 200; // 200ms animation
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                elapsed += 16;
+                float progress = Math.min(1.0f, (float) elapsed / duration);
                 
                 // Smooth ease-out function
-                alpha = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
                 
-                // Apply subtle fade effect by repainting
+                // Trigger repaint to update border color
+                component.repaint();
+                
+                if (progress >= 1.0f) {
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        });
+        
+        focusTimer.start();
+    }
+    
+    /**
+     * Professional entrance animation - fade in and slide up
+     * Duration: 500ms with smooth easing
+     */
+    private void addEntranceAnimation() {
+        // Initially hide the card panel
+        cardPanel.setVisible(false);
+        cardPanel.setLocation(0, 30); // Start 30px below final position
+        
+        Timer entranceTimer = new Timer(16, new ActionListener() {
+            private int elapsed = 0;
+            private final int duration = 500; // 500ms animation
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                elapsed += 16;
+                float progress = Math.min(1.0f, (float) elapsed / duration);
+                
+                // Smooth ease-out function (easeOutCubic)
+                float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 3);
+                
+                // Calculate current position and opacity
+                int currentY = (int) (30 * (1.0f - easedProgress));
+                float alpha = easedProgress;
+                
+                // Apply transform
+                cardPanel.setLocation(0, currentY);
+                cardPanel.setVisible(true);
+                
+                // Set opacity using AlphaComposite
+                Graphics2D g2d = (Graphics2D) cardPanel.getGraphics();
+                if (g2d != null) {
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                }
+                
                 cardPanel.repaint();
                 
                 if (progress >= 1.0f) {
+                    cardPanel.setLocation(0, 0);
                     ((Timer) e.getSource()).stop();
                 }
             }
