@@ -23,9 +23,20 @@ public class AuthUI extends JFrame {
     private void initializeUI() {
         setTitle("ForgeGrid - Authentication");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 900);  // Increased frame size
+        
+        // Get screen dimensions for responsive sizing
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenWidth = screenSize.width;
+        int screenHeight = screenSize.height;
+        
+        // Calculate responsive frame size (60-80% of screen, with minimums)
+        int frameWidth = Math.max(600, Math.min(screenWidth * 3 / 4, 1200));
+        int frameHeight = Math.max(700, Math.min(screenHeight * 3 / 4, 1000));
+        
+        setSize(frameWidth, frameHeight);
+        setMinimumSize(new Dimension(600, 700)); // Prevent components from disappearing
         setLocationRelativeTo(null);
-        setResizable(true);  // Allow resizing
+        setResizable(true);
         
         // Set modern look and feel
         try {
@@ -46,6 +57,14 @@ public class AuthUI extends JFrame {
         
         add(cardPanel);
         
+        // Add component listener to handle window resizing
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                refreshComponentSizes();
+            }
+        });
+        
         // Apply custom styling
         applyCustomStyling();
     }
@@ -53,39 +72,27 @@ public class AuthUI extends JFrame {
     private JPanel createLoginPanel() {
         JPanel panel = new GradientPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(80, 100, 80, 100));  // Increased padding
         
-        // Stylish tagline with gradient - perfectly centered
-        GradientTextLabel taglineLabel = new GradientTextLabel(
-            "⚡ Level Up Your Coding Journey ⚡",
-            new Font("Trebuchet MS", Font.ITALIC, 14),
-            new Color(135, 206, 250), // Light Sky Blue
-            new Color(70, 130, 180)   // Steel Blue
-        );
-        taglineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Calculate proportional padding based on frame size
+        double scale = calculateProportionalScale();
+        int padding = (int) (80 * scale);
+        padding = Math.max(30, Math.min(120, padding));
+        panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
         
-        // Create a centered wrapper panel for perfect alignment
-        JPanel taglineWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        taglineWrapper.setOpaque(false);
-        taglineWrapper.add(taglineLabel);
+        // Main tagline - Where coding challenges become milestones
+        JLabel mainTagline = new JLabel("Where coding challenges become milestones");
+        mainTagline.setFont(new Font("Trebuchet MS", Font.ITALIC, 18));
+        mainTagline.setForeground(new Color(255, 221, 0)); // Yellow color
+        mainTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Create the gaming controller logo
-        JPanel logoPanel = new GamingControllerLogo();
+        // Create the logo panel
+        JPanel logoPanel = createLogoPanel();
         logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
 panel.add(Box.createVerticalGlue());
 panel.add(logoPanel);
-
-// Add the tagline label below the logo
-JLabel milestoneTagline = new JLabel("ForgeGrid – Where coding challenges become milestones.");
-milestoneTagline.setFont(new Font("Trebuchet MS", Font.ITALIC, 18));
-milestoneTagline.setForeground(new Color(255, 221, 0)); // Optional: yellow color
-milestoneTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
-panel.add(Box.createRigidArea(new Dimension(0, 4)));
-panel.add(milestoneTagline);
-
-panel.add(Box.createRigidArea(new Dimension(0, 5)));
-panel.add(taglineWrapper);
+panel.add(Box.createRigidArea(new Dimension(0, 10)));
+panel.add(mainTagline);
         // Title with gradient text
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleRow.setOpaque(false);
@@ -110,10 +117,6 @@ panel.add(taglineWrapper);
         
         titleRow.add(titleContainer);
         
-        JLabel subtitleLabel = new JLabel("Level up your productivity");
-        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 22));  // Larger font
-        subtitleLabel.setForeground(new Color(200, 200, 220));
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Form fields
         emailField = createModernTextField("Email");
@@ -131,13 +134,11 @@ panel.add(taglineWrapper);
         // Layout with better spacing
         panel.add(Box.createVerticalGlue());
         panel.add(logoPanel);
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(taglineWrapper);
-        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(titleRow);
-        panel.add(Box.createRigidArea(new Dimension(0, 8)));
-        panel.add(subtitleLabel);
-        panel.add(Box.createRigidArea(new Dimension(0, 40)));
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        panel.add(mainTagline);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(emailField);
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(passwordField);
@@ -155,7 +156,12 @@ panel.add(taglineWrapper);
     private JPanel createSignupPanel() {
         JPanel panel = new GradientPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(50, 60, 50, 60));
+        
+        // Calculate proportional padding based on frame size
+        double scale = calculateProportionalScale();
+        int padding = (int) (60 * scale);
+        padding = Math.max(25, Math.min(100, padding));
+        panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
         
         JLabel titleLabel = new JLabel("Join ForgeGrid");
         titleLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
@@ -201,9 +207,19 @@ panel.add(taglineWrapper);
     
     private JTextField createModernTextField(String placeholder) {
         JTextField field = new JTextField();
-        field.setMaximumSize(new Dimension(520, 70));  // Larger field
-        field.setPreferredSize(new Dimension(520, 70));  // Larger field
-        field.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));  // Larger font
+        
+        // Calculate proportional scaling based on current frame size
+        double scale = calculateProportionalScale();
+        int fieldWidth = (int) (520 * scale);
+        int fieldHeight = (int) (70 * scale);
+        
+        // Ensure minimum sizes
+        fieldWidth = Math.max(250, fieldWidth);
+        fieldHeight = Math.max(50, fieldHeight);
+        
+        field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
+        field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
+        field.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.WHITE, 2),
             BorderFactory.createEmptyBorder(12, 16, 12, 16)
@@ -243,9 +259,19 @@ panel.add(taglineWrapper);
 
     private JPasswordField createModernPasswordField(String placeholder) {
         JPasswordField field = new JPasswordField();
-        field.setMaximumSize(new Dimension(520, 70));  // Larger field
-        field.setPreferredSize(new Dimension(520, 70));  // Larger field
-        field.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));  // Larger font
+        
+        // Calculate proportional scaling based on current frame size
+        double scale = calculateProportionalScale();
+        int fieldWidth = (int) (520 * scale);
+        int fieldHeight = (int) (70 * scale);
+        
+        // Ensure minimum sizes
+        fieldWidth = Math.max(250, fieldWidth);
+        fieldHeight = Math.max(50, fieldHeight);
+        
+        field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
+        field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
+        field.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.WHITE, 2),
             BorderFactory.createEmptyBorder(12, 16, 12, 16)
@@ -310,9 +336,18 @@ panel.add(taglineWrapper);
             }
         };
         
-        button.setMaximumSize(new Dimension(520, 70));  // Larger button
-        button.setPreferredSize(new Dimension(520, 70));  // Larger button
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));  // Larger font
+        // Calculate proportional scaling based on current frame size
+        double scale = calculateProportionalScale();
+        int buttonWidth = (int) (520 * scale);
+        int buttonHeight = (int) (70 * scale);
+        
+        // Ensure minimum sizes
+        buttonWidth = Math.max(250, buttonWidth);
+        buttonHeight = Math.max(50, buttonHeight);
+        
+        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(16, (int) (22 * scale))));
         button.setForeground(Color.WHITE);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -347,9 +382,18 @@ panel.add(taglineWrapper);
             }
         };
         
-        button.setMaximumSize(new Dimension(520, 65));  // Larger button
-        button.setPreferredSize(new Dimension(520, 65));  // Larger button
-        button.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));  // Larger font
+        // Calculate proportional scaling based on current frame size
+        double scale = calculateProportionalScale();
+        int buttonWidth = (int) (520 * scale);
+        int buttonHeight = (int) (65 * scale);
+        
+        // Ensure minimum sizes
+        buttonWidth = Math.max(250, buttonWidth);
+        buttonHeight = Math.max(45, buttonHeight);
+        
+        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        button.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
         button.setForeground(new Color(200, 200, 220));
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -379,9 +423,18 @@ panel.add(taglineWrapper);
             }
         };
 
-        button.setMaximumSize(new Dimension(520, 70));
-        button.setPreferredSize(new Dimension(520, 70));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
+        // Calculate proportional scaling based on current frame size
+        double scale = calculateProportionalScale();
+        int buttonWidth = (int) (520 * scale);
+        int buttonHeight = (int) (70 * scale);
+        
+        // Ensure minimum sizes
+        buttonWidth = Math.max(250, buttonWidth);
+        buttonHeight = Math.max(50, buttonHeight);
+        
+        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(16, (int) (22 * scale))));
         button.setForeground(foregroundColor);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -502,6 +555,179 @@ panel.add(taglineWrapper);
             passwordField.setText("");
         } else {
             JOptionPane.showMessageDialog(this, "An account with this email already exists.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private JPanel createLogoPanel() {
+        JPanel logoPanel = new JPanel();
+        logoPanel.setOpaque(false);
+        logoPanel.setLayout(new BorderLayout());
+        
+        try {
+            // Try to load the logo from resources (try .jpg first, then .png)
+            java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo.jpg");
+            if (logoUrl == null) {
+                logoUrl = getClass().getResource("/com/forgegrid/icon/logo.png");
+            }
+            if (logoUrl != null) {
+                ImageIcon logoIcon = new ImageIcon(logoUrl);
+                Image logoImage = logoIcon.getImage();
+                
+                // Scale the logo proportionally
+                double scale = calculateProportionalScale();
+                int logoWidth = (int) (120 * scale);
+                int logoHeight = (int) (80 * scale);
+                
+                // Ensure minimum sizes
+                logoWidth = Math.max(80, logoWidth);
+                logoHeight = Math.max(50, logoHeight);
+                
+                // Scale the image
+                Image scaledLogo = logoImage.getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
+                ImageIcon scaledIcon = new ImageIcon(scaledLogo);
+                
+                JLabel logoLabel = new JLabel(scaledIcon);
+                logoLabel.setHorizontalAlignment(JLabel.CENTER);
+                logoPanel.add(logoLabel, BorderLayout.CENTER);
+                
+                // Set preferred size
+                logoPanel.setPreferredSize(new Dimension(logoWidth, logoHeight));
+                logoPanel.setMaximumSize(new Dimension(logoWidth, logoHeight));
+            } else {
+                // Fallback to gaming controller if logo not found
+                logoPanel = new GamingControllerLogo();
+            }
+        } catch (Exception e) {
+            // Fallback to gaming controller if there's any error loading the logo
+            logoPanel = new GamingControllerLogo();
+        }
+        
+        return logoPanel;
+    }
+    
+    private double calculateProportionalScale() {
+        // Calculate proportional scaling factor based on current frame size
+        // Base frame size is 800x900, so we calculate scaling factor
+        double baseWidth = 800.0;
+        double baseHeight = 900.0;
+        double currentWidth = getWidth();
+        double currentHeight = getHeight();
+        
+        // Use the smaller scaling factor to ensure components fit
+        double widthScale = Math.max(0.5, Math.min(1.5, currentWidth / baseWidth));
+        double heightScale = Math.max(0.5, Math.min(1.5, currentHeight / baseHeight));
+        return Math.min(widthScale, heightScale);
+    }
+    
+    private void refreshComponentSizes() {
+        // Calculate proportional scaling factor based on current frame size
+        double scale = calculateProportionalScale();
+        
+        // Calculate proportional sizes
+        int fieldWidth = (int) (520 * scale);
+        int fieldHeight = (int) (70 * scale);
+        int buttonHeight = (int) (70 * scale);
+        int glassButtonHeight = (int) (65 * scale);
+        
+        // Ensure minimum sizes
+        fieldWidth = Math.max(250, fieldWidth);
+        fieldHeight = Math.max(50, fieldHeight);
+        buttonHeight = Math.max(50, buttonHeight);
+        glassButtonHeight = Math.max(45, glassButtonHeight);
+        
+        // Calculate proportional font sizes
+        int fieldFontSize = Math.max(14, (int) (20 * scale));
+        int buttonFontSize = Math.max(16, (int) (22 * scale));
+        int glassButtonFontSize = Math.max(14, (int) (20 * scale));
+        
+        // Update field sizes and fonts
+        if (emailField != null) {
+            Dimension fieldSize = new Dimension(fieldWidth, fieldHeight);
+            emailField.setMaximumSize(fieldSize);
+            emailField.setPreferredSize(fieldSize);
+            emailField.setFont(new Font("Trebuchet MS", Font.PLAIN, fieldFontSize));
+        }
+        
+        if (passwordField != null) {
+            Dimension fieldSize = new Dimension(fieldWidth, fieldHeight);
+            passwordField.setMaximumSize(fieldSize);
+            passwordField.setPreferredSize(fieldSize);
+            passwordField.setFont(new Font("Trebuchet MS", Font.PLAIN, fieldFontSize));
+        }
+        
+        if (nameField != null) {
+            Dimension fieldSize = new Dimension(fieldWidth, fieldHeight);
+            nameField.setMaximumSize(fieldSize);
+            nameField.setPreferredSize(fieldSize);
+            nameField.setFont(new Font("Trebuchet MS", Font.PLAIN, fieldFontSize));
+        }
+        
+        // Update button sizes and fonts
+        if (loginButton != null) {
+            Dimension buttonSize = new Dimension(fieldWidth, buttonHeight);
+            loginButton.setMaximumSize(buttonSize);
+            loginButton.setPreferredSize(buttonSize);
+            loginButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
+        }
+        
+        if (signupButton != null) {
+            Dimension buttonSize = new Dimension(fieldWidth, buttonHeight);
+            signupButton.setMaximumSize(buttonSize);
+            signupButton.setPreferredSize(buttonSize);
+            signupButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
+        }
+        
+        if (exitButton != null) {
+            Dimension buttonSize = new Dimension(fieldWidth, buttonHeight);
+            exitButton.setMaximumSize(buttonSize);
+            exitButton.setPreferredSize(buttonSize);
+            exitButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
+        }
+        
+        // Update all other buttons in the panels
+        updateAllButtonSizes(fieldWidth, buttonHeight, glassButtonHeight, buttonFontSize, glassButtonFontSize);
+        
+        // Refresh the layout
+        revalidate();
+        repaint();
+    }
+    
+    private void updateAllButtonSizes(int buttonWidth, int buttonHeight, int glassButtonHeight, 
+                                   int buttonFontSize, int glassButtonFontSize) {
+        // Update all buttons in the card panel
+        Component[] components = cardPanel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel) {
+                updateButtonsInPanel((JPanel) comp, buttonWidth, buttonHeight, glassButtonHeight, 
+                                   buttonFontSize, glassButtonFontSize);
+            }
+        }
+    }
+    
+    private void updateButtonsInPanel(JPanel panel, int buttonWidth, int buttonHeight, 
+                                     int glassButtonHeight, int buttonFontSize, int glassButtonFontSize) {
+        Component[] components = panel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                String text = button.getText();
+                
+                // Determine button type and apply appropriate sizing
+                if (text.contains("Sign Up") || text.contains("Login") || text.contains("Exit")) {
+                    button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+                    button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+                    button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
+                } else {
+                    // Glass buttons (like "New User? Sign Up", "Already have an account? Login")
+                    button.setMaximumSize(new Dimension(buttonWidth, glassButtonHeight));
+                    button.setPreferredSize(new Dimension(buttonWidth, glassButtonHeight));
+                    button.setFont(new Font("Trebuchet MS", Font.PLAIN, glassButtonFontSize));
+                }
+            } else if (comp instanceof JPanel) {
+                // Recursively update buttons in nested panels
+                updateButtonsInPanel((JPanel) comp, buttonWidth, buttonHeight, glassButtonHeight, 
+                                   buttonFontSize, glassButtonFontSize);
+            }
         }
     }
     
