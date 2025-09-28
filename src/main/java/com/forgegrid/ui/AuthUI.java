@@ -33,11 +33,11 @@ public class AuthUI extends JFrame {
         int screenHeight = screenSize.height;
         
         // Calculate responsive frame size (60-80% of screen, with minimums)
-        int frameWidth = Math.max(600, Math.min(screenWidth * 3 / 4, 1200));
-        int frameHeight = Math.max(700, Math.min(screenHeight * 3 / 4, 1000));
+        int frameWidth = Math.max(650, Math.min(screenWidth * 3 / 4, 1200));
+        int frameHeight = Math.max(750, Math.min(screenHeight * 3 / 4, 1000));
         
         setSize(frameWidth, frameHeight);
-        setMinimumSize(new Dimension(600, 700)); // Prevent components from disappearing
+        setMinimumSize(new Dimension(650, 750)); // Increased minimum size to prevent title cutoff
         setLocationRelativeTo(null);
         setResizable(true);
         
@@ -98,10 +98,10 @@ public class AuthUI extends JFrame {
         padding = Math.max(30, Math.min(120, padding));
         panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
         
-        // Main tagline - Where coding challenges become milestones
+        // Modern tagline with enhanced styling
         JLabel mainTagline = new JLabel("Where coding challenges become milestones");
-        mainTagline.setFont(new Font("Trebuchet MS", Font.ITALIC, 18));
-        mainTagline.setForeground(new Color(255, 221, 0)); // Yellow color
+        mainTagline.setFont(new Font("Segoe UI", Font.ITALIC, 20));
+        mainTagline.setForeground(new Color(255, 215, 0)); // Golden yellow
         mainTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Create the logo panel
@@ -112,20 +112,20 @@ panel.add(Box.createVerticalGlue());
 panel.add(logoPanel);
 panel.add(Box.createRigidArea(new Dimension(0, 10)));
 panel.add(mainTagline);
-        // Title with gradient text
+        // Modern title with enhanced styling
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleRow.setOpaque(false);
-        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80)); // Increased height
         
         JLabel welcomePart = new JLabel("Welcome to ");
-        welcomePart.setFont(new Font("Trebuchet MS", Font.BOLD, 36));
-        welcomePart.setForeground(Color.WHITE);
+        welcomePart.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        welcomePart.setForeground(new Color(240, 240, 240));
         
         GradientTextLabel brandPart = new GradientTextLabel(
             "ForgeGrid",
-            new Font("Trebuchet MS", Font.BOLD, 42),
-            new Color(255, 221, 0), // yellow
-            new Color(236, 72, 153)  // pink
+            new Font("Segoe UI", Font.BOLD, 38),
+            new Color(255, 215, 0), // golden yellow
+            new Color(255, 105, 180)  // hot pink
         );
         
         // Create a container panel to hold both labels
@@ -153,15 +153,38 @@ panel.add(mainTagline);
         // Layout with better spacing
         panel.add(Box.createVerticalGlue());
         panel.add(logoPanel);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(Box.createRigidArea(new Dimension(0, 15)));
         panel.add(titleRow);
-        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        panel.add(Box.createRigidArea(new Dimension(0, 15)));
         panel.add(mainTagline);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(Box.createRigidArea(new Dimension(0, 25)));
         panel.add(emailField);
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(passwordField);
-        panel.add(Box.createRigidArea(new Dimension(0, 30)));
+        
+        // Add "Forgot Password?" link
+        JLabel forgotPasswordLink = new JLabel("Forgot Password?");
+        forgotPasswordLink.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        forgotPasswordLink.setForeground(new Color(255, 215, 0));
+        forgotPasswordLink.setAlignmentX(Component.CENTER_ALIGNMENT);
+        forgotPasswordLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Add hover effect for forgot password link
+        forgotPasswordLink.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                forgotPasswordLink.setForeground(new Color(255, 255, 255));
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                forgotPasswordLink.setForeground(new Color(255, 215, 0));
+            }
+        });
+        
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        panel.add(forgotPasswordLink);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(loginButton);
         panel.add(Box.createRigidArea(new Dimension(0, 15)));
         panel.add(switchToSignupButton);
@@ -225,7 +248,28 @@ panel.add(mainTagline);
     }
     
     private JTextField createModernTextField(String placeholder) {
-        JTextField field = new JTextField();
+        JTextField field = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Neumorphic background
+                g2d.setColor(new Color(25, 35, 55));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                // Inner shadow effect
+                g2d.setColor(new Color(0, 0, 0, 30));
+                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 13, 13);
+                
+                // Highlight effect
+                g2d.setColor(new Color(255, 255, 255, 10));
+                g2d.fillRoundRect(1, 1, getWidth() - 2, 3, 15, 15);
+                
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
         
         // Calculate proportional scaling based on current frame size
         double scale = calculateProportionalScale();
@@ -238,14 +282,11 @@ panel.add(mainTagline);
         
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
-        field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.WHITE, 2),
-            BorderFactory.createEmptyBorder(12, 16, 12, 16)
-        ));
-        field.setBackground(new Color(255, 255, 255, 20));
-        field.setForeground(new Color(200, 200, 220));
-        field.setCaretColor(Color.WHITE);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        field.setBackground(new Color(25, 35, 55));
+        field.setForeground(new Color(220, 220, 240));
+        field.setCaretColor(new Color(255, 215, 0));
         field.setOpaque(false);
         field.setText(placeholder);
 
@@ -277,7 +318,28 @@ panel.add(mainTagline);
     }
 
     private JPasswordField createModernPasswordField(String placeholder) {
-        JPasswordField field = new JPasswordField();
+        JPasswordField field = new JPasswordField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Neumorphic background
+                g2d.setColor(new Color(25, 35, 55));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                // Inner shadow effect
+                g2d.setColor(new Color(0, 0, 0, 30));
+                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 13, 13);
+                
+                // Highlight effect
+                g2d.setColor(new Color(255, 255, 255, 10));
+                g2d.fillRoundRect(1, 1, getWidth() - 2, 3, 15, 15);
+                
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
         
         // Calculate proportional scaling based on current frame size
         double scale = calculateProportionalScale();
@@ -290,14 +352,11 @@ panel.add(mainTagline);
         
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
-        field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.WHITE, 2),
-            BorderFactory.createEmptyBorder(12, 16, 12, 16)
-        ));
-        field.setBackground(new Color(255, 255, 255, 20));
-        field.setForeground(new Color(200, 200, 220));
-        field.setCaretColor(Color.WHITE);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        field.setBackground(new Color(25, 35, 55));
+        field.setForeground(new Color(220, 220, 240));
+        field.setCaretColor(new Color(255, 215, 0));
         field.setOpaque(false);
         field.setText(placeholder);
         field.setEchoChar((char) 0);
@@ -339,17 +398,27 @@ panel.add(mainTagline);
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
+                // Modern gradient with enhanced colors
                 GradientPaint gradient = new GradientPaint(0, 0, color1, getWidth(), getHeight(), color2);
                 g2d.setPaint(gradient);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
                 
-                g2d.setColor(getForeground());
+                // Add subtle inner glow
+                g2d.setColor(new Color(255, 255, 255, 20));
+                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() / 2, 18, 18);
+                
+                // Text with shadow
+                g2d.setColor(new Color(0, 0, 0, 30));
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                int x = (getWidth() - fm.stringWidth(getText())) / 2 + 1;
+                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2 + 1;
                 g2d.drawString(getText(), x, y);
+                
+                g2d.setColor(getForeground());
+                g2d.drawString(getText(), x - 1, y - 1);
                 
                 g2d.dispose();
             }
@@ -386,12 +455,21 @@ panel.add(mainTagline);
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
+                // Modern outlined button with subtle background
+                g2d.setColor(new Color(255, 255, 255, 5));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                
+                // Border with gradient effect
+                g2d.setColor(new Color(255, 255, 255, 40));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                
+                // Inner highlight
                 g2d.setColor(new Color(255, 255, 255, 10));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-                
-                g2d.setColor(new Color(255, 255, 255, 30));
-                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2d.setStroke(new BasicStroke(1));
+                g2d.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 16, 16);
                 
                 g2d.setColor(getForeground());
                 g2d.setFont(getFont());
@@ -479,13 +557,23 @@ panel.add(mainTagline);
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-            // Dark blue gradient background
+            // Modern dark gradient with subtle depth
             GradientPaint gradient = new GradientPaint(
-                0, 0, new Color(10, 25, 47), // dark navy
-                getWidth(), getHeight(), new Color(17, 34, 64) // slightly lighter dark blue
+                0, 0, new Color(8, 20, 40), // deeper dark navy
+                getWidth(), getHeight(), new Color(15, 30, 55) // slightly lighter with more blue
             );
             g2d.setPaint(gradient);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+
+            // Add subtle radial gradient overlay for depth
+            RadialGradientPaint radialGradient = new RadialGradientPaint(
+                getWidth() / 2, getHeight() / 2, Math.max(getWidth(), getHeight()) / 2,
+                new float[]{0.0f, 0.7f, 1.0f},
+                new Color[]{new Color(255, 255, 255, 5), new Color(255, 255, 255, 2), new Color(0, 0, 0, 0)}
+            );
+            g2d.setPaint(radialGradient);
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
             g2d.dispose();
