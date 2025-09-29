@@ -78,25 +78,28 @@ public class AuthUI extends JFrame {
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         
-        // Create loading screen first
-        loadingScreen = new LoadingScreen();
-        cardPanel.add(loadingScreen, "LOADING");
+		// Create loading screen
+		loadingScreen = new LoadingScreen();
+		cardPanel.add(loadingScreen, "LOADING");
         
         // Create status indicator
         createStatusIndicator();
         
-        // Create login and signup panels
+		// Create login and signup panels
         JPanel loginPanel = createLoginPanel();
         JPanel signupPanel = createSignupPanel();
         
         cardPanel.add(loginPanel, "LOGIN");
         cardPanel.add(signupPanel, "SIGNUP");
+
+		// Create landing cover panel (shown first)
+		JPanel landingPanel = createLandingPanel();
+		cardPanel.add(landingPanel, "LANDING");
         
         add(cardPanel);
         
-        // Show loading screen and initialize authentication
-        cardLayout.show(cardPanel, "LOADING");
-        initializeAuthentication();
+		// Show landing screen first
+		cardLayout.show(cardPanel, "LANDING");
         
         // Add component listener to handle window resizing
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -112,6 +115,179 @@ public class AuthUI extends JFrame {
         // Add professional entrance animation
         addEntranceAnimation();
     }
+
+	private JPanel createLandingPanel() {
+		JPanel panel = new NeonBackgroundPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+
+		// Centered logo (slightly larger on landing page)
+		JPanel logoPanel = createLogoPanelWithScale(1.45);
+		logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		// Pull the title closer by reducing bottom margin of the logo panel
+		logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, -8, 0));
+
+		// Gradient brand title matching logo hues (yellow -> magenta)
+		Font stylish = getStylishFont("Montserrat", Font.BOLD, 58, new String[]{"Poppins","Segoe UI","Trebuchet MS"});
+		GradientTextLabel title = new GradientTextLabel(
+			"ForgeGrid",
+			stylish,
+			new Color(0xFF, 0xC1, 0x2B), // yellow-orange
+			new Color(0xC0, 0x1B, 0x6C)  // magenta
+		);
+		JPanel titleWrap = new JPanel();
+		titleWrap.setOpaque(false);
+		titleWrap.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+		titleWrap.add(title);
+		titleWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
+		// Nudge the title upward slightly
+		titleWrap.setBorder(BorderFactory.createEmptyBorder(-6, 0, 0, 0));
+
+		// No tagline on landing as requested
+
+		// "Let's start" button with yellow-orangish color, hover and loading animation
+		JButton startButton = new JButton("Let's start") {
+			private boolean hovering = false;
+			private boolean loading = false;
+			private int spin = 0;
+			private Timer loaderTimer;
+			@Override
+			public Dimension getPreferredSize() {
+				FontMetrics fm = getFontMetrics(getFont());
+				int w = fm.stringWidth(loading ? "Starting..." : getText());
+				int h = fm.getHeight();
+				// padding around text
+				int padX = 28; // 14px each side
+				int padY = 16; // top/bottom
+				// extra space for spinner when loading
+				int spinnerW = loading ? 26 : 0;
+				return new Dimension(w + padX + spinnerW, h + padY);
+			}
+			@Override
+			protected void paintComponent(Graphics g) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				Color c1 = new Color(255, 193, 43);
+				Color c2 = new Color(255, 140, 0);
+				if (hovering) {
+					c1 = new Color(Math.min(255, c1.getRed()+20), Math.min(255, c1.getGreen()+20), Math.min(255, c1.getBlue()+20));
+					c2 = new Color(Math.min(255, c2.getRed()+20), Math.min(255, c2.getGreen()+20), Math.min(255, c2.getBlue()+20));
+				}
+				GradientPaint gp = new GradientPaint(0, 0, c1, getWidth(), getHeight(), c2);
+				g2d.setPaint(gp);
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 26, 26);
+				// inner glow
+				g2d.setColor(new Color(255, 255, 255, hovering ? 45 : 25));
+				g2d.fillRoundRect(2, 2, getWidth()-4, getHeight()/2, 22, 22);
+				// text
+				g2d.setFont(getFont());
+				g2d.setColor(Color.WHITE);
+				FontMetrics fm = g2d.getFontMetrics();
+				String text = loading ? "Starting..." : getText();
+				int textW = fm.stringWidth(text);
+				int x = (getWidth() - textW) / 2;
+				int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+				g2d.drawString(text, x, y);
+				// spinner when loading
+				if (loading) {
+					int r = 14;
+					int cx = x - 24;
+					int cy = getHeight()/2 - r/2;
+					g2d.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+					g2d.setColor(new Color(255,255,255,180));
+					g2d.drawArc(cx, cy, r, r, spin, 270);
+				}
+				g2d.dispose();
+			}
+			private void setLoading(boolean v){
+				loading = v;
+				setEnabled(!v);
+				if (v) {
+					if (loaderTimer != null) loaderTimer.stop();
+					loaderTimer = new Timer(40, e -> { spin = (spin + 12) % 360; repaint(); });
+					loaderTimer.start();
+				} else if (loaderTimer != null) {
+					loaderTimer.stop();
+				}
+				repaint();
+			}
+		};
+		// size and behavior: fit-to-text, no oversized width
+		double s = calculateProportionalScale();
+		startButton.setFont(getStylishFont("Montserrat", Font.BOLD, Math.max(18, (int)(22 * s)), new String[]{"Poppins","Segoe UI","Trebuchet MS"}));
+		startButton.setBorderPainted(false);
+		startButton.setContentAreaFilled(false);
+		startButton.setFocusPainted(false);
+		startButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		startButton.addMouseListener(new java.awt.event.MouseAdapter(){
+			@Override public void mouseEntered(java.awt.event.MouseEvent e){ startButton.repaint(); try{ java.lang.reflect.Field f = startButton.getClass().getDeclaredField("hovering"); f.setAccessible(true); f.set(startButton, true);}catch(Exception ignore){} }
+			@Override public void mouseExited(java.awt.event.MouseEvent e){ startButton.repaint(); try{ java.lang.reflect.Field f = startButton.getClass().getDeclaredField("hovering"); f.setAccessible(true); f.set(startButton, false);}catch(Exception ignore){} }
+		});
+		startButton.addActionListener(e -> {
+			// start loading animation on button, then switch to loading screen and begin auth
+			try { startButton.getClass().getDeclaredMethod("setLoading", boolean.class).invoke(startButton, true); } catch (Exception ignore) {}
+			cardLayout.show(cardPanel, "LOADING");
+			initializeAuthentication();
+		});
+
+		panel.add(Box.createVerticalGlue());
+		panel.add(logoPanel);
+		panel.add(Box.createRigidArea(new Dimension(0, 0)));
+		panel.add(titleWrap);
+		panel.add(Box.createRigidArea(new Dimension(0, 6)));
+		panel.add(startButton);
+		panel.add(Box.createVerticalGlue());
+		return panel;
+	}
+
+	// Helper: create logo panel with size multiplier (landing needs larger logo)
+	private JPanel createLogoPanelWithScale(double multiplier) {
+		JPanel logoPanel = new JPanel();
+		logoPanel.setOpaque(false);
+		logoPanel.setLayout(new BorderLayout());
+		try {
+			java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo2_transparent.png");
+			if (logoUrl != null) {
+				ImageIcon logoIcon = new ImageIcon(logoUrl);
+				Image logoImage = logoIcon.getImage();
+				double scale = calculateProportionalScale() * multiplier;
+				int logoWidth = (int) (360 * scale);
+				int logoHeight = (int) (220 * scale);
+				logoWidth = Math.max(260, logoWidth);
+				logoHeight = Math.max(160, logoHeight);
+				Image scaledLogo = logoImage.getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
+				ImageIcon scaledIcon = new ImageIcon(scaledLogo);
+				JLabel logoLabel = new JLabel(scaledIcon);
+				logoLabel.setHorizontalAlignment(JLabel.CENTER);
+				logoPanel.add(logoLabel, BorderLayout.CENTER);
+				logoPanel.setPreferredSize(new Dimension(logoWidth, logoHeight));
+				logoPanel.setMaximumSize(new Dimension(logoWidth, logoHeight));
+			} else {
+				logoPanel = createLogoPanel();
+			}
+		} catch (Exception e) {
+			logoPanel = createLogoPanel();
+		}
+		return logoPanel;
+	}
+
+	// Helper: pick a stylish font with fallbacks
+	private Font getStylishFont(String primary, int style, int size, String[] fallbacks) {
+		try {
+			Font f = new Font(primary, style, size);
+			if (f != null) return f;
+		} catch (Exception ignore) {}
+		if (fallbacks != null) {
+			for (String name : fallbacks) {
+				try {
+					Font f = new Font(name, style, size);
+					if (f != null) return f;
+				} catch (Exception ignore) {}
+			}
+		}
+		return new Font("SansSerif", style, size);
+	}
     
     private JPanel createLoginPanel() {
         JPanel panel = new NeonBackgroundPanel();
