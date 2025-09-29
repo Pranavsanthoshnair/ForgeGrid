@@ -19,6 +19,7 @@ com\forgegrid\ui\AuthUI$14$3.class
 com\forgegrid\ui\AuthUI$12.class
 com\forgegrid\ui\AuthUI$15.class
 com\forgegrid\ui\AuthUI$5$1.class
+com\forgegrid\ui\components\OfflineIndicator.class
 com\forgegrid\utils\PasswordUtils.class
 com\forgegrid\services\SupabaseAuthService$SupabaseAuthException$ErrorType.class
 com\forgegrid\ui\LoadingScreen$2.class
