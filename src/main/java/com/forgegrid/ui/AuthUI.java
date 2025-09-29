@@ -136,7 +136,7 @@ public class AuthUI extends JFrame {
         // Modern title with enhanced styling
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleRow.setOpaque(false);
-        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120)); // Increased height to avoid clipping
+        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140)); // Increased height to avoid clipping
         
         JLabel welcomePart = new JLabel("Welcome to ");
         welcomePart.setFont(new Font("Segoe UI", Font.BOLD, 32));
@@ -144,7 +144,7 @@ public class AuthUI extends JFrame {
         
         GradientTextLabel brandPart = new GradientTextLabel(
             "ForgeGrid",
-            new Font("Segoe UI", Font.BOLD, 38),
+            new Font("Segoe UI", Font.BOLD, 34),
             PRIMARY_COLOR, // primary golden yellow
             SECONDARY_COLOR  // secondary blue
         );
@@ -152,6 +152,7 @@ public class AuthUI extends JFrame {
         // Create a container panel to hold both labels
         JPanel titleContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleContainer.setOpaque(false);
+        titleContainer.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
         titleContainer.add(welcomePart);
         titleContainer.add(brandPart);
         
@@ -165,21 +166,6 @@ public class AuthUI extends JFrame {
         loginButton = createGradientButton("Login", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
         JButton googleSignInButton = createGoogleSignInButton();
-        // Set teal (#008080) background with white text for contrast
-        googleSignInButton.setBackground(new Color(0x00, 0x80, 0x80)); // #008080
-        googleSignInButton.setForeground(Color.WHITE);
-        // Force white text in paint regardless of LAF overrides
-        googleSignInButton.putClientProperty("forceWhiteText", Boolean.TRUE);
-        // Explicitly enforce a taller size for the Google button
-        {
-            double scaleLocal = calculateProportionalScale();
-            int fieldWidthLocal = Math.max(250, (int)(520 * scaleLocal));
-            int googleHeight = Math.max(112, (int)(168 * scaleLocal));
-            Dimension googleSize = new Dimension(fieldWidthLocal, googleHeight);
-            googleSignInButton.setMaximumSize(googleSize);
-            googleSignInButton.setPreferredSize(googleSize);
-            googleSignInButton.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(20, (int)(26 * scaleLocal))));
-        }
         
         // Add action listeners
         loginButton.addActionListener(e -> handleLogin());
@@ -787,12 +773,13 @@ public class AuthUI extends JFrame {
     }
 
     private JButton createGoogleSignInButton() {
-        JButton button = createSolidButton("Sign in with Google", new Color(0xFF, 0x00, 0x84), Color.WHITE);
+        JButton button = createSolidButton("Sign in with Google", Color.WHITE, new Color(60, 64, 67));
         // Attach Google G icon (drawn vector) to the left of text (larger for visibility)
         button.putClientProperty("leftIcon", createGoogleGIcon(24));
         button.putClientProperty("leftIconGap", Integer.valueOf(10));
-        // Ensure text is forced white regardless of LAF overrides
-        button.putClientProperty("forceWhiteText", Boolean.TRUE);
+        // White button styling with subtle gray border and proper hover
+        button.putClientProperty("googleStyleBorder", Boolean.TRUE);
+        button.putClientProperty("isWhiteButton", Boolean.TRUE);
         button.addActionListener(e -> {
             if (!isOnlineMode) {
                 JOptionPane.showMessageDialog(this, "Google Sign-In requires internet connection.", "Offline", JOptionPane.WARNING_MESSAGE);
@@ -873,13 +860,19 @@ public class AuthUI extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color base = backgroundColor;
-                if (getModel().isRollover()) {
-                    base = new Color(
-                        Math.min(255, backgroundColor.getRed() + 25),
-                        Math.min(255, backgroundColor.getGreen() + 25),
-                        Math.min(255, backgroundColor.getBlue() + 25)
-                    );
+                Color base;
+                boolean isWhiteBtn = Boolean.TRUE.equals(getClientProperty("isWhiteButton"));
+                if (isWhiteBtn) {
+                    base = getModel().isRollover() ? new Color(242, 242, 242) : Color.WHITE;
+                } else {
+                    base = backgroundColor;
+                    if (getModel().isRollover()) {
+                        base = new Color(
+                            Math.min(255, backgroundColor.getRed() + 25),
+                            Math.min(255, backgroundColor.getGreen() + 25),
+                            Math.min(255, backgroundColor.getBlue() + 25)
+                        );
+                    }
                 }
                 g2d.setColor(base);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
@@ -909,14 +902,16 @@ public class AuthUI extends JFrame {
                     int iconX = centerX - (textW + leftIconW) / 2;
                     int iconY = (getHeight() - icon.getIconHeight()) / 2;
                     // Backdrop circle for icon visibility on colored backgrounds
-                    int d = Math.max(icon.getIconWidth(), icon.getIconHeight()) + 6;
-                    int cx = iconX + icon.getIconWidth() / 2;
-                    int cy = iconY + icon.getIconHeight() / 2;
-                    g2d.setColor(Color.WHITE);
-                    g2d.fillOval(cx - d / 2, cy - d / 2, d, d);
-                    g2d.setColor(new Color(0, 0, 0, 30));
-                    g2d.setStroke(new BasicStroke(1f));
-                    g2d.drawOval(cx - d / 2, cy - d / 2, d, d);
+                    if (!isWhiteBtn) {
+                        int d = Math.max(icon.getIconWidth(), icon.getIconHeight()) + 6;
+                        int cx = iconX + icon.getIconWidth() / 2;
+                        int cy = iconY + icon.getIconHeight() / 2;
+                        g2d.setColor(Color.WHITE);
+                        g2d.fillOval(cx - d / 2, cy - d / 2, d, d);
+                        g2d.setColor(new Color(0, 0, 0, 30));
+                        g2d.setStroke(new BasicStroke(1f));
+                        g2d.drawOval(cx - d / 2, cy - d / 2, d, d);
+                    }
                     // Paint the actual icon on top
                     icon.paintIcon(this, g2d, iconX, iconY);
                 }
@@ -925,6 +920,13 @@ public class AuthUI extends JFrame {
                     textX = centerX - (textW + leftIconW) / 2 + leftIconW;
                 }
                 g2d.drawString(getText(), textX, y);
+
+                // Optional subtle border for white Google button
+                if (Boolean.TRUE.equals(getClientProperty("googleStyleBorder"))) {
+                    g2d.setColor(new Color(0xDA, 0xDC, 0xE0)); // #DADCE0
+                    g2d.setStroke(new BasicStroke(1f));
+                    g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                }
                 g2d.dispose();
             }
         };
