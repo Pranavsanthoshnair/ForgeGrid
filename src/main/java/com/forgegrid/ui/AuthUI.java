@@ -1,6 +1,5 @@
 package com.forgegrid.ui;
 
-import com.forgegrid.ui.components.OfflineIndicator;
 import com.forgegrid.config.AppConfig;
 import com.forgegrid.managers.HybridAuthManager;
 import com.forgegrid.managers.UserManager;
@@ -14,6 +13,10 @@ import java.awt.event.ActionListener;
 import java.util.concurrent.CompletableFuture;
 
 public class AuthUI extends JFrame {
+    // Color scheme
+    private static final Color PRIMARY_COLOR = new Color(0xffcc4d); // #ffcc4d - Golden yellow
+    private static final Color SECONDARY_COLOR = new Color(0x3a6ea5); // #3a6ea5 - Blue
+    
     private JTextField emailField;
     private JPasswordField passwordField;
     private JTextField nameField;
@@ -23,17 +26,14 @@ public class AuthUI extends JFrame {
     private CardLayout cardLayout;
     private UserManager userManager;
     private HybridAuthManager hybridAuthManager;
-    private GoogleOAuthService googleOAuthService;
     private JLabel statusLabel;
     private LoadingScreen loadingScreen;
     private boolean isOnlineMode;
     private AppConfig config;
-    private OfflineIndicator offlineIndicator;
     
     public AuthUI() {
         this.userManager = UserManager.getInstance();
         this.config = AppConfig.getInstance();
-        this.googleOAuthService = new GoogleOAuthService();
         this.isOnlineMode = false;
         initializeUI();
     }
@@ -56,15 +56,11 @@ public class AuthUI extends JFrame {
         setLocationRelativeTo(null);
         setResizable(true);
         
-        // Set the window icon to your custom logo
+        // Set the window icon to the existing logo image (single source)
         try {
-            java.net.URL iconUrl = getClass().getResource("/com/forgegrid/icon/logo.jpg");
-            if (iconUrl == null) {
-                iconUrl = getClass().getResource("/com/forgegrid/icon/logo.png");
-            }
+            java.net.URL iconUrl = getClass().getResource("/com/forgegrid/icon/logo2_transparent.png");
             if (iconUrl != null) {
                 ImageIcon icon = new ImageIcon(iconUrl);
-                // Scale the icon to a smaller size for the title bar
                 Image iconImage = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
                 setIconImage(iconImage);
             }
@@ -86,15 +82,8 @@ public class AuthUI extends JFrame {
         loadingScreen = new LoadingScreen();
         cardPanel.add(loadingScreen, "LOADING");
         
-        // Create offline indicator
-        offlineIndicator = new OfflineIndicator();
-        
-        // Create main content panel with offline indicator at top
-        JPanel mainContentPanel = new JPanel(new BorderLayout());
-        mainContentPanel.add(offlineIndicator, BorderLayout.NORTH);
-        mainContentPanel.add(cardPanel, BorderLayout.CENTER);
-        
-        add(mainContentPanel);
+        // Create status indicator
+        createStatusIndicator();
         
         // Create login and signup panels
         JPanel loginPanel = createLoginPanel();
@@ -125,33 +114,29 @@ public class AuthUI extends JFrame {
     }
     
     private JPanel createLoginPanel() {
-        JPanel panel = new GradientPanel();
+        JPanel panel = new NeonBackgroundPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         
         // Calculate proportional padding based on frame size
         double scale = calculateProportionalScale();
         int padding = (int) (80 * scale);
         padding = Math.max(30, Math.min(120, padding));
-        panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
+        panel.setBorder(BorderFactory.createEmptyBorder(Math.max(10, padding - 80), padding, padding, padding));
         
         // Modern tagline with enhanced styling
-        JLabel mainTagline = new JLabel("ForgeGrid – Where coding challenges become milestones.");
-        mainTagline.setFont(new Font("Segoe UI", Font.ITALIC, 20));
-        mainTagline.setForeground(new Color(255, 215, 0)); // Golden yellow
+        JLabel mainTagline = new JLabel("ForgeGrid – Your coding journey starts here.");
+        mainTagline.setFont(new Font("Segoe UI", Font.ITALIC, 18));
+        mainTagline.setForeground(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 180)); // Lighter primary color
         mainTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Create the logo panel
         JPanel logoPanel = createLogoPanel();
         logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-panel.add(Box.createVerticalGlue());
-panel.add(logoPanel);
-panel.add(Box.createRigidArea(new Dimension(0, 10)));
-panel.add(mainTagline);
         // Modern title with enhanced styling
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleRow.setOpaque(false);
-        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80)); // Increased height
+        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120)); // Increased height to avoid clipping
         
         JLabel welcomePart = new JLabel("Welcome to ");
         welcomePart.setFont(new Font("Segoe UI", Font.BOLD, 32));
@@ -160,8 +145,8 @@ panel.add(mainTagline);
         GradientTextLabel brandPart = new GradientTextLabel(
             "ForgeGrid",
             new Font("Segoe UI", Font.BOLD, 38),
-            new Color(255, 215, 0), // golden yellow
-            new Color(255, 105, 180)  // hot pink
+            PRIMARY_COLOR, // primary golden yellow
+            SECONDARY_COLOR  // secondary blue
         );
         
         // Create a container panel to hold both labels
@@ -177,52 +162,68 @@ panel.add(mainTagline);
         emailField = createModernTextField("Email");
         passwordField = createModernPasswordField("Password");
         
-        loginButton = createGradientButton("Login", new Color(138, 43, 226), new Color(168, 85, 247));
-        JButton switchToSignupButton = createSolidButton("New User? Sign Up", Color.WHITE, Color.BLACK);
+        loginButton = createGradientButton("Login", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
+        JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
         JButton googleSignInButton = createGoogleSignInButton();
+        // Set teal (#008080) background with white text for contrast
+        googleSignInButton.setBackground(new Color(0x00, 0x80, 0x80)); // #008080
+        googleSignInButton.setForeground(Color.WHITE);
+        // Force white text in paint regardless of LAF overrides
+        googleSignInButton.putClientProperty("forceWhiteText", Boolean.TRUE);
+        // Explicitly enforce a taller size for the Google button
+        {
+            double scaleLocal = calculateProportionalScale();
+            int fieldWidthLocal = Math.max(250, (int)(520 * scaleLocal));
+            int googleHeight = Math.max(112, (int)(168 * scaleLocal));
+            Dimension googleSize = new Dimension(fieldWidthLocal, googleHeight);
+            googleSignInButton.setMaximumSize(googleSize);
+            googleSignInButton.setPreferredSize(googleSize);
+            googleSignInButton.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(20, (int)(26 * scaleLocal))));
+        }
         
         // Add action listeners
         loginButton.addActionListener(e -> handleLogin());
-        switchToSignupButton.addActionListener(e -> cardLayout.show(cardPanel, "SIGNUP"));
-        googleSignInButton.addActionListener(e -> handleGoogleSignIn());
-        
-        // Layout with better spacing
-        panel.add(Box.createVerticalGlue());
-        panel.add(logoPanel);
-        panel.add(Box.createRigidArea(new Dimension(0, 15)));
-        panel.add(titleRow);
-        panel.add(Box.createRigidArea(new Dimension(0, 15)));
-        panel.add(mainTagline);
-        panel.add(Box.createRigidArea(new Dimension(0, 25)));
-        panel.add(emailField);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
-        panel.add(passwordField);
-        
+        // Build card container to hold form content
+        CardContainerPanel card = new CardContainerPanel();
+        card.setAlignmentX(Component.CENTER_ALIGNMENT);
+        int cardMaxW = Math.max(600, (int)(600 * calculateProportionalScale()));
+        card.setMaximumSize(new Dimension(cardMaxW, Integer.MAX_VALUE));
+
+        // Add components inside the card
+        card.add(logoPanel);
+        card.add(titleRow);
+        card.add(Box.createRigidArea(new Dimension(0, 8))); // tighter spacing before tagline
+        card.add(mainTagline);
+        card.add(Box.createRigidArea(new Dimension(0, 25)));
+        card.add(emailField);
+        card.add(Box.createRigidArea(new Dimension(0, 20)));
+        card.add(passwordField);
+
         // Add "Forgot Password?" link
         JLabel forgotPasswordLink = new JLabel("Forgot Password?");
-        forgotPasswordLink.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        forgotPasswordLink.setForeground(new Color(255, 215, 0));
+        forgotPasswordLink.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        forgotPasswordLink.setForeground(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 160)); // Lighter primary color
         forgotPasswordLink.setAlignmentX(Component.CENTER_ALIGNMENT);
         forgotPasswordLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Enhanced hover effect for forgot password link with smooth animation
         addLinkHoverAnimation(forgotPasswordLink);
-        
-        panel.add(Box.createRigidArea(new Dimension(0, 10)));
-        panel.add(forgotPasswordLink);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
-        panel.add(loginButton);
-        panel.add(Box.createRigidArea(new Dimension(0, 15)));
-        panel.add(switchToSignupButton);
-        panel.add(Box.createRigidArea(new Dimension(0, 15)));
-        panel.add(googleSignInButton);
+        card.add(Box.createRigidArea(new Dimension(0, 10)));
+        card.add(forgotPasswordLink);
+        card.add(Box.createRigidArea(new Dimension(0, 20)));
+        card.add(loginButton);
+        card.add(Box.createRigidArea(new Dimension(0, 15)));
+        card.add(switchToSignupButton);
+        card.add(Box.createRigidArea(new Dimension(0, 15)));
+        card.add(googleSignInButton);
+
+        // Layout with better spacing: center the card vertically (shifted upward via reduced top padding)
+        panel.add(card);
         panel.add(Box.createVerticalGlue());
         
         return panel;
     }
     
     private JPanel createSignupPanel() {
-        JPanel panel = new GradientPanel();
+        JPanel panel = new NeonBackgroundPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         
         // Calculate proportional padding based on frame size
@@ -233,12 +234,12 @@ panel.add(mainTagline);
         
         JLabel titleLabel = new JLabel("Join ForgeGrid");
         titleLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(PRIMARY_COLOR);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        JLabel subtitleLabel = new JLabel("Start your productivity journey");
-        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
-        subtitleLabel.setForeground(new Color(200, 200, 220));
+        JLabel subtitleLabel = new JLabel("Join the coding adventure");
+        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
+        subtitleLabel.setForeground(new Color(SECONDARY_COLOR.getRed(), SECONDARY_COLOR.getGreen(), SECONDARY_COLOR.getBlue(), 200)); // Lighter secondary color
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Form fields
@@ -246,28 +247,34 @@ panel.add(mainTagline);
         JTextField signupEmailField = createModernTextField("Email");
         JPasswordField signupPasswordField = createModernPasswordField("Password");
         
-        signupButton = createGradientButton("Sign Up", new Color(34, 197, 94), new Color(59, 130, 246));
+        signupButton = createGradientButton("Sign Up", SECONDARY_COLOR, new Color(SECONDARY_COLOR.getRed() - 20, SECONDARY_COLOR.getGreen() - 20, SECONDARY_COLOR.getBlue() - 20));
         JButton switchToLoginButton = createGlassButton("Already have an account? Login");
         
         // Add action listeners
         signupButton.addActionListener(e -> handleSignup(signupEmailField, signupPasswordField));
         switchToLoginButton.addActionListener(e -> cardLayout.show(cardPanel, "LOGIN"));
         
-        // Layout
-        panel.add(Box.createVerticalGlue());
-        panel.add(titleLabel);
-        panel.add(Box.createRigidArea(new Dimension(0, 8)));
-        panel.add(subtitleLabel);
-        panel.add(Box.createRigidArea(new Dimension(0, 35)));
-        panel.add(nameField);
-        panel.add(Box.createRigidArea(new Dimension(0, 18)));
-        panel.add(signupEmailField);
-        panel.add(Box.createRigidArea(new Dimension(0, 18)));
-        panel.add(signupPasswordField);
-        panel.add(Box.createRigidArea(new Dimension(0, 30)));
-        panel.add(signupButton);
-        panel.add(Box.createRigidArea(new Dimension(0, 15)));
-        panel.add(switchToLoginButton);
+        // Layout inside a card container
+        CardContainerPanel signupCard = new CardContainerPanel();
+        signupCard.setAlignmentX(Component.CENTER_ALIGNMENT);
+        int signupCardMaxW = Math.max(520, (int)(520 * calculateProportionalScale()));
+        signupCard.setMaximumSize(new Dimension(signupCardMaxW, Integer.MAX_VALUE));
+
+        signupCard.add(titleLabel);
+        signupCard.add(Box.createRigidArea(new Dimension(0, 8)));
+        signupCard.add(subtitleLabel);
+        signupCard.add(Box.createRigidArea(new Dimension(0, 35)));
+        signupCard.add(nameField);
+        signupCard.add(Box.createRigidArea(new Dimension(0, 18)));
+        signupCard.add(signupEmailField);
+        signupCard.add(Box.createRigidArea(new Dimension(0, 18)));
+        signupCard.add(signupPasswordField);
+        signupCard.add(Box.createRigidArea(new Dimension(0, 30)));
+        signupCard.add(signupButton);
+        signupCard.add(Box.createRigidArea(new Dimension(0, 15)));
+        signupCard.add(switchToLoginButton);
+
+        panel.add(signupCard);
         panel.add(Box.createVerticalGlue());
         
         return panel;
@@ -338,7 +345,7 @@ panel.add(mainTagline);
         field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         field.setBackground(new Color(25, 35, 55));
         field.setForeground(new Color(220, 220, 240));
-        field.setCaretColor(new Color(255, 215, 0));
+        field.setCaretColor(PRIMARY_COLOR);
         field.setOpaque(false);
         field.setText(placeholder);
 
@@ -414,47 +421,93 @@ panel.add(mainTagline);
             }
             
             private void drawEyeIcon(Graphics2D g2d) {
-                int eyeX = getWidth() - 40;
-                int eyeY = (getHeight() - 16) / 2;
-                
-                // More realistic eye icon
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                Boolean showPasswordProperty = (Boolean) getClientProperty("showPassword");
-                boolean showPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
-                
-                if (showPassword) {
-                    // Open eye - more realistic with proper shading
-                    g2d.setColor(new Color(255, 255, 255, 200)); // White eye
-                    g2d.fillOval(eyeX, eyeY, 20, 16); // Eye white
-                    
-                    g2d.setColor(new Color(50, 50, 50)); // Dark pupil
-                    g2d.fillOval(eyeX + 6, eyeY + 4, 8, 8); // Pupil
-                    
-                    g2d.setColor(new Color(255, 255, 255, 150)); // Highlight
-                    g2d.fillOval(eyeX + 7, eyeY + 5, 3, 3); // Eye highlight
-                    
-                    g2d.setColor(new Color(200, 200, 200, 100)); // Eyelid shadow
-                    g2d.setStroke(new BasicStroke(1.5f));
-                    g2d.drawArc(eyeX + 1, eyeY + 1, 18, 14, 0, 180); // Top eyelid
-                    
-                } else {
-                    // Closed eye - more realistic with eyelashes
-                    g2d.setColor(new Color(255, 255, 255, 200)); // White eye
-                    g2d.fillOval(eyeX, eyeY, 20, 16); // Eye white
-                    
-                    g2d.setColor(new Color(100, 100, 100)); // Dark eyelid
-                    g2d.setStroke(new BasicStroke(2.5f));
-                    g2d.drawArc(eyeX + 2, eyeY + 2, 16, 12, 0, 180); // Closed eyelid
-                    
-                    // Add eyelashes for more realism
-                    g2d.setColor(new Color(80, 80, 80));
-                    g2d.setStroke(new BasicStroke(1.2f));
-                    for (int i = 0; i < 5; i++) {
-                        int lashX = eyeX + 4 + (i * 3);
-                        g2d.drawLine(lashX, eyeY + 8, lashX + 1, eyeY + 6);
-                    }
-                }
+				int eyeX = getWidth() - 40;
+				int eyeY = (getHeight() - 16) / 2;
+
+				// More realistic eye icon
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+				// Apply micro scale animation if present
+				Object scaleObj = getClientProperty("eyeScale");
+				float eyeScale = 1.0f;
+				if (scaleObj instanceof Float) {
+					eyeScale = (Float) scaleObj;
+				}
+
+				int iconW = 20;
+				int iconH = 16;
+				int cx = eyeX + iconW / 2;
+				int cy = eyeY + iconH / 2;
+
+				java.awt.geom.AffineTransform oldTx = g2d.getTransform();
+				g2d.translate(cx, cy);
+				g2d.scale(eyeScale, eyeScale);
+				g2d.translate(-cx, -cy);
+
+				Boolean showPasswordProperty = (Boolean) getClientProperty("showPassword");
+				boolean showPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
+
+				if (showPassword) {
+					// Open eye - more realistic with proper shading
+					g2d.setColor(new Color(255, 255, 255, 200)); // White eye
+					g2d.fillOval(eyeX, eyeY, iconW, iconH); // Eye white
+
+					g2d.setColor(new Color(50, 50, 50)); // Dark pupil
+					g2d.fillOval(eyeX + 6, eyeY + 4, 8, 8); // Pupil
+
+					g2d.setColor(new Color(255, 255, 255, 150)); // Highlight
+					g2d.fillOval(eyeX + 7, eyeY + 5, 3, 3); // Eye highlight
+
+					g2d.setColor(new Color(200, 200, 200, 100)); // Eyelid shadow
+					g2d.setStroke(new BasicStroke(1.5f));
+					g2d.drawArc(eyeX + 1, eyeY + 1, iconW - 2, iconH - 2, 0, 180); // Top eyelid
+				} else {
+					// Closed eye with visible eyelashes (more realistic)
+					// Almond-shaped outline (subtle) under the lid for form
+					g2d.setColor(new Color(255, 255, 255, 60));
+					g2d.setStroke(new BasicStroke(1.2f));
+					g2d.drawArc(eyeX + 1, eyeY + 3, iconW - 2, iconH - 6, 200, 140); // lower curve hint
+
+					// Upper eyelid (thicker stroke)
+					g2d.setColor(new Color(90, 90, 95));
+					g2d.setStroke(new BasicStroke(2.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+					g2d.drawArc(eyeX + 1, eyeY + 1, iconW - 2, iconH - 4, 0, 180); // closed lid
+
+					// Eyelashes along the upper lid
+					g2d.setColor(new Color(70, 70, 75));
+					g2d.setStroke(new BasicStroke(1.4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+					int lashCount = 9;
+					for (int i = 0; i < lashCount; i++) {
+						float t = (float) i / (lashCount - 1);
+						// Position along the lid (avoid extreme ends slightly)
+						float px = eyeX + 3 + t * (iconW - 6);
+						// Slight curve offset to follow the arc
+						float curve = (float) Math.sin(t * Math.PI) * 3.5f;
+						float py = eyeY + 4 + (3.5f - curve);
+
+						// Angle fan outward (from -35° to -145°)
+						float angleDeg = -35f - t * 110f;
+						double ang = Math.toRadians(angleDeg);
+
+						// Lash length varies slightly (longer near center)
+						float len = 5.0f + (float) Math.sin(t * Math.PI) * 2.0f;
+
+						float dx = (float) (Math.cos(ang) * len);
+						float dy = (float) (Math.sin(ang) * len);
+
+						g2d.drawLine(Math.round(px), Math.round(py), Math.round(px + dx), Math.round(py + dy));
+					}
+
+					// Soft lid highlight
+					g2d.setColor(new Color(255, 255, 255, 40));
+					g2d.setStroke(new BasicStroke(1f));
+					g2d.drawArc(eyeX + 2, eyeY + 2, iconW - 4, iconH - 6, 10, 160);
+				}
+
+				// restore transform
+				g2d.setTransform(oldTx);
+			
             }
             
             @Override
@@ -491,7 +544,7 @@ panel.add(mainTagline);
         field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         field.setBackground(new Color(25, 35, 55));
         field.setForeground(new Color(220, 220, 240));
-        field.setCaretColor(new Color(255, 215, 0));
+        field.setCaretColor(PRIMARY_COLOR);
         field.setOpaque(false);
         field.setText(placeholder);
         field.setEchoChar((char) 0); // Show placeholder text initially
@@ -585,27 +638,45 @@ panel.add(mainTagline);
     
     private JButton createGradientButton(String text, Color color1, Color color2) {
         JButton button = new JButton(text) {
+            private boolean isHovered = false;
+            private boolean isPressed = false;
+            
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
+                // Enhanced colors based on state
+                Color hoverColor1 = isHovered ? 
+                    new Color(Math.min(255, color1.getRed() + 40), Math.min(255, color1.getGreen() + 40), Math.min(255, color1.getBlue() + 40)) : 
+                    color1;
+                Color hoverColor2 = isHovered ? 
+                    new Color(Math.min(255, color2.getRed() + 40), Math.min(255, color2.getGreen() + 40), Math.min(255, color2.getBlue() + 40)) : 
+                    color2;
+                
+                // Scale effect when hovered
+                float scale = isHovered ? 1.05f : 1.0f;
+                int offsetX = (int)((getWidth() * (scale - 1)) / 2);
+                int offsetY = (int)((getHeight() * (scale - 1)) / 2);
+                
                 // Diagonal gradient for login button
-                GradientPaint gradient = new GradientPaint(0, 0, color1, getWidth(), getHeight(), color2);
+                GradientPaint gradient = new GradientPaint(0, 0, hoverColor1, getWidth(), getHeight(), hoverColor2);
                 g2d.setPaint(gradient);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2d.fillRoundRect(offsetX, offsetY, (int)(getWidth() * scale), (int)(getHeight() * scale), 20, 20);
                 
-                // Add subtle inner glow
-                g2d.setColor(new Color(255, 255, 255, 20));
-                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() / 2, 18, 18);
+                // Enhanced inner glow when hovered
+                int glowAlpha = isHovered ? 40 : 20;
+                g2d.setColor(new Color(255, 255, 255, glowAlpha));
+                g2d.fillRoundRect(offsetX + 2, offsetY + 2, (int)((getWidth() - 4) * scale), (int)((getHeight() / 2) * scale), 18, 18);
                 
-                // Add soft shadow for depth
-                g2d.setColor(new Color(0, 0, 0, 20));
-                g2d.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 18, 18);
+                // Enhanced shadow when hovered
+                int shadowAlpha = isHovered ? 40 : 20;
+                g2d.setColor(new Color(0, 0, 0, shadowAlpha));
+                g2d.fillRoundRect(offsetX + 2, offsetY + 2, (int)((getWidth() - 2) * scale), (int)((getHeight() - 2) * scale), 18, 18);
                 
-                // Text with shadow
-                g2d.setColor(new Color(0, 0, 0, 30));
+                // Text with enhanced shadow when hovered
+                g2d.setColor(new Color(0, 0, 0, isHovered ? 50 : 30));
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2 + 1;
@@ -616,6 +687,16 @@ panel.add(mainTagline);
                 g2d.drawString(getText(), x - 1, y - 1);
                 
                 g2d.dispose();
+            }
+            
+            public void setHovered(boolean hovered) {
+                this.isHovered = hovered;
+                repaint();
+            }
+            
+            public void setPressed(boolean pressed) {
+                this.isPressed = pressed;
+                repaint();
             }
         };
         
@@ -653,16 +734,17 @@ panel.add(mainTagline);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
                 // Modern outlined button with subtle background
-                g2d.setColor(new Color(255, 255, 255, 5));
+                Color bg = getModel().isRollover() ? new Color(255, 255, 255, 12) : new Color(255, 255, 255, 5);
+                g2d.setColor(bg);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
                 
                 // Border with gradient effect
-                g2d.setColor(new Color(255, 255, 255, 40));
+                g2d.setColor(getModel().isRollover() ? new Color(255, 255, 255, 70) : new Color(255, 255, 255, 40));
                 g2d.setStroke(new BasicStroke(2));
                 g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
                 
                 // Inner highlight
-                g2d.setColor(new Color(255, 255, 255, 10));
+                g2d.setColor(getModel().isRollover() ? new Color(255, 255, 255, 20) : new Color(255, 255, 255, 10));
                 g2d.setStroke(new BasicStroke(1));
                 g2d.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 16, 16);
                 
@@ -696,10 +778,93 @@ panel.add(mainTagline);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         
+        // Enable rollover for hover visuals
+        button.setRolloverEnabled(true);
         // Add subtle hover effect
         addButtonHoverEffect(button);
         
         return button;
+    }
+
+    private JButton createGoogleSignInButton() {
+        JButton button = createSolidButton("Sign in with Google", new Color(0xFF, 0x00, 0x84), Color.WHITE);
+        // Attach Google G icon (drawn vector) to the left of text (larger for visibility)
+        button.putClientProperty("leftIcon", createGoogleGIcon(24));
+        button.putClientProperty("leftIconGap", Integer.valueOf(10));
+        // Ensure text is forced white regardless of LAF overrides
+        button.putClientProperty("forceWhiteText", Boolean.TRUE);
+        button.addActionListener(e -> {
+            if (!isOnlineMode) {
+                JOptionPane.showMessageDialog(this, "Google Sign-In requires internet connection.", "Offline", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            button.setEnabled(false);
+            button.setText("Opening Google...");
+
+            GoogleOAuthService googleOAuthService = new GoogleOAuthService();
+            googleOAuthService.authenticateWithGoogle()
+                .thenCompose(idToken -> hybridAuthManager.authenticateWithGoogle(idToken))
+                .thenAccept(result -> SwingUtilities.invokeLater(() -> {
+                    button.setEnabled(true);
+                    button.setText("Sign in with Google");
+
+                    if (result.isSuccess()) {
+                        JOptionPane.showMessageDialog(this,
+                            "Google sign-in successful! Welcome, " + result.getProfile().getUsername() + "!",
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, result.getMessage(), "Google Sign-In Failed", JOptionPane.ERROR_MESSAGE);
+                    }
+                }))
+                .exceptionally(err -> {
+                    SwingUtilities.invokeLater(() -> {
+                        button.setEnabled(true);
+                        button.setText("Sign in with Google");
+                        JOptionPane.showMessageDialog(this, "Google Sign-In error: " + err.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    });
+                    return null;
+                });
+        });
+        return button;
+    }
+
+    private Icon createGoogleGIcon(int size) {
+        int iconSize = Math.max(12, size);
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int s = iconSize;
+                int cx = x + s / 2;
+                int cy = y + s / 2;
+                int r = s / 2;
+                int stroke = Math.max(2, s / 6);
+                g2.setStroke(new BasicStroke(stroke, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                // Draw multicolor G segments (approximate Google G)
+                // Blue
+                g2.setColor(new Color(66, 133, 244));
+                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 40, 110);
+                // Red
+                g2.setColor(new Color(234, 67, 53));
+                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 150, 70);
+                // Yellow
+                g2.setColor(new Color(251, 188, 5));
+                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 215, 70);
+                // Green
+                g2.setColor(new Color(52, 168, 83));
+                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 285, 70);
+                // G crossbar (blue)
+                g2.setColor(new Color(66, 133, 244));
+                g2.drawLine(cx + r / 4, cy, cx + r - stroke, cy);
+                g2.dispose();
+            }
+            @Override
+            public int getIconWidth() { return iconSize; }
+            @Override
+            public int getIconHeight() { return iconSize; }
+        };
     }
 
     private JButton createSolidButton(String text, Color backgroundColor, Color foregroundColor) {
@@ -708,15 +873,58 @@ panel.add(mainTagline);
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(backgroundColor);
+                Color base = backgroundColor;
+                if (getModel().isRollover()) {
+                    base = new Color(
+                        Math.min(255, backgroundColor.getRed() + 25),
+                        Math.min(255, backgroundColor.getGreen() + 25),
+                        Math.min(255, backgroundColor.getBlue() + 25)
+                    );
+                }
+                g2d.setColor(base);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
 
-                g2d.setColor(getForeground());
+                // Respect per-button override for text color when requested
+                Color textColor = getForeground();
+                Object forceWhite = getClientProperty("forceWhiteText");
+                if (Boolean.TRUE.equals(forceWhite)) {
+                    textColor = Color.WHITE;
+                }
+                g2d.setColor(textColor);
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
+                int textW = fm.stringWidth(getText());
+                int textH = fm.getAscent() - fm.getDescent();
+                int centerX = getWidth() / 2;
                 int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                g2d.drawString(getText(), x, y);
+                // Optional left icon
+                Object iconObj = getClientProperty("leftIcon");
+                int gap = 8;
+                Object gapObj = getClientProperty("leftIconGap");
+                if (gapObj instanceof Integer) gap = (Integer) gapObj;
+                int leftIconW = 0;
+                if (iconObj instanceof Icon) {
+                    Icon icon = (Icon) iconObj;
+                    leftIconW = icon.getIconWidth() + gap;
+                    int iconX = centerX - (textW + leftIconW) / 2;
+                    int iconY = (getHeight() - icon.getIconHeight()) / 2;
+                    // Backdrop circle for icon visibility on colored backgrounds
+                    int d = Math.max(icon.getIconWidth(), icon.getIconHeight()) + 6;
+                    int cx = iconX + icon.getIconWidth() / 2;
+                    int cy = iconY + icon.getIconHeight() / 2;
+                    g2d.setColor(Color.WHITE);
+                    g2d.fillOval(cx - d / 2, cy - d / 2, d, d);
+                    g2d.setColor(new Color(0, 0, 0, 30));
+                    g2d.setStroke(new BasicStroke(1f));
+                    g2d.drawOval(cx - d / 2, cy - d / 2, d, d);
+                    // Paint the actual icon on top
+                    icon.paintIcon(this, g2d, iconX, iconY);
+                }
+                int textX = centerX - (textW - (leftIconW > 0 ? -leftIconW : 0)) / 2;
+                if (leftIconW > 0) {
+                    textX = centerX - (textW + leftIconW) / 2 + leftIconW;
+                }
+                g2d.drawString(getText(), textX, y);
                 g2d.dispose();
             }
         };
@@ -740,80 +948,8 @@ panel.add(mainTagline);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Add subtle hover effect
-        addButtonHoverEffect(button);
-        
-        return button;
-    }
-    
-    private JButton createGoogleSignInButton() {
-        JButton button = new JButton() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                
-                // Google-style button with white background and blue text
-                g2d.setColor(Color.WHITE);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                
-                // Border
-                g2d.setColor(new Color(218, 220, 224));
-                g2d.setStroke(new BasicStroke(1));
-                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
-                
-                // Google logo (simplified)
-                drawGoogleLogo(g2d);
-                
-                // Text
-                g2d.setColor(new Color(60, 64, 67));
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textX = (getWidth() - fm.stringWidth("Sign in with Google")) / 2;
-                int textY = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                g2d.drawString("Sign in with Google", textX, textY);
-                
-                g2d.dispose();
-            }
-            
-            private void drawGoogleLogo(Graphics2D g2d) {
-                int logoSize = 20;
-                int logoX = 15;
-                int logoY = (getHeight() - logoSize) / 2;
-                
-                // Draw simplified Google logo (G)
-                g2d.setColor(new Color(66, 133, 244)); // Google Blue
-                g2d.fillOval(logoX, logoY, logoSize, logoSize);
-                
-                g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font("Arial", Font.BOLD, 12));
-                FontMetrics fm = g2d.getFontMetrics();
-                int textX = logoX + (logoSize - fm.stringWidth("G")) / 2;
-                int textY = logoY + (logoSize + fm.getAscent()) / 2;
-                g2d.drawString("G", textX, textY);
-            }
-        };
-        
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(50, buttonHeight);
-        
-        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
-        button.setForeground(new Color(60, 64, 67));
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+        // Enable rollover for hover visuals
+        button.setRolloverEnabled(true);
         // Add subtle hover effect
         addButtonHoverEffect(button);
         
@@ -821,6 +957,21 @@ panel.add(mainTagline);
     }
 
     private class GradientPanel extends JPanel {
+        private Timer animationTimer;
+        private float animationPhase = 0.0f;
+        
+        public GradientPanel() {
+            // Start animation timer
+            animationTimer = new Timer(50, e -> {
+                animationPhase += 0.02f;
+                if (animationPhase > 2 * Math.PI) {
+                    animationPhase = 0.0f;
+                }
+                repaint();
+            });
+            animationTimer.start();
+        }
+        
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -828,7 +979,7 @@ panel.add(mainTagline);
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-            // Enhanced dark gradient with smoother transitions
+            // Enhanced dark gradient with smoother transitions (primary background)
             GradientPaint gradient = new GradientPaint(
                 0, 0, new Color(6, 15, 35), // deeper dark navy
                 getWidth(), getHeight(), new Color(12, 25, 50) // slightly lighter with more blue
@@ -836,14 +987,17 @@ panel.add(mainTagline);
             g2d.setPaint(gradient);
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
-            // Enhanced radial gradient with brighter center
+            // Animated radial gradient with subtle color hints
+            float centerX = getWidth() / 2.0f + (float)(Math.sin(animationPhase) * 30);
+            float centerY = getHeight() / 2.0f + (float)(Math.cos(animationPhase * 0.7) * 20);
+            
             RadialGradientPaint radialGradient = new RadialGradientPaint(
-                getWidth() / 2, getHeight() / 2, Math.max(getWidth(), getHeight()) / 1.5f,
+                centerX, centerY, Math.max(getWidth(), getHeight()) / 1.5f,
                 new float[]{0.0f, 0.4f, 0.8f, 1.0f},
                 new Color[]{
                     new Color(255, 255, 255, 8), // brighter center
-                    new Color(255, 255, 255, 4), 
-                    new Color(255, 255, 255, 1), 
+                    new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 15), // subtle primary color
+                    new Color(SECONDARY_COLOR.getRed(), SECONDARY_COLOR.getGreen(), SECONDARY_COLOR.getBlue(), 10), // subtle secondary color
                     new Color(0, 0, 0, 0)
                 }
             );
@@ -851,27 +1005,33 @@ panel.add(mainTagline);
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
             // Add subtle geometric pattern overlay
-            drawGeometricPattern(g2d);
+            drawAnimatedGeometricPattern(g2d);
 
             g2d.dispose();
         }
         
-        private void drawGeometricPattern(Graphics2D g2d) {
-            g2d.setColor(new Color(255, 255, 255, 2));
+        private void drawAnimatedGeometricPattern(Graphics2D g2d) {
+            // Animated opacity based on animation phase - very subtle
+            int alpha = (int)(2 + 1 * Math.sin(animationPhase * 2));
+            g2d.setColor(new Color(255, 255, 255, alpha)); // Use white for subtle pattern
             g2d.setStroke(new BasicStroke(1));
             
             int spacing = 60;
             int patternSize = 20;
             
+            // Animate pattern position
+            float offsetX = (float)(Math.sin(animationPhase * 0.3) * 10);
+            float offsetY = (float)(Math.cos(animationPhase * 0.4) * 8);
+            
             for (int x = 0; x < getWidth(); x += spacing) {
                 for (int y = 0; y < getHeight(); y += spacing) {
-                    // Draw subtle coding-themed patterns
+                    // Draw subtle coding-themed patterns with animation
                     if ((x + y) % (spacing * 2) == 0) {
-                        // Draw small squares (like code blocks)
-                        g2d.drawRect(x, y, patternSize, patternSize);
+                        // Draw small squares (like code blocks) with animated position
+                        g2d.drawRect((int)(x + offsetX), (int)(y + offsetY), patternSize, patternSize);
                     } else {
-                        // Draw small circles (like code elements)
-                        g2d.drawOval(x, y, patternSize, patternSize);
+                        // Draw small circles (like code elements) with animated position
+                        g2d.drawOval((int)(x + offsetX), (int)(y + offsetY), patternSize, patternSize);
                     }
                 }
             }
@@ -973,87 +1133,6 @@ panel.add(mainTagline);
         });
     }
     
-    private void handleGoogleSignIn() {
-        // Show loading dialog
-        JDialog loadingDialog = new JDialog(this, "Google Sign-In", true);
-        loadingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        loadingDialog.setSize(300, 150);
-        loadingDialog.setLocationRelativeTo(this);
-        
-        JPanel loadingPanel = new JPanel(new BorderLayout());
-        JLabel loadingLabel = new JLabel("Authenticating with Google...", JLabel.CENTER);
-        loadingLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        
-        JProgressBar progressBar = new JProgressBar();
-        progressBar.setIndeterminate(true);
-        
-        loadingPanel.add(loadingLabel, BorderLayout.CENTER);
-        loadingPanel.add(progressBar, BorderLayout.SOUTH);
-        loadingDialog.add(loadingPanel);
-        
-        // Show loading dialog
-        SwingUtilities.invokeLater(() -> loadingDialog.setVisible(true));
-        
-        // Start Google OAuth flow with local server
-        CompletableFuture<String> googleTokenFuture = googleOAuthService.authenticateWithGoogle()
-            .whenComplete((token, throwable) -> {
-                // Ensure the loading dialog is always closed
-                SwingUtilities.invokeLater(loadingDialog::dispose);
-            });
-        
-        googleTokenFuture.thenAccept(googleToken -> {
-            SwingUtilities.invokeLater(() -> {
-                // Now authenticate with Supabase using the Google token
-                CompletableFuture<HybridAuthManager.AuthenticationResult> authFuture = 
-                    hybridAuthManager.authenticateWithGoogle(googleToken);
-                
-                authFuture.thenAccept(result -> {
-                    SwingUtilities.invokeLater(() -> {
-                        if (result.isSuccess()) {
-                            JOptionPane.showMessageDialog(this, 
-                                "🎉 Welcome to ForgeGrid!\n\n" +
-                                "Successfully signed in with Google\n" +
-                                "User: " + result.getProfile().getUsername() + "\n" +
-                                "Email: " + result.getProfile().getEmail() + "\n" +
-                                "Mode: " + (result.isOnline() ? "Online (Supabase)" : "Offline"),
-                                "Sign-In Successful", JOptionPane.INFORMATION_MESSAGE);
-                            
-                            // TODO: Proceed to main application
-                        } else {
-                            JOptionPane.showMessageDialog(this, 
-                                "❌ Google Sign-In failed: " + result.getMessage(),
-                                "Sign-In Failed", JOptionPane.ERROR_MESSAGE);
-                        }
-                    });
-                }).exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(this, 
-                            "❌ Google Sign-In error: " + throwable.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    });
-                    return null;
-                });
-            });
-        }).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                String errorMessage = throwable.getMessage();
-                if (errorMessage == null || errorMessage.isEmpty()) {
-                    errorMessage = "Unknown error occurred";
-                }
-                
-                JOptionPane.showMessageDialog(this, 
-                    "❌ Google OAuth failed: " + errorMessage + "\n\n" +
-                    "Troubleshooting steps:\n" +
-                    "1. Make sure you have configured Google OAuth credentials\n" +
-                    "2. Add 'http://localhost:8080/callback' to Authorized Redirect URIs in Google Cloud Console\n" +
-                    "3. Enable Google Sign-In in Supabase Authentication providers\n" +
-                    "4. Check console logs for detailed error information",
-                    "OAuth Error", JOptionPane.ERROR_MESSAGE);
-            });
-            return null;
-        });
-    }
-    
     private void handleSignup(JTextField emailField, JPasswordField passwordField) {
         String name = nameField.getText().trim();
         String email = emailField.getText().trim();
@@ -1126,26 +1205,21 @@ panel.add(mainTagline);
         logoPanel.setLayout(new BorderLayout());
         
         try {
-            // Try to load the logo from resources (try .jpg first, then .png)
-            java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo.jpg");
-            System.out.println("Logo URL: " + logoUrl); // Debug output
-            if (logoUrl == null) {
-                logoUrl = getClass().getResource("/com/forgegrid/icon/logo.png");
-                System.out.println("PNG Logo URL: " + logoUrl); // Debug output
-            }
+            // Use the single existing logo image
+            java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo2_transparent.png");
             if (logoUrl != null) {
                 System.out.println("Logo found! Loading..."); // Debug output
                 ImageIcon logoIcon = new ImageIcon(logoUrl);
                 Image logoImage = logoIcon.getImage();
                 
-                // Scale the logo proportionally
+                // Scale the logo proportionally (much larger base size)
                 double scale = calculateProportionalScale();
-                int logoWidth = (int) (120 * scale);
-                int logoHeight = (int) (80 * scale);
+                int logoWidth = (int) (360 * scale);
+                int logoHeight = (int) (220 * scale);
                 
-                // Ensure minimum sizes
-                logoWidth = Math.max(80, logoWidth);
-                logoHeight = Math.max(50, logoHeight);
+                // Ensure minimum sizes (much larger)
+                logoWidth = Math.max(240, logoWidth);
+                logoHeight = Math.max(140, logoHeight);
                 
                 // Scale the image
                 Image scaledLogo = logoImage.getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
@@ -1191,19 +1265,19 @@ panel.add(mainTagline);
         // Calculate proportional sizes
         int fieldWidth = (int) (520 * scale);
         int fieldHeight = (int) (70 * scale);
-        int buttonHeight = (int) (70 * scale);
-        int glassButtonHeight = (int) (65 * scale);
+        int buttonHeight = (int) (168 * scale);
+        int glassButtonHeight = (int) (156 * scale);
         
         // Ensure minimum sizes
         fieldWidth = Math.max(250, fieldWidth);
         fieldHeight = Math.max(50, fieldHeight);
-        buttonHeight = Math.max(50, buttonHeight);
-        glassButtonHeight = Math.max(45, glassButtonHeight);
+        buttonHeight = Math.max(112, buttonHeight);
+        glassButtonHeight = Math.max(104, glassButtonHeight);
         
         // Calculate proportional font sizes
         int fieldFontSize = Math.max(14, (int) (20 * scale));
-        int buttonFontSize = Math.max(16, (int) (22 * scale));
-        int glassButtonFontSize = Math.max(14, (int) (20 * scale));
+        int buttonFontSize = Math.max(18, (int) (26 * scale));
+        int glassButtonFontSize = Math.max(16, (int) (22 * scale));
         
         // Update field sizes and fonts
         if (emailField != null) {
@@ -1242,7 +1316,7 @@ panel.add(mainTagline);
             signupButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
         }
         
-        // Google Sign-In button is handled in updateAllButtonSizes method
+        
         
         // Update all other buttons in the panels
         updateAllButtonSizes(fieldWidth, buttonHeight, glassButtonHeight, buttonFontSize, glassButtonFontSize);
@@ -1273,7 +1347,11 @@ panel.add(mainTagline);
                 String text = button.getText();
                 
                 // Determine button type and apply appropriate sizing
-                if (text.contains("Sign Up") || text.contains("Login") || text.contains("Sign in with Google")) {
+            if (text.contains("Sign Up") || text.contains("Login")) {
+                    button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+                    button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+                    button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
+                } else if (text.contains("Google")) {
                     button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
                     button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
                     button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
@@ -1304,6 +1382,36 @@ panel.add(mainTagline);
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (hoverTimer != null) hoverTimer.stop();
                 
+                // Set hover state for gradient buttons
+                if (button.getClass().getSimpleName().contains("$")) {
+                    try {
+                        java.lang.reflect.Method setHovered = button.getClass().getMethod("setHovered", boolean.class);
+                        setHovered.invoke(button, true);
+                    } catch (Exception ex) {
+                        // Fallback for regular buttons
+                        Color currentColor = button.getBackground();
+                        if (currentColor != null) {
+                            Color hoverColor = new Color(
+                                Math.min(255, currentColor.getRed() + 30),
+                                Math.min(255, currentColor.getGreen() + 30),
+                                Math.min(255, currentColor.getBlue() + 30)
+                            );
+                            button.setBackground(hoverColor);
+                        }
+                    }
+                } else {
+                    // Change button color to a lighter version on hover
+                    Color currentColor = button.getBackground();
+                    if (currentColor != null) {
+                        Color hoverColor = new Color(
+                            Math.min(255, currentColor.getRed() + 30),
+                            Math.min(255, currentColor.getGreen() + 30),
+                            Math.min(255, currentColor.getBlue() + 30)
+                        );
+                        button.setBackground(hoverColor);
+                    }
+                }
+                
                 hoverTimer = new Timer(16, new ActionListener() {
                     private int elapsed = 0;
                     
@@ -1326,6 +1434,36 @@ panel.add(mainTagline);
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
                 if (hoverTimer != null) hoverTimer.stop();
+                
+                // Reset hover state for gradient buttons
+                if (button.getClass().getSimpleName().contains("$")) {
+                    try {
+                        java.lang.reflect.Method setHovered = button.getClass().getMethod("setHovered", boolean.class);
+                        setHovered.invoke(button, false);
+                    } catch (Exception ex) {
+                        // Fallback for regular buttons
+                        Color currentColor = button.getBackground();
+                        if (currentColor != null) {
+                            Color originalColor = new Color(
+                                Math.max(0, currentColor.getRed() - 30),
+                                Math.max(0, currentColor.getGreen() - 30),
+                                Math.max(0, currentColor.getBlue() - 30)
+                            );
+                            button.setBackground(originalColor);
+                        }
+                    }
+                } else {
+                    // Restore original button color
+                    Color currentColor = button.getBackground();
+                    if (currentColor != null) {
+                        Color originalColor = new Color(
+                            Math.max(0, currentColor.getRed() - 30),
+                            Math.max(0, currentColor.getGreen() - 30),
+                            Math.max(0, currentColor.getBlue() - 30)
+                        );
+                        button.setBackground(originalColor);
+                    }
+                }
                 
                 hoverTimer = new Timer(16, new ActionListener() {
                     private int elapsed = 0;
@@ -1464,7 +1602,7 @@ panel.add(mainTagline);
             
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
-                link.setForeground(new Color(255, 140, 0)); // Darker orange on click
+                link.setForeground(new Color(PRIMARY_COLOR.getRed() - 40, PRIMARY_COLOR.getGreen() - 40, PRIMARY_COLOR.getBlue() - 40)); // Darker primary color on click
             }
         });
     }
@@ -1701,49 +1839,101 @@ panel.add(mainTagline);
      * Initialize authentication system and determine online/offline mode
      */
     private void initializeAuthentication() {
-        // Initialize HybridAuthManager with Supabase credentials
-        String supabaseUrl = config.getSupabaseUrl();
-        String supabaseAnonKey = config.getSupabaseAnonKey();
+        // Initialize hybrid auth manager
+        hybridAuthManager = new HybridAuthManager(
+            config.getSupabaseUrl(), 
+            config.getSupabaseAnonKey()
+        );
         
-        // Initialize HybridAuthManager
-        hybridAuthManager = new HybridAuthManager(supabaseUrl, supabaseAnonKey);
-        
-        // Check online status in a background thread
-        new Thread(() -> {
-            isOnlineMode = hybridAuthManager.isOnlineAvailable();
-            
-            // Update UI on EDT
+        // Check online status asynchronously
+        CompletableFuture.supplyAsync(() -> {
+            return hybridAuthManager.isOnlineAvailable();
+        }).thenAccept(online -> {
             SwingUtilities.invokeLater(() -> {
-                updateStatusIndicator();
-                cardLayout.show(cardPanel, "LOGIN");
+                this.isOnlineMode = online;
+                
+                // Keep splash visible for ~5s then fade out and show auth screen
+                Timer showAuthTimer = new Timer(5000, e -> {
+                    if (loadingScreen != null) {
+                        loadingScreen.startFadeOut(() -> {
+                            cardLayout.show(cardPanel, "LOGIN");
+                            updateStatusIndicator();
+                        });
+                    } else {
+                        cardLayout.show(cardPanel, "LOGIN");
+                        updateStatusIndicator();
+                    }
+                });
+                showAuthTimer.setRepeats(false);
+                showAuthTimer.start();
             });
-        }).start();
+        }).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                this.isOnlineMode = false;
+                
+                // Keep splash visible for ~5s then fade out and show auth screen
+                Timer showAuthTimer = new Timer(5000, e -> {
+                    if (loadingScreen != null) {
+                        loadingScreen.startFadeOut(() -> {
+                            cardLayout.show(cardPanel, "LOGIN");
+                            updateStatusIndicator();
+                        });
+                    } else {
+                        cardLayout.show(cardPanel, "LOGIN");
+                        updateStatusIndicator();
+                    }
+                });
+                showAuthTimer.setRepeats(false);
+                showAuthTimer.start();
+            });
+            return null;
+        });
     }
     
     /**
      * Update the status indicator based on current mode
      */
     private void updateStatusIndicator() {
-        offlineIndicator.setOffline(!isOnlineMode);
-        revalidate();
-        repaint();
+        if (statusLabel != null) {
+            if (isOnlineMode) {
+                // Hide status indicator when online
+                statusLabel.setVisible(false);
+            } else {
+                // Show subtle offline indicator
+                statusLabel.setText("💾 Working Offline");
+                statusLabel.setForeground(new Color(255, 152, 0)); // Orange
+                statusLabel.setVisible(true);
+            }
+        }
+    }
+    
+    /**
+     * Creates a status indicator to show online/offline mode
+     */
+    private void createStatusIndicator() {
+        statusLabel = new JLabel("", JLabel.CENTER);
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        statusLabel.setForeground(new Color(255, 152, 0)); // Orange
+        statusLabel.setOpaque(false);
+        statusLabel.setVisible(false); // Hidden by default
+        
+        // Add to the top of the card panel
+        cardPanel.add(statusLabel, "STATUS");
+        
+        // Update status periodically
+        updateConnectionStatus();
     }
     
     /**
      * Updates the connection status indicator
      */
     private void updateConnectionStatus() {
-        boolean wasOnline = isOnlineMode;
-        isOnlineMode = hybridAuthManager != null && hybridAuthManager.isOnlineAvailable();
-        
-        if (wasOnline != isOnlineMode) {
-            updateStatusIndicator();
-        }
+        // Status is now updated in initializeAuthentication() and updateStatusIndicator()
+        // This method is kept for compatibility but no longer used
     }
     
     /**
-     * Checks if the application is currently online
-     * @return true if online, false otherwise
+     * Simple method to check if we're online
      */
     private boolean checkOnlineStatus() {
         try {
