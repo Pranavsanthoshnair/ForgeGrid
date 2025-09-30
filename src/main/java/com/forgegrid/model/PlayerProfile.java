@@ -49,7 +49,8 @@ public class PlayerProfile implements Serializable {
     private String updatedAt;
     
     // Local-only fields
-    private transient String localPasswordHash; // Not serialized to Supabase
+    @SerializedName("local_password_hash")
+    private String localPasswordHash; // Stored locally for offline auth
     private transient boolean isOnline; // Whether this profile is from online sync
     private transient LocalDateTime lastSyncTime; // When this was last synced with Supabase
     
@@ -239,6 +240,7 @@ public class PlayerProfile implements Serializable {
         localCopy.lastLogin = this.lastLogin;
         localCopy.createdAt = this.createdAt;
         localCopy.updatedAt = this.updatedAt;
+        localCopy.localPasswordHash = this.localPasswordHash;
         localCopy.isOnline = false;
         localCopy.lastSyncTime = LocalDateTime.now();
         return localCopy;

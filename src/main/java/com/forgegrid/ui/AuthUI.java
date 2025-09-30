@@ -345,6 +345,7 @@ public class AuthUI extends JFrame {
         
         // Add action listeners
         loginButton.addActionListener(e -> handleLogin());
+        switchToSignupButton.addActionListener(e -> showSignup());
         // Build card container to hold form content
         CardContainerPanel card = new CardContainerPanel();
         card.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -525,6 +526,15 @@ public class AuthUI extends JFrame {
             }
         });
         field.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                Object active = field.getClientProperty("placeholderActive");
+                if (Boolean.TRUE.equals(active) && field.getText().equals(placeholder)) {
+                    field.setText("");
+                    field.putClientProperty("placeholderActive", Boolean.FALSE);
+                    field.setForeground(Color.WHITE);
+                }
+            }
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (field.getText().trim().isEmpty()) {
@@ -784,6 +794,17 @@ public class AuthUI extends JFrame {
         
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                Object active = field.getClientProperty("placeholderActive");
+                String current = new String(field.getPassword());
+                if (Boolean.TRUE.equals(active) && current.equals(placeholder)) {
+                    field.setText("");
+                    field.putClientProperty("placeholderActive", Boolean.FALSE);
+                    field.setForeground(Color.WHITE);
+                    field.setEchoChar('•');
+                }
+            }
+            @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 String current = new String(field.getPassword());
                 if (current.trim().isEmpty()) {
@@ -818,7 +839,7 @@ public class AuthUI extends JFrame {
                     color2;
                 
                 // Scale effect when hovered
-                float scale = isHovered ? 1.05f : 1.0f;
+                float scale = isHovered ? 1.02f : 1.0f; // Reduced scale effect
                 int offsetX = (int)((getWidth() * (scale - 1)) / 2);
                 int offsetY = (int)((getHeight() * (scale - 1)) / 2);
                 
@@ -832,10 +853,6 @@ public class AuthUI extends JFrame {
                 g2d.setColor(new Color(255, 255, 255, glowAlpha));
                 g2d.fillRoundRect(offsetX + 2, offsetY + 2, (int)((getWidth() - 4) * scale), (int)((getHeight() / 2) * scale), 18, 18);
                 
-                // Enhanced shadow when hovered
-                int shadowAlpha = isHovered ? 40 : 20;
-                g2d.setColor(new Color(0, 0, 0, shadowAlpha));
-                g2d.fillRoundRect(offsetX + 2, offsetY + 2, (int)((getWidth() - 2) * scale), (int)((getHeight() - 2) * scale), 18, 18);
                 
                 // Text with enhanced shadow when hovered
                 g2d.setColor(new Color(0, 0, 0, isHovered ? 50 : 30));
@@ -859,6 +876,32 @@ public class AuthUI extends JFrame {
             public void setPressed(boolean pressed) {
                 this.isPressed = pressed;
                 repaint();
+            }
+            
+            // Ensure button is focusable and can receive key events
+            @Override
+            public boolean isFocusable() {
+                return true;
+            }
+            
+            @Override
+            public void processMouseEvent(java.awt.event.MouseEvent e) {
+                super.processMouseEvent(e);
+                if (e.getID() == java.awt.event.MouseEvent.MOUSE_PRESSED) {
+                    setPressed(true);
+                } else if (e.getID() == java.awt.event.MouseEvent.MOUSE_RELEASED) {
+                    setPressed(false);
+                }
+            }
+            
+            @Override
+            protected void processMouseMotionEvent(java.awt.event.MouseEvent e) {
+                super.processMouseMotionEvent(e);
+                if (e.getID() == java.awt.event.MouseEvent.MOUSE_ENTERED) {
+                    setHovered(true);
+                } else if (e.getID() == java.awt.event.MouseEvent.MOUSE_EXITED) {
+                    setHovered(false);
+                }
             }
         };
         
@@ -1261,11 +1304,39 @@ public class AuthUI extends JFrame {
     }
 
     private void handleLogin() {
+        // Initialize hybridAuthManager if not already done
+        if (hybridAuthManager == null) {
+            hybridAuthManager = new HybridAuthManager(
+                config.getSupabaseUrl(),
+                config.getSupabaseAnonKey()
+            );
+        }
+        
+        // Normalize placeholders just in case flags are stale
+        Object emailPA = emailField.getClientProperty("placeholderActive");
+        if (Boolean.TRUE.equals(emailPA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
+            emailField.setText("");
+            emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+            emailField.setForeground(Color.WHITE);
+        }
+        Object passPA = passwordField.getClientProperty("placeholderActive");
+        String passTextNow = new String(passwordField.getPassword());
+        if (Boolean.TRUE.equals(passPA) && "Password".equalsIgnoreCase(passTextNow.trim())) {
+            passwordField.setText("");
+            passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
+            passwordField.setForeground(Color.WHITE);
+            passwordField.setEchoChar('•');
+        }
+
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
-        
-        // Check if fields are empty or contain placeholder text
-        if (email.isEmpty() || password.isEmpty() || email.equals("Email") || email.equals("Username") || password.equals("Password")) {
+
+        // Determine effective emptiness. If placeholder flag is stuck but text is real, allow it.
+        // Final validation: treat literal placeholders as empty and require non-empty values
+        if ("email".equalsIgnoreCase(email)) email = "";
+        if ("username".equalsIgnoreCase(email)) email = "";
+        if ("password".equalsIgnoreCase(password)) password = "";
+        if (email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -1297,7 +1368,7 @@ public class AuthUI extends JFrame {
                     
                     // TODO: Proceed to main application
                     // For now, we'll just show success message
-        } else {
+                } else {
                     JOptionPane.showMessageDialog(this, result.getMessage(), "Login Failed", JOptionPane.ERROR_MESSAGE);
                 }
             });
@@ -1312,13 +1383,53 @@ public class AuthUI extends JFrame {
     }
     
     private void handleSignup(JTextField emailField, JPasswordField passwordField) {
+        // Initialize hybridAuthManager if not already done
+        if (hybridAuthManager == null) {
+            hybridAuthManager = new HybridAuthManager(
+                config.getSupabaseUrl(),
+                config.getSupabaseAnonKey()
+            );
+        }
+        
+        // Normalize placeholders in signup fields
+        if (nameField != null) {
+            Object nPA = nameField.getClientProperty("placeholderActive");
+            if (Boolean.TRUE.equals(nPA) && "Full Name".equalsIgnoreCase(nameField.getText().trim())) {
+                nameField.setText("");
+                nameField.putClientProperty("placeholderActive", Boolean.FALSE);
+                nameField.setForeground(Color.WHITE);
+            }
+        }
+        Object ePA = emailField.getClientProperty("placeholderActive");
+        if (Boolean.TRUE.equals(ePA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
+            emailField.setText("");
+            emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+            emailField.setForeground(Color.WHITE);
+        }
+        Object pPA = passwordField.getClientProperty("placeholderActive");
+        String pwdNow = new String(passwordField.getPassword());
+        if (Boolean.TRUE.equals(pPA) && "Password".equalsIgnoreCase(pwdNow.trim())) {
+            passwordField.setText("");
+            passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
+            passwordField.setForeground(Color.WHITE);
+            passwordField.setEchoChar('•');
+        }
+
         String name = nameField.getText().trim();
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
         
-        // Check if fields are empty or contain placeholder text
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || 
-            name.equals("Full Name") || email.equals("Email") || password.equals("Password")) {
+        // Robust empty checks using flags and literal placeholders
+        boolean namePA = Boolean.TRUE.equals(nameField.getClientProperty("placeholderActive"));
+        boolean emailPA2 = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
+        boolean passPA2 = Boolean.TRUE.equals(passwordField.getClientProperty("placeholderActive"));
+        boolean nameLooksPH = name.equalsIgnoreCase("full name");
+        boolean emailLooksPH = email.equalsIgnoreCase("email");
+        boolean passLooksPH = password.equalsIgnoreCase("password");
+        boolean emptyName = name.isEmpty() || (namePA && nameLooksPH);
+        boolean emptyEmail = email.isEmpty() || (emailPA2 && emailLooksPH);
+        boolean emptyPass = password.isEmpty() || (passPA2 && passLooksPH);
+        if (emptyName || emptyEmail || emptyPass) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -1345,25 +1456,25 @@ public class AuthUI extends JFrame {
                         "Success", JOptionPane.INFORMATION_MESSAGE);
                     
                     // Switch to login panel
-            cardLayout.show(cardPanel, "LOGIN");
+                    cardLayout.show(cardPanel, "LOGIN");
                     
-            // Clear signup fields
-            nameField.setText("");
+                    // Clear signup fields
+                    nameField.setText("");
                     nameField.putClientProperty("placeholderActive", Boolean.TRUE);
                     nameField.setForeground(new Color(200, 200, 220));
                     nameField.setText("Full Name");
                     
-            emailField.setText("");
+                    emailField.setText("");
                     emailField.putClientProperty("placeholderActive", Boolean.TRUE);
                     emailField.setForeground(new Color(200, 200, 220));
                     emailField.setText("Email");
                     
-            passwordField.setText("");
+                    passwordField.setText("");
                     passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
                     passwordField.setForeground(new Color(200, 200, 220));
                     passwordField.setEchoChar((char) 0);
                     passwordField.setText("Password");
-        } else {
+                } else {
                     JOptionPane.showMessageDialog(this, result.getMessage(), "Registration Failed", JOptionPane.ERROR_MESSAGE);
                 }
             });
@@ -1605,8 +1716,13 @@ public class AuthUI extends JFrame {
                             hoverTimer.stop();
                         }
                     }
-                });
-                hoverTimer.start();
+        });
+        hoverTimer.start();
+                
+                // Make sure to pass the event to parent components
+                if (e != null) {
+                    e.consume();
+                }
             }
             
             @Override
@@ -2110,6 +2226,22 @@ public class AuthUI extends JFrame {
         // This method is kept for compatibility but no longer used
     }
     
+    /**
+     * Show the SIGNUP card reliably and focus the first field.
+     * Ensures the signup panel exists and triggers layout refresh.
+     */
+    private void showSignup() {
+        SwingUtilities.invokeLater(() -> {
+            // Ensure a fresh SIGNUP panel is present and visible
+            JPanel signupPanel = createSignupPanel();
+            cardPanel.add(signupPanel, "SIGNUP");
+            cardLayout.show(cardPanel, "SIGNUP");
+            cardPanel.revalidate();
+            cardPanel.repaint();
+            if (nameField != null) nameField.requestFocusInWindow();
+        });
+    }
+
     /**
      * Simple method to check if we're online
      */
