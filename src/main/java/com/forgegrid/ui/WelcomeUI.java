@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 
 /**
  * Welcome screen with logo + title + "Let's start" button,
- * using the same background and color theme as the app.
  */
 public class WelcomeUI extends JPanel {
 
