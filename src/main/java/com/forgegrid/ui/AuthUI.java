@@ -414,7 +414,7 @@ public class AuthUI extends JFrame {
         JButton switchToLoginButton = createGlassButton("Already have an account? Login");
         
         // Add action listeners
-        signupButton.addActionListener(e -> handleSignup(signupEmailField, signupPasswordField));
+        signupButton.addActionListener(e -> handleSignup(nameField, signupEmailField, signupPasswordField));
         switchToLoginButton.addActionListener(e -> cardLayout.show(cardPanel, "LOGIN"));
         
         // Layout inside a card container
@@ -1382,7 +1382,7 @@ public class AuthUI extends JFrame {
         });
     }
     
-    private void handleSignup(JTextField emailField, JPasswordField passwordField) {
+    private void handleSignup(JTextField nameFieldParam, JTextField emailField, JPasswordField passwordField) {
         // Initialize hybridAuthManager if not already done
         if (hybridAuthManager == null) {
             hybridAuthManager = new HybridAuthManager(
@@ -1390,50 +1390,53 @@ public class AuthUI extends JFrame {
                 config.getSupabaseAnonKey()
             );
         }
-        
-        // Normalize placeholders in signup fields
-        if (nameField != null) {
-            Object nPA = nameField.getClientProperty("placeholderActive");
-            if (Boolean.TRUE.equals(nPA) && "Full Name".equalsIgnoreCase(nameField.getText().trim())) {
-                nameField.setText("");
-                nameField.putClientProperty("placeholderActive", Boolean.FALSE);
-                nameField.setForeground(Color.WHITE);
-            }
+
+        // Normalize placeholders just before reading values
+        Object nPA2 = nameFieldParam.getClientProperty("placeholderActive");
+        if (Boolean.TRUE.equals(nPA2) && "Full Name".equalsIgnoreCase(nameFieldParam.getText().trim())) {
+            nameFieldParam.setText("");
+            nameFieldParam.putClientProperty("placeholderActive", Boolean.FALSE);
+            nameFieldParam.setForeground(Color.WHITE);
         }
-        Object ePA = emailField.getClientProperty("placeholderActive");
-        if (Boolean.TRUE.equals(ePA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
+        Object ePA2 = emailField.getClientProperty("placeholderActive");
+        if (Boolean.TRUE.equals(ePA2) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
             emailField.setText("");
             emailField.putClientProperty("placeholderActive", Boolean.FALSE);
             emailField.setForeground(Color.WHITE);
         }
-        Object pPA = passwordField.getClientProperty("placeholderActive");
-        String pwdNow = new String(passwordField.getPassword());
-        if (Boolean.TRUE.equals(pPA) && "Password".equalsIgnoreCase(pwdNow.trim())) {
+        Object pPA2 = passwordField.getClientProperty("placeholderActive");
+        String passNow = new String(passwordField.getPassword());
+        if (Boolean.TRUE.equals(pPA2) && "Password".equalsIgnoreCase(passNow.trim())) {
             passwordField.setText("");
             passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
             passwordField.setForeground(Color.WHITE);
             passwordField.setEchoChar('•');
         }
 
-        String name = nameField.getText().trim();
+        String name = nameFieldParam.getText().trim();
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
         
-        // Robust empty checks using flags and literal placeholders
-        boolean namePA = Boolean.TRUE.equals(nameField.getClientProperty("placeholderActive"));
-        boolean emailPA2 = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
-        boolean passPA2 = Boolean.TRUE.equals(passwordField.getClientProperty("placeholderActive"));
-        boolean nameLooksPH = name.equalsIgnoreCase("full name");
-        boolean emailLooksPH = email.equalsIgnoreCase("email");
-        boolean passLooksPH = password.equalsIgnoreCase("password");
-        boolean emptyName = name.isEmpty() || (namePA && nameLooksPH);
-        boolean emptyEmail = email.isEmpty() || (emailPA2 && emailLooksPH);
-        boolean emptyPass = password.isEmpty() || (passPA2 && passLooksPH);
+        // Check if the input is empty or just the placeholder text
+        boolean emptyName = name.isEmpty() || name.equalsIgnoreCase("Full Name");
+        boolean emptyEmail = email.isEmpty() || email.equalsIgnoreCase("Email");
+        boolean emptyPass = password.isEmpty() || password.equalsIgnoreCase("Password");
+
         if (emptyName || emptyEmail || emptyPass) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+            StringBuilder sb = new StringBuilder();
+            if (emptyName) sb.append("Name");
+            if (emptyEmail) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append("Email");
+            }
+            if (emptyPass) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append("Password");
+            }
+            JOptionPane.showMessageDialog(this, "Please fill in all fields: " + sb.toString() + ".", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         // Show loading state
         signupButton.setEnabled(false);
         signupButton.setText("Creating Account...");
@@ -1458,22 +1461,20 @@ public class AuthUI extends JFrame {
                     // Switch to login panel
                     cardLayout.show(cardPanel, "LOGIN");
                     
-                    // Clear signup fields
-                    nameField.setText("");
-                    nameField.putClientProperty("placeholderActive", Boolean.TRUE);
-                    nameField.setForeground(new Color(200, 200, 220));
-                    nameField.setText("Full Name");
+                    // Reset signup fields to their placeholder state
+                    nameFieldParam.setText("Full Name");
+                    nameFieldParam.putClientProperty("placeholderActive", Boolean.TRUE);
+                    nameFieldParam.setForeground(new Color(200, 200, 220));
                     
-                    emailField.setText("");
+                    emailField.setText("Email");
                     emailField.putClientProperty("placeholderActive", Boolean.TRUE);
                     emailField.setForeground(new Color(200, 200, 220));
-                    emailField.setText("Email");
                     
-                    passwordField.setText("");
+                    passwordField.setText("Password");
                     passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
                     passwordField.setForeground(new Color(200, 200, 220));
                     passwordField.setEchoChar((char) 0);
-                    passwordField.setText("Password");
+                    
                 } else {
                     JOptionPane.showMessageDialog(this, result.getMessage(), "Registration Failed", JOptionPane.ERROR_MESSAGE);
                 }
