@@ -194,7 +194,7 @@ public class LoadingScreen extends JPanel {
         brandLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Tagline label
-        taglineLabel = new JLabel("Where coding challenges become milestones", JLabel.CENTER);
+        taglineLabel = new JLabel("where coding challenges become milestones", JLabel.CENTER);
         taglineLabel.setFont(new Font("Trebuchet MS", Font.ITALIC, 16));
         taglineLabel.setForeground(new Color(135, 206, 250)); // Light blue
         taglineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);

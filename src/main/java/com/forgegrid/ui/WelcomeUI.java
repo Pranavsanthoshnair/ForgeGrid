@@ -34,7 +34,7 @@ public class WelcomeUI extends JPanel {
         titleWrap.setOpaque(false);
         titleWrap.add(title);
         titleWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titleWrap.setBorder(BorderFactory.createEmptyBorder(-6, 0, 0, 0));
+        titleWrap.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         startButton = new JButton("Let's start");
         startButton.setBorderPainted(false);
@@ -75,10 +75,35 @@ public class WelcomeUI extends JPanel {
         buttonWrap.add(startButton);
 
         background.add(Box.createVerticalGlue());
-        background.add(logoPanel);
-        background.add(Box.createRigidArea(new Dimension(0, 0)));
-        background.add(titleWrap);
-        background.add(Box.createRigidArea(new Dimension(0, 6)));
+
+        // Create a combined hero panel (logo + title + tagline)
+        JPanel heroPanel = new JPanel(new GridBagLayout());
+        heroPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 0, 0); // no gap above/below logo
+        gbc.anchor = GridBagConstraints.CENTER;
+        heroPanel.add(logoPanel, gbc);
+
+        // Title: pull closer to logo using slight negative top inset
+        gbc.gridy = 1;
+        gbc.insets = new Insets(-8, 0, 0, 0);
+        heroPanel.add(titleWrap, gbc);
+
+        // Tagline: very small positive gap below title (tighter)
+        gbc.gridy = 2;
+        gbc.insets = new Insets(2, 0, 0, 0);
+        JLabel tagline = new JLabel("where coding challenges become milestones");
+        tagline.setFont(getStylishFont("Segoe UI", Font.ITALIC, 20, new String[]{"Poppins","Trebuchet MS","SansSerif"}));
+        tagline.setForeground(new Color(230, 230, 235));
+        heroPanel.add(tagline, gbc);
+
+        // Add the combined hero panel to the background
+        background.add(heroPanel);
+
+        // Increase gap between tagline and the CTA button for stronger hierarchy
+        background.add(Box.createRigidArea(new Dimension(0, 56)));
         background.add(buttonWrap);
         background.add(Box.createVerticalGlue());
 

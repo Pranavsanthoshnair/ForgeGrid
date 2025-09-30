@@ -141,9 +141,13 @@ public class AuthUI extends JFrame {
 		titleWrap.add(title);
 		titleWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
 		// Nudge the title upward slightly
-		titleWrap.setBorder(BorderFactory.createEmptyBorder(-6, 0, 0, 0));
+		titleWrap.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-		// No tagline on landing as requested
+		// Tagline below the title
+		JLabel landingTagline = new JLabel("where coding challenges become milestones");
+		landingTagline.setFont(getStylishFont("Segoe UI", Font.PLAIN, 20, new String[]{"Poppins","Trebuchet MS","SansSerif"}));
+		landingTagline.setForeground(new Color(230, 230, 235));
+		landingTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		// "Let's start" button with yellow-orangish color, hover and loading animation
 		JButton startButton = new JButton("Let's start") {
@@ -235,7 +239,11 @@ public class AuthUI extends JFrame {
 		panel.add(logoPanel);
 		panel.add(Box.createRigidArea(new Dimension(0, 0)));
 		panel.add(titleWrap);
-		panel.add(Box.createRigidArea(new Dimension(0, 6)));
+		// tighter gap between title and tagline (closer to the title)
+		panel.add(Box.createRigidArea(new Dimension(0, 4)));
+		panel.add(landingTagline);
+		// larger gap between tagline and the button for stronger hierarchy
+		panel.add(Box.createRigidArea(new Dimension(0, 56)));
 		panel.add(startButton);
 		panel.add(Box.createVerticalGlue());
 		return panel;
