@@ -41,11 +41,12 @@ public class OnboardingWizard extends JFrame {
         root.add(q3, "q3");
 
         cardLayout.show(root, "q1");
+        triggerFade("q1");
     }
 
     private JPanel buildQ1() {
         NeonBackgroundPanel bg = new NeonBackgroundPanel();
-        bg.setLayout(new BorderLayout());
+        bg.setLayout(new GridBagLayout());
         JPanel center = buildQuestionPanel(
                 "Q1. What is your main coding goal on ForgeGrid?",
                 new String[]{
@@ -57,30 +58,44 @@ public class OnboardingWizard extends JFrame {
                 e -> {
                     this.selectedGoal = getSelectedTextFrom((JButton) e.getSource());
                     cardLayout.show(root, "q2");
+                    triggerFade("q2");
                 }
         );
-        bg.add(center, BorderLayout.CENTER);
+        FadeInPanel fade = new FadeInPanel(new GridBagLayout());
+        GridBagConstraints inner = new GridBagConstraints();
+        inner.gridx = 0; inner.gridy = 0; inner.anchor = GridBagConstraints.CENTER;
+        fade.add(center, inner);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER; gbc.weightx = 1; gbc.weighty = 1;
+        bg.add(fade, gbc);
         return bg;
     }
 
     private JPanel buildQ2() {
         NeonBackgroundPanel bg = new NeonBackgroundPanel();
-        bg.setLayout(new BorderLayout());
+        bg.setLayout(new GridBagLayout());
         JPanel center = buildQuestionPanel(
                 "Q2. What’s your preferred programming language?",
                 new String[]{"Java", "Python", "C", "JavaScript"},
                 e -> {
                     this.selectedLanguage = getSelectedTextFrom((JButton) e.getSource());
                     cardLayout.show(root, "q3");
+                    triggerFade("q3");
                 }
         );
-        bg.add(center, BorderLayout.CENTER);
+        FadeInPanel fade = new FadeInPanel(new GridBagLayout());
+        GridBagConstraints inner = new GridBagConstraints();
+        inner.gridx = 0; inner.gridy = 0; inner.anchor = GridBagConstraints.CENTER;
+        fade.add(center, inner);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER; gbc.weightx = 1; gbc.weighty = 1;
+        bg.add(fade, gbc);
         return bg;
     }
 
     private JPanel buildQ3() {
         NeonBackgroundPanel bg = new NeonBackgroundPanel();
-        bg.setLayout(new BorderLayout());
+        bg.setLayout(new GridBagLayout());
         JPanel center = buildQuestionPanel(
                 "Q3. What best describes your current coding skill level?",
                 new String[]{
@@ -94,7 +109,13 @@ public class OnboardingWizard extends JFrame {
                     finishOnboarding();
                 }
         );
-        bg.add(center, BorderLayout.CENTER);
+        FadeInPanel fade = new FadeInPanel(new GridBagLayout());
+        GridBagConstraints inner = new GridBagConstraints();
+        inner.gridx = 0; inner.gridy = 0; inner.anchor = GridBagConstraints.CENTER;
+        fade.add(center, inner);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER; gbc.weightx = 1; gbc.weighty = 1;
+        bg.add(fade, gbc);
         return bg;
     }
 
@@ -111,14 +132,15 @@ public class OnboardingWizard extends JFrame {
     }
 
     private JPanel buildQuestionPanel(String title, String[] options, java.awt.event.ActionListener onContinue) {
-        JPanel center = new JPanel();
+        JPanel center = new CardContainerPanel();
         center.setOpaque(false);
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
         center.setBorder(BorderFactory.createEmptyBorder(60, 40, 40, 40));
 
-        JLabel heading = new JLabel(title);
+        GradientTextLabel heading = new GradientTextLabel(title);
         heading.setAlignmentX(Component.LEFT_ALIGNMENT);
-        heading.setForeground(Color.WHITE);
+        heading.setForeground(Theme.TEXT_PRIMARY);
+        heading.setGradient(Theme.BRAND_BLUE, Theme.BRAND_PINK);
         heading.setFont(new Font("Segoe UI", Font.BOLD, 24));
         center.add(heading);
         center.add(Box.createRigidArea(new Dimension(0, 18)));
@@ -160,6 +182,27 @@ public class OnboardingWizard extends JFrame {
         center.add(continueWrap);
 
         return center;
+    }
+
+    private void triggerFade(String ignoredCardName) {
+        // Best-effort: play fade on the currently showing card's FadeInPanel.
+        for (Component c : root.getComponents()) {
+            if (c.isShowing()) {
+                FadeInPanel fade = findFadeInPanel(c);
+                if (fade != null) fade.play();
+            }
+        }
+    }
+
+    private FadeInPanel findFadeInPanel(Component c) {
+        if (c instanceof FadeInPanel) return (FadeInPanel) c;
+        if (c instanceof Container) {
+            for (Component ch : ((Container) c).getComponents()) {
+                FadeInPanel f = findFadeInPanel(ch);
+                if (f != null) return f;
+            }
+        }
+        return null;
     }
 
     private JToggleButton createOptionButton(String text) {
