@@ -7,7 +7,6 @@ import java.awt.*;
 
 /**
  * Full-screen onboarding wizard shown after login, before opening the dashboard.
- * Neon background, one question per page, square option buttons with hover, and a yellow Continue button with hover.
  */
 public class OnboardingWizard extends JFrame {
 
