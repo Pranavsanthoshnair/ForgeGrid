@@ -23,6 +23,11 @@ public class Dashboard extends JFrame {
     private JLabel problemsLabel;
     private JProgressBar problemsProgress;
     private JLabel streakLabel;
+    // Profile labels to reflect onboarding selections
+    private JLabel profileSkillLabel;
+    private JLabel profileGoalLabel;
+    private JLabel profileLanguageLabel;
+    private JLabel profilePracticeLabel;
     private JPanel badgesPanel;
     private JPanel recommendationsPanel;
 
@@ -57,7 +62,7 @@ public class Dashboard extends JFrame {
     private void initUI() {
         cardLayout = new CardLayout();
         root = new JPanel(cardLayout);
-        root.setBackground(new Color(246, 248, 252)); // soft light background
+        root.setBackground(Color.WHITE);
         setContentPane(root);
 
         JPanel welcomePanel = buildWelcomePanel();
@@ -153,9 +158,11 @@ public class Dashboard extends JFrame {
     }
 
     private JPanel buildDashboardPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        // Use plain white background for the dashboard
+        JPanel panel = new JPanel();
         panel.setOpaque(true);
-        panel.setBackground(new Color(250, 252, 255)); // soft white
+        panel.setBackground(Color.WHITE);
+        panel.setLayout(new BorderLayout());
 
         // Left blue sidebar
         JPanel sidebar = new JPanel();
@@ -185,8 +192,7 @@ public class Dashboard extends JFrame {
 
         // Main content area
         JPanel content = new JPanel();
-        content.setOpaque(true);
-        content.setBackground(new Color(250, 252, 255));
+        content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
 
@@ -223,9 +229,14 @@ public class Dashboard extends JFrame {
                 int size = Math.min(getWidth(), getHeight()) - 10;
                 int x = (getWidth() - size) / 2;
                 int y = (getHeight() - size) / 2;
-                // shadow
-                g2.setColor(new Color(0, 0, 0, 40));
-                g2.fill(new Ellipse2D.Double(x + 3, y + 4, size, size));
+                // glow ring
+                java.awt.RadialGradientPaint ring = new java.awt.RadialGradientPaint(
+                        new java.awt.geom.Point2D.Float(x + size / 2f, y + size / 2f),
+                        size / 2f,
+                        new float[]{0.7f, 1f},
+                        new Color[]{new Color(255, 215, 0, 40), new Color(255, 215, 0, 0)});
+                g2.setPaint(ring);
+                g2.fill(new Ellipse2D.Double(x - 6, y - 6, size + 12, size + 12));
                 // avatar circle
                 g2.setColor(new Color(35, 90, 180));
                 g2.fill(new Ellipse2D.Double(x, y, size, size));
@@ -253,9 +264,9 @@ public class Dashboard extends JFrame {
         nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
 
         String skill = computeSkill(profile != null ? profile.getLevel() : 1);
-        JLabel skillLabel = new JLabel("Skill: " + skill);
-        skillLabel.setForeground(new Color(90, 100, 120));
-        skillLabel.setFont(new Font("Segoe UI", Font.PLAIN, 17));
+        profileSkillLabel = new JLabel("Skill: " + skill);
+        profileSkillLabel.setForeground(new Color(90, 100, 120));
+        profileSkillLabel.setFont(new Font("Segoe UI", Font.PLAIN, 17));
 
         int level = profile != null ? profile.getLevel() : 1;
         JLabel levelLabel = new JLabel("Level: " + level);
@@ -264,9 +275,30 @@ public class Dashboard extends JFrame {
 
         center.add(nameLabel);
         center.add(Box.createRigidArea(new Dimension(0, 12)));
-        center.add(skillLabel);
+        center.add(profileSkillLabel);
         center.add(Box.createRigidArea(new Dimension(0, 8)));
         center.add(levelLabel);
+
+        // Onboarding selections (hidden until provided)
+        profileGoalLabel = new JLabel("Goal: ");
+        profileGoalLabel.setForeground(new Color(60, 70, 90));
+        profileGoalLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        profileGoalLabel.setVisible(false);
+
+        profileLanguageLabel = new JLabel("Language: ");
+        profileLanguageLabel.setForeground(new Color(60, 70, 90));
+        profileLanguageLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        profileLanguageLabel.setVisible(false);
+
+        profilePracticeLabel = new JLabel("Practice: ");
+        profilePracticeLabel.setForeground(new Color(60, 70, 90));
+        profilePracticeLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        profilePracticeLabel.setVisible(false);
+
+        center.add(Box.createRigidArea(new Dimension(0, 8)));
+        center.add(profileGoalLabel);
+        center.add(profileLanguageLabel);
+        center.add(profilePracticeLabel);
 
         JPanel progressPanel = new JPanel();
         progressPanel.setOpaque(false);
@@ -320,7 +352,8 @@ public class Dashboard extends JFrame {
         badgesTitle.setForeground(new Color(90, 100, 120));
         badgesTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
         badgesPanel = new JPanel();
-        badgesPanel.setOpaque(false);
+        badgesPanel.setOpaque(true);
+        badgesPanel.setBackground(Color.WHITE);
         badgesPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
         refreshBadges();
 
@@ -351,8 +384,7 @@ public class Dashboard extends JFrame {
         // Main content area uses its own CardLayout (prevents overlapping)
         mainContentLayout = new CardLayout();
         mainContent = new JPanel(mainContentLayout);
-        mainContent.setOpaque(true);
-        mainContent.setBackground(Color.WHITE);
+        mainContent.setOpaque(false);
 
         JPanel homeView = new JPanel(new BorderLayout(16, 16));
         homeView.setOpaque(false);
@@ -655,13 +687,33 @@ public class Dashboard extends JFrame {
         }
     }
 
+    // Called after onboarding to apply user's selections to the profile card
+    public void applyOnboardingSelections(String goal, String language, String skill, String practice) {
+        if (skill != null && !skill.isBlank()) {
+            profileSkillLabel.setText("Skill: " + skill);
+        }
+        if (goal != null && !goal.isBlank()) {
+            profileGoalLabel.setText("Goal: " + goal);
+            profileGoalLabel.setVisible(true);
+        }
+        if (language != null && !language.isBlank()) {
+            profileLanguageLabel.setText("Language: " + language);
+            profileLanguageLabel.setVisible(true);
+        }
+        if (practice != null && !practice.isBlank()) {
+            profilePracticeLabel.setText("Practice: " + practice);
+            profilePracticeLabel.setVisible(true);
+        }
+        revalidate();
+        repaint();
+    }
+
     private void refreshBadges() {
         if (badgesPanel == null) return;
         badgesPanel.removeAll();
         if (badges.isEmpty()) {
-            JLabel none = new JLabel("No badges yet");
-            none.setForeground(new Color(160, 170, 190));
-            badgesPanel.add(none);
+            // Show nothing if no badges per request
+            badgesPanel.setPreferredSize(new Dimension(1, 1));
         } else {
             for (String b : badges) {
                 JLabel badge = new JLabel(b);
@@ -671,6 +723,8 @@ public class Dashboard extends JFrame {
                 badge.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
                 badgesPanel.add(badge);
             }
+            // Reset size when badges exist
+            badgesPanel.setPreferredSize(null);
         }
         badgesPanel.revalidate();
         badgesPanel.repaint();

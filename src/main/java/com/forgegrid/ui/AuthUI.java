@@ -606,12 +606,13 @@ public class AuthUI extends JFrame {
         field.setCaretColor(PRIMARY_COLOR);
         field.setOpaque(false);
         field.setText(placeholder);
+        field.setForeground(new Color(200, 200, 220)); // visible placeholder color
 
-        // Placeholder behavior
+        // Placeholder behavior (clear only when typing begins)
         field.putClientProperty("placeholderActive", Boolean.TRUE);
         field.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
+            public void keyTyped(java.awt.event.KeyEvent e) {
                 Object active = field.getClientProperty("placeholderActive");
                 if (Boolean.TRUE.equals(active) && field.getText().equals(placeholder)) {
                     field.setText("");
@@ -1457,8 +1458,8 @@ public class AuthUI extends JFrame {
                         if (window != null) {
                             window.dispose();
                         }
-                        Dashboard dashboard = new Dashboard(profile);
-                        dashboard.setVisible(true);
+                        OnboardingWizard wizard = new OnboardingWizard(profile);
+                        wizard.setVisible(true);
                     });
                 } else {
                     JOptionPane.showMessageDialog(this, result.getMessage(), "Login Failed", JOptionPane.ERROR_MESSAGE);
