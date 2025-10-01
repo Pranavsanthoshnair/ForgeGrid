@@ -1,7 +1,6 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.model.PlayerProfile;
-
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
