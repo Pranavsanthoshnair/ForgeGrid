@@ -1450,19 +1450,16 @@ public class AuthUI extends JFrame {
                 loginButton.setText("Login");
                 
                 if (result.isSuccess()) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Login successful!\nWelcome back, " + result.getProfile().getUsername() + "!", 
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
-                    
-                    // Clear the password field for security
-                    passwordField.setText("");
-                    passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
-                    passwordField.setForeground(new Color(200, 200, 220));
-                    passwordField.setEchoChar((char) 0);
-                    passwordField.setText("Password");
-                    
-                    // TODO: Proceed to main application
-                    // For now, we'll just show success message
+                    // Navigate to Dashboard with the authenticated profile
+                    PlayerProfile profile = result.getProfile();
+                    SwingUtilities.invokeLater(() -> {
+                        Window window = SwingUtilities.getWindowAncestor(this);
+                        if (window != null) {
+                            window.dispose();
+                        }
+                        Dashboard dashboard = new Dashboard(profile);
+                        dashboard.setVisible(true);
+                    });
                 } else {
                     JOptionPane.showMessageDialog(this, result.getMessage(), "Login Failed", JOptionPane.ERROR_MESSAGE);
                 }
