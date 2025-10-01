@@ -1426,12 +1426,12 @@ public class AuthUI extends JFrame {
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
 
-        // Determine effective emptiness. If placeholder flag is stuck but text is real, allow it.
-        // Final validation: treat literal placeholders as empty and require non-empty values
-        if ("email".equalsIgnoreCase(email)) email = "";
-        if ("username".equalsIgnoreCase(email)) email = "";
-        if ("password".equalsIgnoreCase(password)) password = "";
-        if (email.isEmpty() || password.isEmpty()) {
+        // Consider placeholders only if active AND the text equals the placeholder label
+        boolean emailPlaceholderActive = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
+        boolean passPlaceholderActive = Boolean.TRUE.equals(passwordField.getClientProperty("placeholderActive"));
+        boolean emailEffectivelyEmpty = email.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(email));
+        boolean passEffectivelyEmpty = password.isEmpty() || (passPlaceholderActive && "Password".equalsIgnoreCase(password));
+        if (emailEffectivelyEmpty || passEffectivelyEmpty) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -1511,11 +1511,27 @@ public class AuthUI extends JFrame {
         String name = nameFieldParam.getText().trim();
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
+
+        // Force-deactivate placeholders if user has typed real input
+        if (!name.isEmpty() && !"Full Name".equalsIgnoreCase(name)) {
+            nameFieldParam.putClientProperty("placeholderActive", Boolean.FALSE);
+        }
+        if (!email.isEmpty() && !"Email".equalsIgnoreCase(email)) {
+            emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+        }
+        if (!password.isEmpty() && !"Password".equalsIgnoreCase(password)) {
+            passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
+            passwordField.setEchoChar('•');
+        }
         
-        // Check if the input is empty or just the placeholder text
-        boolean emptyName = name.isEmpty() || name.equalsIgnoreCase("Full Name");
-        boolean emptyEmail = email.isEmpty() || email.equalsIgnoreCase("Email");
-        boolean emptyPass = password.isEmpty() || password.equalsIgnoreCase("Password");
+        // Consider placeholders only if active AND the text equals the placeholder label
+        boolean namePlaceholderActive = Boolean.TRUE.equals(nameFieldParam.getClientProperty("placeholderActive"));
+        boolean emailPlaceholderActive = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
+        boolean passPlaceholderActive = Boolean.TRUE.equals(passwordField.getClientProperty("placeholderActive"));
+        
+        boolean emptyName = name.isEmpty() || (namePlaceholderActive && "Full Name".equalsIgnoreCase(name));
+        boolean emptyEmail = email.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(email));
+        boolean emptyPass = password.isEmpty() || (passPlaceholderActive && "Password".equalsIgnoreCase(password));
 
         if (emptyName || emptyEmail || emptyPass) {
             StringBuilder sb = new StringBuilder();

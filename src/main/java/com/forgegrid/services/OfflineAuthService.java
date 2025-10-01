@@ -135,9 +135,14 @@ public class OfflineAuthService {
         
         lock.writeLock().lock();
         try {
-            // Check if user already exists
+            // Ensure username uniqueness by auto-uniquifying if taken (e.g., "john", "john1", "john2", ...)
             if (profiles.containsKey(username)) {
-                throw new OfflineAuthException("Username already exists: " + username);
+                String baseUsername = username;
+                int suffix = 1;
+                while (profiles.containsKey(username)) {
+                    username = baseUsername + suffix;
+                    suffix++;
+                }
             }
             
             // Check if email already exists
