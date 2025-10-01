@@ -347,9 +347,46 @@ public class AuthUI extends JFrame {
         emailField = createModernTextField("Email");
         passwordField = createModernPasswordField("Password");
         
+        // Add keyboard navigation
+        emailField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    passwordField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    passwordField.requestFocus();
+                }
+            }
+        });
+        
+        passwordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    handleLogin();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    loginButton.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    emailField.requestFocus();
+                }
+            }
+        });
+        
         loginButton = createGradientButton("Login", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
         JButton googleSignInButton = createGoogleSignInButton();
+        
+        // Add arrow key navigation to login button
+        loginButton.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER || e.getKeyCode() == java.awt.event.KeyEvent.VK_SPACE) {
+                    handleLogin();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    passwordField.requestFocus();
+                }
+            }
+        });
         
         // Add action listeners
         loginButton.addActionListener(e -> handleLogin());
@@ -418,12 +455,62 @@ public class AuthUI extends JFrame {
         JTextField signupEmailField = createModernTextField("Email");
         JPasswordField signupPasswordField = createModernPasswordField("Password");
         
+        // Add keyboard navigation for signup form
+        nameField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    signupEmailField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    signupEmailField.requestFocus();
+                }
+            }
+        });
+        
+        signupEmailField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    signupPasswordField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    signupPasswordField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    nameField.requestFocus();
+                }
+            }
+        });
+        
+        signupPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    handleSignup(nameField, signupEmailField, signupPasswordField);
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    signupButton.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    signupEmailField.requestFocus();
+                }
+            }
+        });
+        
         signupButton = createGradientButton("Sign Up", SECONDARY_COLOR, new Color(SECONDARY_COLOR.getRed() - 20, SECONDARY_COLOR.getGreen() - 20, SECONDARY_COLOR.getBlue() - 20));
         JButton switchToLoginButton = createGlassButton("Already have an account? Login");
         
+        // Add arrow key navigation to signup button
+        signupButton.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER || e.getKeyCode() == java.awt.event.KeyEvent.VK_SPACE) {
+                    handleSignup(nameField, signupEmailField, signupPasswordField);
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    signupPasswordField.requestFocus();
+                }
+            }
+        });
+        
         // Add action listeners
         signupButton.addActionListener(e -> handleSignup(nameField, signupEmailField, signupPasswordField));
-        switchToLoginButton.addActionListener(e -> cardLayout.show(cardPanel, "LOGIN"));
+        switchToLoginButton.addActionListener(e -> showLogin());
         
         // Layout inside a card container
         CardContainerPanel signupCard = new CardContainerPanel();
@@ -1467,7 +1554,7 @@ public class AuthUI extends JFrame {
                         "Success", JOptionPane.INFORMATION_MESSAGE);
                     
                     // Switch to login panel
-                    cardLayout.show(cardPanel, "LOGIN");
+                    showLogin();
                     
                     // Reset signup fields to their placeholder state
                     nameFieldParam.setText("Full Name");
@@ -2159,11 +2246,11 @@ public class AuthUI extends JFrame {
                 Timer showAuthTimer = new Timer(5000, e -> {
                     if (loadingScreen != null) {
                         loadingScreen.startFadeOut(() -> {
-                            cardLayout.show(cardPanel, "LOGIN");
+                            showLogin();
                             updateStatusIndicator();
                         });
                     } else {
-                        cardLayout.show(cardPanel, "LOGIN");
+                        showLogin();
                         updateStatusIndicator();
                     }
                 });
@@ -2178,11 +2265,11 @@ public class AuthUI extends JFrame {
                 Timer showAuthTimer = new Timer(5000, e -> {
                     if (loadingScreen != null) {
                         loadingScreen.startFadeOut(() -> {
-                            cardLayout.show(cardPanel, "LOGIN");
+                            showLogin();
                             updateStatusIndicator();
                         });
                     } else {
-                        cardLayout.show(cardPanel, "LOGIN");
+                        showLogin();
                         updateStatusIndicator();
                     }
                 });
@@ -2248,6 +2335,19 @@ public class AuthUI extends JFrame {
             cardPanel.revalidate();
             cardPanel.repaint();
             if (nameField != null) nameField.requestFocusInWindow();
+        });
+    }
+    
+    /**
+     * Show the LOGIN card reliably and focus the first field.
+     * Ensures the login panel exists and triggers layout refresh.
+     */
+    private void showLogin() {
+        SwingUtilities.invokeLater(() -> {
+            cardLayout.show(cardPanel, "LOGIN");
+            cardPanel.revalidate();
+            cardPanel.repaint();
+            if (emailField != null) emailField.requestFocusInWindow();
         });
     }
 
