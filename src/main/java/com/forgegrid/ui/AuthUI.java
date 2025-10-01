@@ -10,6 +10,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class AuthUI extends JFrame {
@@ -24,12 +26,14 @@ public class AuthUI extends JFrame {
     private JButton signupButton;
     private JPanel cardPanel;
     private CardLayout cardLayout;
+    private final Map<String, FadeInPanel> cardFades = new HashMap<>();
     private UserManager userManager;
     private HybridAuthManager hybridAuthManager;
     private JLabel statusLabel;
     private LoadingScreen loadingScreen;
     private boolean isOnlineMode;
     private AppConfig config;
+    private PlayerProfile currentProfile;
     
     public AuthUI() {
         this.userManager = UserManager.getInstance();
@@ -80,7 +84,7 @@ public class AuthUI extends JFrame {
         
 		// Create loading screen
 		loadingScreen = new LoadingScreen();
-		cardPanel.add(loadingScreen, "LOADING");
+		addWithFade(loadingScreen, "LOADING");
         
         // Create status indicator
         createStatusIndicator();
@@ -89,17 +93,27 @@ public class AuthUI extends JFrame {
         JPanel loginPanel = createLoginPanel();
         JPanel signupPanel = createSignupPanel();
         
-        cardPanel.add(loginPanel, "LOGIN");
-        cardPanel.add(signupPanel, "SIGNUP");
+        addWithFade(loginPanel, "LOGIN");
+        addWithFade(signupPanel, "SIGNUP");
 
 		// Create landing cover panel (shown first)
-		JPanel landingPanel = createLandingPanel();
-		cardPanel.add(landingPanel, "LANDING");
+        // Welcome screen inside the same window (instead of separate tab/window)
+        WelcomeUI welcomePanel = new WelcomeUI();
+        welcomePanel.addStartActionListener(e -> showCard("LOGIN"));
+        addWithFade(welcomePanel, "WELCOME");
+
+        // In-app Onboarding panel (same window)
+        OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
+            // After onboarding, open Dashboard within the same window
+            openDashboardInCard(goal, language, skill);
+        });
+        addWithFade(onboarding, "ONBOARDING");
         
         add(cardPanel);
         
-		// Show landing screen first
-		cardLayout.show(cardPanel, "LANDING");
+        // Show welcome first with fade-in
+        cardLayout.show(cardPanel, "WELCOME");
+        playFade("WELCOME");
         
         // Add component listener to handle window resizing
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -111,9 +125,38 @@ public class AuthUI extends JFrame {
         
         // Apply custom styling
         applyCustomStyling();
-        
-        // Add professional entrance animation
-        addEntranceAnimation();
+    }
+
+    private void addWithFade(JComponent comp, String name) {
+        FadeInPanel wrapper = new FadeInPanel(new BorderLayout());
+        wrapper.add(comp, BorderLayout.CENTER);
+        cardPanel.add(wrapper, name);
+        cardFades.put(name, wrapper);
+    }
+
+    private void playFade(String name) {
+        FadeInPanel f = cardFades.get(name);
+        if (f != null) f.play();
+    }
+
+    private void showCard(String name) {
+        cardLayout.show(cardPanel, name);
+        playFade(name);
+    }
+
+    private void openDashboardInCard(String goal, String language, String skill) {
+        JPanel dashboardHost = new JPanel(new BorderLayout());
+        dashboardHost.setOpaque(false);
+        // Reuse existing Dashboard panel building by instantiating and extracting its content pane
+        Dashboard dashFrame = new Dashboard(currentProfile);
+        // Apply onboarding selections to dashboard UI
+        dashFrame.applyOnboardingSelections(goal, language, skill, null);
+        Component content = dashFrame.getContentPane();
+        dashFrame.setVisible(false);
+        dashFrame.dispose();
+        dashboardHost.add(content);
+        addWithFade(dashboardHost, "DASHBOARD");
+        showCard("DASHBOARD");
     }
 
 	private JPanel createLandingPanel() {
@@ -231,7 +274,7 @@ public class AuthUI extends JFrame {
 		startButton.addActionListener(e -> {
 			// start loading animation on button, then switch to loading screen and begin auth
 			try { startButton.getClass().getDeclaredMethod("setLoading", boolean.class).invoke(startButton, true); } catch (Exception ignore) {}
-			cardLayout.show(cardPanel, "LOADING");
+			showCard("LOADING");
 			initializeAuthentication();
 		});
 
@@ -1437,9 +1480,10 @@ public class AuthUI extends JFrame {
             return;
         }
         
-        // Show loading state
+        // Show loading state and switch to loading card before authentication
         loginButton.setEnabled(false);
         loginButton.setText("Authenticating...");
+        showCard("LOADING");
         
         // Use hybrid authentication
         CompletableFuture<HybridAuthManager.AuthenticationResult> future = 
@@ -1451,18 +1495,17 @@ public class AuthUI extends JFrame {
                 loginButton.setText("Login");
                 
                 if (result.isSuccess()) {
-                    // Navigate to Dashboard with the authenticated profile
+                    // Navigate to in-app onboarding within same window
                     PlayerProfile profile = result.getProfile();
-                    SwingUtilities.invokeLater(() -> {
-                        Window window = SwingUtilities.getWindowAncestor(this);
-                        if (window != null) {
-                            window.dispose();
-                        }
-                        OnboardingWizard wizard = new OnboardingWizard(profile);
-                        wizard.setVisible(true);
-                    });
+                    this.currentProfile = profile;
+                    // brief delay to let loading animate, then move to onboarding
+                    new javax.swing.Timer(600, e2 -> {
+                        ((javax.swing.Timer) e2.getSource()).stop();
+                        showCard("ONBOARDING");
+                    }).start();
                 } else {
                     JOptionPane.showMessageDialog(this, result.getMessage(), "Login Failed", JOptionPane.ERROR_MESSAGE);
+                    showCard("LOGIN");
                 }
             });
         }).exceptionally(throwable -> {
@@ -1470,6 +1513,7 @@ public class AuthUI extends JFrame {
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
                 JOptionPane.showMessageDialog(this, "Authentication error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                showCard("LOGIN");
             });
             return null;
         });
