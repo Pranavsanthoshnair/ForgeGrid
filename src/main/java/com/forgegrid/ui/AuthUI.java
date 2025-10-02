@@ -1139,34 +1139,65 @@ public class AuthUI extends JFrame {
         button.putClientProperty("googleStyleBorder", Boolean.TRUE);
         button.putClientProperty("isWhiteButton", Boolean.TRUE);
         button.addActionListener(e -> {
-            if (!isOnlineMode) {
-                JOptionPane.showMessageDialog(this, "Google Sign-In requires internet connection.", "Offline", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
+            // Perform a fresh, asynchronous connectivity check to avoid stale state
             button.setEnabled(false);
-            button.setText("Opening Google...");
+            button.setText("Checking connection...");
 
-            GoogleOAuthService googleOAuthService = new GoogleOAuthService();
-            googleOAuthService.authenticateWithGoogle()
-                .thenCompose(idToken -> hybridAuthManager.authenticateWithGoogle(idToken))
-                .thenAccept(result -> SwingUtilities.invokeLater(() -> {
+            // Ensure auth manager exists (user may click before initialization completes)
+            if (hybridAuthManager == null) {
+                try {
+                    hybridAuthManager = new HybridAuthManager(
+                        config.getSupabaseUrl(),
+                        config.getSupabaseAnonKey()
+                    );
+                } catch (Exception initErr) {
                     button.setEnabled(true);
                     button.setText("Sign in with Google");
+                    JOptionPane.showMessageDialog(this, "Auth not ready: " + initErr.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
 
-                    if (result.isSuccess()) {
-                        JOptionPane.showMessageDialog(this,
-                            "Google sign-in successful! Welcome, " + result.getProfile().getUsername() + "!",
-                            "Success", JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(this, result.getMessage(), "Google Sign-In Failed", JOptionPane.ERROR_MESSAGE);
+            java.util.concurrent.CompletableFuture.supplyAsync(() -> hybridAuthManager.isOnlineAvailable())
+                .thenAccept(online -> SwingUtilities.invokeLater(() -> {
+                    if (!online) {
+                        button.setEnabled(true);
+                        button.setText("Sign in with Google");
+                        JOptionPane.showMessageDialog(this, "Google Sign-In requires internet connection.", "Offline", JOptionPane.WARNING_MESSAGE);
+                        return;
                     }
+
+                    // Proceed with Google OAuth flow now that we're confirmed online
+                    button.setText("Opening Google...");
+                    GoogleOAuthService googleOAuthService = new GoogleOAuthService();
+                    googleOAuthService.authenticateWithGoogle()
+                        .thenCompose(idToken -> hybridAuthManager.authenticateWithGoogle(idToken))
+                        .thenAccept(result -> SwingUtilities.invokeLater(() -> {
+                            button.setEnabled(true);
+                            button.setText("Sign in with Google");
+
+                            if (result.isSuccess()) {
+                                JOptionPane.showMessageDialog(this,
+                                    "Google sign-in successful! Welcome, " + result.getProfile().getUsername() + "!",
+                                    "Success", JOptionPane.INFORMATION_MESSAGE);
+                            } else {
+                                JOptionPane.showMessageDialog(this, result.getMessage(), "Google Sign-In Failed", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }))
+                        .exceptionally(err -> {
+                            SwingUtilities.invokeLater(() -> {
+                                button.setEnabled(true);
+                                button.setText("Sign in with Google");
+                                JOptionPane.showMessageDialog(this, "Google Sign-In error: " + err.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            });
+                            return null;
+                        });
                 }))
                 .exceptionally(err -> {
                     SwingUtilities.invokeLater(() -> {
                         button.setEnabled(true);
                         button.setText("Sign in with Google");
-                        JOptionPane.showMessageDialog(this, "Google Sign-In error: " + err.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Error checking connection: " + err.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     });
                     return null;
                 });
