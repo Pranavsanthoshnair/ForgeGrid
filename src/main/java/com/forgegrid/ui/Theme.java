@@ -45,9 +45,13 @@ public final class Theme {
 				g2d.dispose();
 			}
 		};
-		wrapper.setOpaque(false);
-		wrapper.setLayout(new GridBagLayout());
-		wrapper.add(button);
+        wrapper.setOpaque(false);
+        wrapper.setLayout(new GridBagLayout());
+        // Ensure wrapper reports the same size as the button to avoid stretching by parent layouts
+        wrapper.setPreferredSize(button.getPreferredSize());
+        wrapper.setMinimumSize(button.getPreferredSize());
+        wrapper.setMaximumSize(button.getPreferredSize());
+        wrapper.add(button);
 		return wrapper;
 	}
 }
