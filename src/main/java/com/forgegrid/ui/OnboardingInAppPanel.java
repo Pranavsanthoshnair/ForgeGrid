@@ -110,8 +110,8 @@ public class OnboardingInAppPanel extends JPanel {
 			JToggleButton btn = createOptionButton(opt);
 			group.add(btn);
 			btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-			btn.setMaximumSize(new Dimension(520, 44));
-			btn.setPreferredSize(new Dimension(520, 44));
+			btn.setMaximumSize(new Dimension(530, 44));
+			btn.setPreferredSize(new Dimension(530, 44));
 			optionsWrap.add(btn);
 			optionsWrap.add(Box.createRigidArea(new Dimension(0, 10)));
 		}
