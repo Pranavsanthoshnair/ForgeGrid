@@ -1173,14 +1173,25 @@ public class AuthUI extends JFrame {
                     googleOAuthService.authenticateWithGoogle()
                         .thenCompose(idToken -> hybridAuthManager.authenticateWithGoogle(idToken))
                         .thenAccept(result -> SwingUtilities.invokeLater(() -> {
-                            button.setEnabled(true);
-                            button.setText("Sign in with Google");
-
                             if (result.isSuccess()) {
-                                JOptionPane.showMessageDialog(this,
-                                    "Google sign-in successful! Welcome, " + result.getProfile().getUsername() + "!",
-                                    "Success", JOptionPane.INFORMATION_MESSAGE);
+                                // Hold the button in a concluding state a bit longer to avoid abrupt return
+                                button.setEnabled(false);
+                                button.setText("Finalizing sign-in...");
+
+                                PlayerProfile profile = result.getProfile();
+                                this.currentProfile = profile;
+                                showCard("LOADING");
+
+                                // Slightly longer freeze just for Google sign-in UX (2.5s)
+                                new javax.swing.Timer(2500, e2 -> {
+                                    ((javax.swing.Timer) e2.getSource()).stop();
+                                    button.setEnabled(true);
+                                    button.setText("Sign in with Google");
+                                    showCard("ONBOARDING");
+                                }).start();
                             } else {
+                                button.setEnabled(true);
+                                button.setText("Sign in with Google");
                                 JOptionPane.showMessageDialog(this, result.getMessage(), "Google Sign-In Failed", JOptionPane.ERROR_MESSAGE);
                             }
                         }))

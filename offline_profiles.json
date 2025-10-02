@@ -36,6 +36,17 @@
       "local_password_hash": "WARyW+m+tBTRUse+gtHUAw\u003d\u003d:TsJkcHDH7YOllEgKeoepkH4OUR3eMGVtSVfBzpxhPGU\u003d"
     },
     {
+      "username": "pythonbackendthomas",
+      "email": "pythonbackendthomas@gmail.com",
+      "full_name": "Python",
+      "score": 0,
+      "level": 1,
+      "achievements": "[]",
+      "last_login": "2025-10-02T20:18:32.7882539",
+      "created_at": "2025-10-02T20:18:32.7882539",
+      "updated_at": "2025-10-02T20:18:32.7882539"
+    },
+    {
       "username": "testuser",
       "email": "testuser@example.com",
       "full_name": "Test User",
@@ -45,6 +56,17 @@
       "last_login": "2025-09-28T18:35:56.3478053",
       "created_at": "2025-09-28T18:35:54.0242026",
       "updated_at": "2025-09-28T18:35:56.3478053"
+    },
+    {
+      "username": "diddydrakecp",
+      "email": "diddydrakecp@gmail.com",
+      "full_name": "Diddy",
+      "score": 0,
+      "level": 1,
+      "achievements": "[]",
+      "last_login": "2025-10-02T20:22:09.6754856",
+      "created_at": "2025-10-02T20:22:09.6754856",
+      "updated_at": "2025-10-02T20:22:09.6754856"
     },
     {
       "username": "chinnu.patani0808",
@@ -76,11 +98,22 @@
       "score": 0,
       "level": 1,
       "achievements": "[]",
-      "last_login": "2025-10-02T19:59:12.2314558",
+      "last_login": "2025-10-02T20:17:23.4477721",
       "created_at": "2025-10-02T16:41:59.9169718",
-      "updated_at": "2025-10-02T19:59:12.2314558",
+      "updated_at": "2025-10-02T20:17:23.4477721",
       "local_password_hash": "ZQcxgv0x31o3B5XYfS4+qQ\u003d\u003d:R2+4sZ4hjX/CpqfJiPom6WpzDLEUzb1O8b9i3feDQeI\u003d"
+    },
+    {
+      "username": "onehonoured7",
+      "email": "onehonoured7@gmail.com",
+      "full_name": "honoured one",
+      "score": 0,
+      "level": 1,
+      "achievements": "[]",
+      "last_login": "2025-10-02T20:26:13.3714902",
+      "created_at": "2025-10-02T20:26:13.3714902",
+      "updated_at": "2025-10-02T20:26:13.3714902"
     }
   ],
-  "last_updated": "2025-10-02T19:59:12.2367733"
+  "last_updated": "2025-10-02T20:26:13.5223544"
 }
