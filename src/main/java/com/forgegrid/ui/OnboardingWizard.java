@@ -48,10 +48,10 @@ public class OnboardingWizard extends JFrame {
         NeonBackgroundPanel bg = new NeonBackgroundPanel();
         bg.setLayout(new GridBagLayout());
         JPanel center = buildQuestionPanel(
-                "Q1. What is your main coding goal on ForgeGrid?",
+                "Q1. What is your primary goal on ForgeGrid?",
                 new String[]{
                         "Learn programming fundamentals",
-                        "Prepare for coding interviews",
+                        "Prepare for technical interviews",
                         "Practice competitive programming",
                         "Build real-world projects"
                 },
@@ -75,12 +75,16 @@ public class OnboardingWizard extends JFrame {
         NeonBackgroundPanel bg = new NeonBackgroundPanel();
         bg.setLayout(new GridBagLayout());
         JPanel center = buildQuestionPanel(
-                "Q2. What’s your preferred programming language?",
+                "Q2. What's your preferred programming language?",
                 new String[]{"Java", "Python", "C", "JavaScript"},
                 e -> {
                     this.selectedLanguage = getSelectedTextFrom((JButton) e.getSource());
                     cardLayout.show(root, "q3");
                     triggerFade("q3");
+                },
+                () -> {
+                    cardLayout.show(root, "q1");
+                    triggerFade("q1");
                 }
         );
         FadeInPanel fade = new FadeInPanel(new GridBagLayout());
@@ -107,6 +111,10 @@ public class OnboardingWizard extends JFrame {
                 e -> {
                     this.selectedSkill = getSelectedTextFrom((JButton) e.getSource());
                     finishOnboarding();
+                },
+                () -> {
+                    cardLayout.show(root, "q2");
+                    triggerFade("q2");
                 }
         );
         FadeInPanel fade = new FadeInPanel(new GridBagLayout());
@@ -132,6 +140,10 @@ public class OnboardingWizard extends JFrame {
     }
 
     private JPanel buildQuestionPanel(String title, String[] options, java.awt.event.ActionListener onContinue) {
+        return buildQuestionPanel(title, options, onContinue, null);
+    }
+    
+    private JPanel buildQuestionPanel(String title, String[] options, java.awt.event.ActionListener onContinue, Runnable onBack) {
         JPanel center = new CardContainerPanel();
         center.setOpaque(false);
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
@@ -176,10 +188,31 @@ public class OnboardingWizard extends JFrame {
             }
         }
         continueBtn.addActionListener(onContinue);
+        
+        // Button container with Continue and Back
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+        buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         JPanel continueWrap = new JPanel(new FlowLayout(FlowLayout.LEFT));
         continueWrap.setOpaque(false);
         continueWrap.add(continueBtn);
-        center.add(continueWrap);
+        buttonPanel.add(continueWrap);
+        
+        // Add back button if onBack is provided
+        if (onBack != null) {
+            buttonPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+            JButton backBtn = createBackButton();
+            backBtn.addActionListener(e -> onBack.run());
+            backBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JPanel backWrap = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            backWrap.setOpaque(false);
+            backWrap.add(backBtn);
+            buttonPanel.add(backWrap);
+        }
+        
+        center.add(buttonPanel);
 
         return center;
     }
@@ -243,21 +276,79 @@ public class OnboardingWizard extends JFrame {
     }
 
     private JButton createContinueButton() {
-        JButton b = new JButton("Continue");
+        JButton b = new JButton("Continue") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Darker Blue to Pink gradient
+                Color darkBlue = new Color(30, 50, 80);
+                Color darkPink = new Color(100, 30, 80);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, darkBlue,
+                    getWidth(), 0, darkPink
+                );
+                g2.setPaint(gradient);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+                
+                super.paintComponent(g);
+            }
+        };
         b.setFocusPainted(false);
-        b.setBackground(new Color(255, 205, 60));
         b.setForeground(Color.WHITE);
-        b.setOpaque(true);
-        b.setContentAreaFilled(true);
+        b.setOpaque(false);
+        b.setContentAreaFilled(false);
         b.setBorderPainted(false);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        b.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
+        b.setPreferredSize(new Dimension(560, 24));
+        b.setMaximumSize(new Dimension(560, 24));
+        b.setHorizontalAlignment(SwingConstants.CENTER);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return b;
+    }
+    
+    private JButton createBackButton() {
+        JButton b = new JButton("Back") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw back arrow icon
+                g2.setColor(getForeground());
+                g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                
+                int arrowX = 8;
+                int arrowY = getHeight() / 2;
+                int arrowSize = 6;
+                
+                // Arrow line
+                g2.drawLine(arrowX + arrowSize, arrowY, arrowX + arrowSize * 2, arrowY);
+                // Arrow head
+                g2.drawLine(arrowX + arrowSize, arrowY, arrowX + arrowSize + 3, arrowY - 3);
+                g2.drawLine(arrowX + arrowSize, arrowY, arrowX + arrowSize + 3, arrowY + 3);
+                
+                g2.dispose();
+            }
+        };
+        b.setFocusPainted(false);
+        b.setForeground(new Color(150, 150, 170));
+        b.setOpaque(false);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        b.setBorder(BorderFactory.createEmptyBorder(2, 24, 2, 24));
+        b.setHorizontalAlignment(SwingConstants.CENTER);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) { b.setBackground(new Color(255, 196, 48)); }
+            public void mouseEntered(java.awt.event.MouseEvent e) { b.setForeground(Color.WHITE); b.repaint(); }
             @Override
-            public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(new Color(255, 205, 60)); }
+            public void mouseExited(java.awt.event.MouseEvent e) { b.setForeground(new Color(150, 150, 170)); b.repaint(); }
         });
         return b;
     }
