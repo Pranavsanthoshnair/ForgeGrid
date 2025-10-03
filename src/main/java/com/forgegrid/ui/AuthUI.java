@@ -456,7 +456,70 @@ public class AuthUI extends JFrame {
         forgotPasswordLink.setForeground(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 160)); // Lighter primary color
         forgotPasswordLink.setAlignmentX(Component.CENTER_ALIGNMENT);
         forgotPasswordLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        addLinkHoverAnimation(forgotPasswordLink);
+        forgotPasswordLink.addMouseListener(new java.awt.event.MouseAdapter() {
+            private Timer colorTimer;
+            private Color startColor = new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 160);
+            private Color endColor = new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 255);
+            
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (colorTimer != null) colorTimer.stop();
+                
+                colorTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 200);
+                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                        
+                        int red = (int) (startColor.getRed() + (endColor.getRed() - startColor.getRed()) * easedProgress);
+                        int green = (int) (startColor.getGreen() + (endColor.getGreen() - startColor.getGreen()) * easedProgress);
+                        int blue = (int) (startColor.getBlue() + (endColor.getBlue() - startColor.getBlue()) * easedProgress);
+                        
+                        forgotPasswordLink.setForeground(new Color(red, green, blue));
+                        
+                        if (progress >= 1.0f) {
+                            colorTimer.stop();
+                        }
+                    }
+                });
+                colorTimer.start();
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (colorTimer != null) colorTimer.stop();
+                
+                colorTimer = new Timer(16, new ActionListener() {
+                    private int elapsed = 0;
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        elapsed += 16;
+                        float progress = Math.min(1.0f, (float) elapsed / 200);
+                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
+                        
+                        int red = (int) (endColor.getRed() + (startColor.getRed() - endColor.getRed()) * easedProgress);
+                        int green = (int) (endColor.getGreen() + (startColor.getGreen() - endColor.getGreen()) * easedProgress);
+                        int blue = (int) (endColor.getBlue() + (startColor.getBlue() - endColor.getBlue()) * easedProgress);
+                        
+                        forgotPasswordLink.setForeground(new Color(red, green, blue));
+                        
+                        if (progress >= 1.0f) {
+                            colorTimer.stop();
+                        }
+                    }
+                });
+                colorTimer.start();
+            }
+            
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                AuthUI.this.showResetPassword();
+            }
+        });
         card.add(Box.createRigidArea(new Dimension(0, 10)));
         card.add(forgotPasswordLink);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -2449,6 +2512,326 @@ public class AuthUI extends JFrame {
             cardPanel.repaint();
             if (emailField != null) emailField.requestFocusInWindow();
         });
+    }
+
+    /**
+     * Show the reset password panel
+     */
+    private void showResetPassword() {
+        SwingUtilities.invokeLater(() -> {
+            JPanel resetPanel = createResetPasswordPanel();
+            cardPanel.add(resetPanel, "RESET");
+            cardLayout.show(cardPanel, "RESET");
+            cardPanel.revalidate();
+            cardPanel.repaint();
+        });
+    }
+
+    /**
+     * Create the reset password panel with email, new password, and confirm password fields
+     */
+    private JPanel createResetPasswordPanel() {
+        JPanel panel = new NeonBackgroundPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        
+        // Calculate proportional padding based on frame size
+        double scale = calculateProportionalScale();
+        int padding = (int) (60 * scale);
+        padding = Math.max(25, Math.min(100, padding));
+        panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
+        
+        // Logo panel
+        JPanel logoPanel = createLogoPanelWithScale(1.2);
+        logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Reset Password");
+        titleLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
+        titleLabel.setForeground(PRIMARY_COLOR);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JLabel subtitleLabel = new JLabel("Enter your email and new password");
+        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
+        subtitleLabel.setForeground(new Color(SECONDARY_COLOR.getRed(), SECONDARY_COLOR.getGreen(), SECONDARY_COLOR.getBlue(), 200));
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Form fields
+        JTextField resetEmailField = createModernTextField("Email");
+        JPasswordField newPasswordField = createModernPasswordField("New Password");
+        JPasswordField confirmPasswordField = createModernPasswordField("Confirm Password");
+        
+        // Add keyboard navigation
+        resetEmailField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    newPasswordField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    newPasswordField.requestFocus();
+                }
+            }
+        });
+        
+        newPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    confirmPasswordField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    confirmPasswordField.requestFocus();
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    resetEmailField.requestFocus();
+                }
+            }
+        });
+        
+        confirmPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    handlePasswordReset(resetEmailField, newPasswordField, confirmPasswordField);
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
+                    // Focus submit button
+                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
+                    newPasswordField.requestFocus();
+                }
+            }
+        });
+        
+        // Buttons
+        JButton submitButton = createGradientButton("Reset Password", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
+        JButton backToLoginButton = createSolidButton("Back to Login", SECONDARY_COLOR, Color.WHITE);
+        
+        submitButton.addActionListener(e -> handlePasswordReset(resetEmailField, newPasswordField, confirmPasswordField));
+        backToLoginButton.addActionListener(e -> showLogin());
+        
+        // Build card container
+        CardContainerPanel card = new CardContainerPanel();
+        card.setAlignmentX(Component.CENTER_ALIGNMENT);
+        int cardMaxW = Math.max(600, (int)(600 * calculateProportionalScale()));
+        card.setMaximumSize(new Dimension(cardMaxW, Integer.MAX_VALUE));
+        
+        // Add components
+        card.add(logoPanel);
+        card.add(titleLabel);
+        card.add(Box.createRigidArea(new Dimension(0, 8)));
+        card.add(subtitleLabel);
+        card.add(Box.createRigidArea(new Dimension(0, 25)));
+        card.add(resetEmailField);
+        card.add(Box.createRigidArea(new Dimension(0, 20)));
+        card.add(newPasswordField);
+        card.add(Box.createRigidArea(new Dimension(0, 20)));
+        card.add(confirmPasswordField);
+        card.add(Box.createRigidArea(new Dimension(0, 25)));
+        card.add(submitButton);
+        card.add(Box.createRigidArea(new Dimension(0, 15)));
+        card.add(backToLoginButton);
+        card.add(Box.createRigidArea(new Dimension(0, 20))); // Extra space at bottom
+        
+        panel.add(Box.createVerticalGlue());
+        panel.add(card);
+        panel.add(Box.createVerticalGlue());
+        
+        return panel;
+    }
+
+    /**
+     * Handle password reset logic
+     */
+    private void handlePasswordReset(JTextField emailField, JPasswordField newPasswordField, JPasswordField confirmPasswordField) {
+        // Normalize placeholders
+        Object emailPA = emailField.getClientProperty("placeholderActive");
+        if (Boolean.TRUE.equals(emailPA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
+            emailField.setText("");
+            emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+            emailField.setForeground(Color.WHITE);
+        }
+        
+        Object newPassPA = newPasswordField.getClientProperty("placeholderActive");
+        String newPassText = new String(newPasswordField.getPassword());
+        if (Boolean.TRUE.equals(newPassPA) && "New Password".equalsIgnoreCase(newPassText.trim())) {
+            newPasswordField.setText("");
+            newPasswordField.putClientProperty("placeholderActive", Boolean.FALSE);
+            newPasswordField.setForeground(Color.WHITE);
+            newPasswordField.setEchoChar('•');
+        }
+        
+        Object confirmPassPA = confirmPasswordField.getClientProperty("placeholderActive");
+        String confirmPassText = new String(confirmPasswordField.getPassword());
+        if (Boolean.TRUE.equals(confirmPassPA) && "Confirm Password".equalsIgnoreCase(confirmPassText.trim())) {
+            confirmPasswordField.setText("");
+            confirmPasswordField.putClientProperty("placeholderActive", Boolean.FALSE);
+            confirmPasswordField.setForeground(Color.WHITE);
+            confirmPasswordField.setEchoChar('•');
+        }
+        
+        String email = emailField.getText().trim();
+        String newPassword = new String(newPasswordField.getPassword());
+        String confirmPassword = new String(confirmPasswordField.getPassword());
+        
+        // Validation
+        boolean emailPlaceholderActive = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
+        boolean newPassPlaceholderActive = Boolean.TRUE.equals(newPasswordField.getClientProperty("placeholderActive"));
+        boolean confirmPassPlaceholderActive = Boolean.TRUE.equals(confirmPasswordField.getClientProperty("placeholderActive"));
+        
+        boolean emailEffectivelyEmpty = email.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(email));
+        boolean newPassEffectivelyEmpty = newPassword.isEmpty() || (newPassPlaceholderActive && "New Password".equalsIgnoreCase(newPassword));
+        boolean confirmPassEffectivelyEmpty = confirmPassword.isEmpty() || (confirmPassPlaceholderActive && "Confirm Password".equalsIgnoreCase(confirmPassword));
+        
+        if (emailEffectivelyEmpty || newPassEffectivelyEmpty || confirmPassEffectivelyEmpty) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (!newPassword.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this, "New password and confirm password do not match.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (newPassword.length() < 6) {
+            JOptionPane.showMessageDialog(this, "Password must be at least 6 characters long.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Update password in offline profiles
+        boolean success = updateOfflinePassword(email, newPassword);
+        
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showLogin();
+        } else {
+            JOptionPane.showMessageDialog(this, "Email not found in offline profiles.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Update password for offline profile
+     */
+    private boolean updateOfflinePassword(String email, String newPassword) {
+        try {
+            // Read current offline profiles
+            java.io.File file = new java.io.File("offline_profiles.json");
+            if (!file.exists()) {
+                return false;
+            }
+            
+            String content = new String(java.nio.file.Files.readAllBytes(file.toPath()));
+            
+            // Simple JSON parsing without Gson dependency
+            boolean found = false;
+            String updatedContent = content;
+            
+            // Find the profile with matching email and update password hash
+            String emailPattern = "\"email\"\\s*:\\s*\"" + java.util.regex.Pattern.quote(email) + "\"";
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(emailPattern);
+            java.util.regex.Matcher matcher = pattern.matcher(content);
+            
+            if (matcher.find()) {
+                // Hash the new password
+                String salt = java.util.Base64.getEncoder().encodeToString(java.security.SecureRandom.getInstanceStrong().generateSeed(16));
+                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                String saltedPassword = newPassword + salt;
+                byte[] hash = digest.digest(saltedPassword.getBytes());
+                String hashString = java.util.Base64.getEncoder().encodeToString(hash);
+                String passwordHash = salt + ":" + hashString;
+                
+                // Find the profile object and update it
+                int startPos = matcher.start();
+                int profileStart = content.lastIndexOf("{", startPos);
+                int profileEnd = findMatchingBrace(content, profileStart);
+                
+                if (profileStart != -1 && profileEnd != -1) {
+                    String profileJson = content.substring(profileStart, profileEnd + 1);
+                    
+                    // Update the password hash in the profile
+                    String updatedProfile = profileJson.replaceAll(
+                        "\"local_password_hash\"\\s*:\\s*\"[^\"]*\"",
+                        "\"local_password_hash\":\"" + passwordHash + "\""
+                    );
+                    
+                    // If no existing password hash, add it
+                    if (!profileJson.contains("\"local_password_hash\"")) {
+                        updatedProfile = updatedProfile.replaceAll(
+                            "(\"updated_at\"\\s*:\\s*\"[^\"]*\")",
+                            "$1,\"local_password_hash\":\"" + passwordHash + "\""
+                        );
+                    }
+                    
+                    // Update the updated_at timestamp
+                    updatedProfile = updatedProfile.replaceAll(
+                        "\"updated_at\"\\s*:\\s*\"[^\"]*\"",
+                        "\"updated_at\":\"" + java.time.LocalDateTime.now().toString() + "\""
+                    );
+                    
+                    // Replace the profile in the content
+                    updatedContent = content.substring(0, profileStart) + 
+                                   updatedProfile + 
+                                   content.substring(profileEnd + 1);
+                    
+                    // Update the last_updated timestamp
+                    updatedContent = updatedContent.replaceAll(
+                        "\"last_updated\"\\s*:\\s*\"[^\"]*\"",
+                        "\"last_updated\":\"" + java.time.LocalDateTime.now().toString() + "\""
+                    );
+                    
+                    found = true;
+                }
+            }
+            
+            if (found) {
+                // Write back to file
+                java.nio.file.Files.write(file.toPath(), updatedContent.getBytes());
+                return true;
+            }
+            
+            return false;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Helper method to find matching closing brace
+     */
+    private int findMatchingBrace(String content, int startPos) {
+        int braceCount = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        
+        for (int i = startPos; i < content.length(); i++) {
+            char c = content.charAt(i);
+            
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            
+            if (c == '\\') {
+                escaped = true;
+                continue;
+            }
+            
+            if (c == '"' && !escaped) {
+                inString = !inString;
+                continue;
+            }
+            
+            if (!inString) {
+                if (c == '{') {
+                    braceCount++;
+                } else if (c == '}') {
+                    braceCount--;
+                    if (braceCount == 0) {
+                        return i;
+                    }
+                }
+            }
+        }
+        
+        return -1;
     }
 
     /**
