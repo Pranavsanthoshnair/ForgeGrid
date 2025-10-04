@@ -35,14 +35,15 @@ public class OnboardingInAppPanel extends JPanel {
 		NeonBackgroundPanel bg = new NeonBackgroundPanel();
 		bg.setLayout(new GridBagLayout());
 		JPanel center = buildQuestionPanel(
-			"Q1. What is your main coding goal on ForgeGrid?",
+			"Q1. What is your primary goal on ForgeGrid?",
 			new String[]{
 				"Learn programming fundamentals",
-				"Prepare for coding interviews",
+				"Prepare for technical interviews",
 				"Practice competitive programming",
 				"Build real-world projects"
 			},
-			value -> { selectedGoal = value; next.run(); }
+			value -> { selectedGoal = value; next.run(); },
+			null
 		);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
@@ -54,9 +55,10 @@ public class OnboardingInAppPanel extends JPanel {
 		NeonBackgroundPanel bg = new NeonBackgroundPanel();
 		bg.setLayout(new GridBagLayout());
 		JPanel center = buildQuestionPanel(
-			"Q2. What’s your preferred programming language?",
+			"Q2. What's your preferred programming language?",
 			new String[]{"Java", "Python", "C", "JavaScript"},
-			value -> { selectedLanguage = value; next.run(); }
+			value -> { selectedLanguage = value; next.run(); },
+			() -> flow.show(root, "q1")
 		);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
@@ -75,7 +77,8 @@ public class OnboardingInAppPanel extends JPanel {
 				"Advanced (algorithms, contests, frameworks)",
 				"Expert (mentor/competitive level)"
 			},
-			value -> { selectedSkill = value; finish.run(); }
+			value -> { selectedSkill = value; finish.run(); },
+			() -> flow.show(root, "q2")
 		);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
@@ -83,7 +86,7 @@ public class OnboardingInAppPanel extends JPanel {
 		return bg;
 	}
 
-	private JPanel buildQuestionPanel(String title, String[] options, java.util.function.Consumer<String> onContinue) {
+	private JPanel buildQuestionPanel(String title, String[] options, java.util.function.Consumer<String> onContinue, Runnable onBack) {
 		JPanel center = new CardContainerPanel();
 		center.setOpaque(false);
 		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
@@ -103,12 +106,12 @@ public class OnboardingInAppPanel extends JPanel {
 		optionsWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		ButtonGroup group = new ButtonGroup();
-		for (String opt : options) {
+        for (String opt : options) {
 			JToggleButton btn = createOptionButton(opt);
 			group.add(btn);
 			btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-			btn.setMaximumSize(new Dimension(520, 44));
-			btn.setPreferredSize(new Dimension(520, 44));
+            btn.setMaximumSize(new Dimension(460, 36));
+            btn.setPreferredSize(new Dimension(460, 36));
 			optionsWrap.add(btn);
 			optionsWrap.add(Box.createRigidArea(new Dimension(0, 10)));
 		}
@@ -131,10 +134,68 @@ public class OnboardingInAppPanel extends JPanel {
 			JToggleButton sel = findSelectedToggle(optionsWrap);
 			if (sel != null) onContinue.accept(sel.getText());
 		});
-		JPanel continueWrap = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		
+		// Button container with Continue and Back
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setOpaque(false);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+		
+        JPanel continueWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)) {
+            @Override
+            public Dimension getMaximumSize() {
+                // Prevent BoxLayout from stretching this row to full width
+                return getPreferredSize();
+            }
+        };
 		continueWrap.setOpaque(false);
-		continueWrap.add(Theme.asGradientButton(continueBtn, Theme.BRAND_YELLOW, Theme.BRAND_GOLD, 18));
-		center.add(continueWrap);
+        continueBtn.setPreferredSize(new Dimension(240, 34));
+        continueBtn.setMaximumSize(new Dimension(240, 34));
+		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
+		// Darker gradient colors
+        Color darkBlue = new Color(30, 50, 80);
+        Color darkPink = new Color(100, 30, 80);
+        JComponent gradientButton = Theme.asGradientButton(continueBtn, darkBlue, darkPink, 18);
+        Dimension contSize = new Dimension(240, 34);
+        gradientButton.setPreferredSize(contSize);
+        gradientButton.setMinimumSize(contSize);
+        gradientButton.setMaximumSize(contSize);
+        continueWrap.setPreferredSize(contSize);
+        continueWrap.setMinimumSize(contSize);
+        continueWrap.setMaximumSize(contSize);
+        continueWrap.add(gradientButton);
+		buttonPanel.add(continueWrap);
+		
+		// Add back button if onBack is provided
+        if (onBack != null) {
+            buttonPanel.add(Box.createRigidArea(new Dimension(0, 12)));
+            JButton backBtn = createBackButton();
+			backBtn.addActionListener(e -> onBack.run());
+			backBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JPanel backWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)) {
+                @Override
+                public Dimension getMaximumSize() {
+                    return getPreferredSize();
+                }
+            };
+			backWrap.setOpaque(false);
+            // Use the same approach as Continue button with Theme wrapper
+            Dimension backSize = new Dimension(240, 34);
+            backBtn.setPreferredSize(backSize);
+            backBtn.setMaximumSize(backSize);
+            Color backBlue = new Color(60, 70, 90);
+            Color backGray = new Color(80, 90, 110);
+            JComponent backGradientButton = Theme.asGradientButton(backBtn, backBlue, backGray, 18);
+            backGradientButton.setPreferredSize(backSize);
+            backGradientButton.setMinimumSize(backSize);
+            backGradientButton.setMaximumSize(backSize);
+            backWrap.setPreferredSize(backSize);
+            backWrap.setMinimumSize(backSize);
+            backWrap.setMaximumSize(backSize);
+			backWrap.add(backGradientButton);
+			buttonPanel.add(backWrap);
+		}
+		
+		center.add(buttonPanel);
 		return center;
 	}
 
@@ -174,24 +235,39 @@ public class OnboardingInAppPanel extends JPanel {
 		btn.setContentAreaFilled(false);
 		btn.setOpaque(false);
 		btn.setForeground(Color.WHITE);
-		btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-		btn.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
 		btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		return btn;
 	}
 
 	private JButton createContinueButton() {
-		JButton b = new JButton("Continue");
+        JButton b = new JButton("Continue");
 		b.setFocusPainted(false);
-		b.setForeground(Color.WHITE);
+        b.setForeground(Color.WHITE);
 		b.setOpaque(false);
 		b.setContentAreaFilled(false);
 		b.setBorderPainted(false);
-		b.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		b.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
+		b.setHorizontalAlignment(SwingConstants.CENTER);
 		b.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		return b;
 	}
+	
+    private JButton createBackButton() {
+        JButton b = new JButton("Back");
+        b.setFocusPainted(false);
+        b.setForeground(Color.WHITE);
+        b.setOpaque(false);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
+        b.setHorizontalAlignment(SwingConstants.CENTER);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return b;
+    }
 }
 
 
