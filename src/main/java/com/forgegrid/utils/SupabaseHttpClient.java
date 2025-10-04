@@ -441,20 +441,59 @@ public class SupabaseHttpClient {
      * @return true if online, false if offline
      */
     public boolean isOnline() {
+        // Try Supabase auth health endpoint first (fast and reliable)
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(supabaseUrl + "rest/v1/"))
+            HttpRequest healthRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(supabaseUrl + "auth/v1/health"))
                     .header("apikey", supabaseAnonKey)
                     .GET()
-                    .timeout(Duration.ofSeconds(5))
+                    .timeout(Duration.ofSeconds(4))
                     .build();
-            
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.statusCode() == 200;
-            
-        } catch (IOException | InterruptedException e) {
-            return false;
+
+            HttpResponse<String> healthResponse = httpClient.send(healthRequest, HttpResponse.BodyHandlers.ofString());
+            if (healthResponse.statusCode() >= 200 && healthResponse.statusCode() < 300) {
+                return true;
+            }
+        } catch (IOException | InterruptedException ignored) {
+            // Fall through to next checks
         }
+
+        // Fallback: ping PostgREST root (some projects may return 404/401)
+        try {
+            HttpRequest restPing = HttpRequest.newBuilder()
+                    .uri(URI.create(supabaseUrl + "rest/v1/"))
+                    .header("apikey", supabaseAnonKey)
+                    .method("OPTIONS", HttpRequest.BodyPublishers.noBody())
+                    .timeout(Duration.ofSeconds(4))
+                    .build();
+
+            HttpResponse<String> restResponse = httpClient.send(restPing, HttpResponse.BodyHandlers.ofString());
+            int code = restResponse.statusCode();
+            if (code == 200 || code == 204 || code == 401 || code == 404) {
+                // Any reachable response implies network is up and Supabase is reachable
+                return true;
+            }
+        } catch (IOException | InterruptedException ignored) {
+            // Fall through to next checks
+        }
+
+        // Last-resort connectivity check against a lightweight Google endpoint
+        try {
+            HttpRequest google204 = HttpRequest.newBuilder()
+                    .uri(URI.create("https://www.google.com/generate_204"))
+                    .GET()
+                    .timeout(Duration.ofSeconds(3))
+                    .build();
+
+            HttpResponse<Void> googleResp = httpClient.send(google204, HttpResponse.BodyHandlers.discarding());
+            if (googleResp.statusCode() == 204) {
+                return true;
+            }
+        } catch (IOException | InterruptedException ignored) {
+            // No network
+        }
+
+        return false;
     }
     
     /**
