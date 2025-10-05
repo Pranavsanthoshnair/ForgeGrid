@@ -13,8 +13,9 @@ xcopy /E /I /Y "src\main\resources\*" "bin\"
 if %ERRORLEVEL% EQU 0 (
     echo Build successful!
     echo.
-    echo To run the application, use: run.bat
+    echo You can now run the application from your IDE:
+    echo - Right-click on Main.java
+    echo - Select "Run Java"
 ) else (
     echo Build failed!
-    exit /b 1
 )

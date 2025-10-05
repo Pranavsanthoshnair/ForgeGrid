@@ -33,7 +33,7 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 - Level up to unlock harder challenges
 
 ### Persistent Data
-- Save/load player progress using **Java Serialization**
+- Save/load player progress using **SQLite Database**
 
 ### GUI (Swing)
 - **Top Panel**: Player stats (Name, Level, XP bar, Rank, Deadline timer)
@@ -87,9 +87,10 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 ---
 
 ## Technology Stack
-- **Java JDK 8+**
+- **Java JDK 17+**
 - **Swing GUI**: JFrame, JTable, JButton, JLabel, JProgressBar
-- **Java Serialization** for data persistence
+- **SQLite Database** for data persistence
+- **SLF4J Logging** for application logging
 - **Collections**: ArrayList, HashMap for task management
 
 ---
@@ -97,12 +98,12 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 ## Installation & Setup
 1. Install **Java JDK 17 or higher** (recommended: Java 17 LTS for best compatibility)
 2. Clone or download the project repository
-3. Open in an IDE (**VS Code / IntelliJ / Eclipse**)
-4. **Build the project**: Run `build.bat` (Windows) or `build.sh` (Linux/Mac)
-5. **Run the application**: Run `run.bat` (Windows) or `run.sh` (Linux/Mac)
+3. **Build the project**: Run `build.bat` (Windows) or `build.sh` (Linux/Mac)
+4. Open in an IDE (**VS Code / IntelliJ / Eclipse**)
+5. **Run the application**: Right-click on `Main.java` → "Run Java" or use the IDE's run button
 
-**Note:** The project is compiled with `--release 17` to ensure compatibility with Java 17+ runtimes. If you encounter `UnsupportedClassVersionError`, make sure you're using Java 17 or higher.
-6. Progress is automatically saved and loaded on launch
+**Note:** The project uses SQLite for data persistence and requires the JAR files in the `lib/` folder to be included in the classpath. Most IDEs will handle this automatically.
+6. Progress is automatically saved to the SQLite database (`forgegrid.db`)
 
 ---
 

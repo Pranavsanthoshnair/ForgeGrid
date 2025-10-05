@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "Building ForgeGrid..."
 
 # Create bin directory if it doesn't exist
@@ -14,8 +13,9 @@ cp -r src/main/resources/* bin/
 if [ $? -eq 0 ]; then
     echo "Build successful!"
     echo ""
-    echo "To run the application, use: ./run.sh"
+    echo "You can now run the application from your IDE:"
+    echo "- Right-click on Main.java"
+    echo "- Select \"Run Java\""
 else
     echo "Build failed!"
-    exit 1
 fi
