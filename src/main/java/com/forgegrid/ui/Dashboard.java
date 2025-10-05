@@ -43,7 +43,25 @@ public class Dashboard extends JFrame {
     public Dashboard(PlayerProfile profile, boolean skipWelcome) {
         this.profile = profile;
         setTitle("ForgeGrid - Dashboard");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        
+        // Add window listener for close confirmation
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                int result = JOptionPane.showConfirmDialog(
+                    Dashboard.this,
+                    "Are you sure you want to exit?",
+                    "Confirm Exit",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                if (result == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            }
+        });
+        
         setSize(900, 600);
         setLocationRelativeTo(null);
         setMinimumSize(new Dimension(720, 480));

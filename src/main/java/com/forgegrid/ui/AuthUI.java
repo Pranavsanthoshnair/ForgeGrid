@@ -39,7 +39,24 @@ public class AuthUI extends JFrame {
     
     private void initializeUI() {
         setTitle("ForgeGrid - Authentication");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        
+        // Add window listener for close confirmation
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                int result = JOptionPane.showConfirmDialog(
+                    AuthUI.this,
+                    "Are you sure you want to exit?",
+                    "Confirm Exit",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                if (result == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            }
+        });
         
         // Get screen dimensions for responsive sizing
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
