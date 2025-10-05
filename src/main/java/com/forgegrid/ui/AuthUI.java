@@ -38,7 +38,7 @@ public class AuthUI extends JFrame {
     }
     
     private void initializeUI() {
-        setTitle("ForgeGrid - Authentication");
+        setTitle("ForgeGrid");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
         // Add window listener for close confirmation
