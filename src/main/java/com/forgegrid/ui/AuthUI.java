@@ -21,6 +21,7 @@ public class AuthUI extends JFrame {
     private JTextField nameField;
     private JButton loginButton;
     private JButton signupButton;
+    private JButton backButton;
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private final Map<String, FadeInPanel> cardFades = new HashMap<>();
@@ -152,11 +153,25 @@ public class AuthUI extends JFrame {
         JPanel onboardingPrompt = createOnboardingPromptPanel();
         addWithFade(onboardingPrompt, "ONBOARDING_PROMPT");
         
-        add(cardPanel);
+        // Build a top header with a left-aligned back button (arrow only)
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(true);
+        header.setBackground(new Color(25, 35, 55));
+        header.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
+        backButton = createBackArrowButton();
+        header.add(backButton, BorderLayout.WEST);
+
+        // Root container combines header and cards
+        JPanel root = new JPanel(new BorderLayout());
+        root.setOpaque(false);
+        root.add(header, BorderLayout.NORTH);
+        root.add(cardPanel, BorderLayout.CENTER);
+        add(root);
         
         // Show welcome first with fade-in
         cardLayout.show(cardPanel, "WELCOME");
         playFade("WELCOME");
+        updateBackButtonVisibility("WELCOME");
         
         // Add component listener to handle window resizing
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -185,6 +200,7 @@ public class AuthUI extends JFrame {
     private void showCard(String name) {
         cardLayout.show(cardPanel, name);
         playFade(name);
+        updateBackButtonVisibility(name);
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
@@ -1502,6 +1518,53 @@ public class AuthUI extends JFrame {
             signupButton.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
             signupButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
         }
+    }
+
+    private JButton createBackArrowButton() {
+        JButton btn = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth();
+                int h = getHeight();
+                int size = Math.min(w, h) - 10;
+                int cx = 10;
+                int cy = h / 2;
+                g2d.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2d.setColor(Color.WHITE);
+                // Draw a simple left arrow 
+                int x1 = cx + size / 2;
+                int y1 = cy - size / 3;
+                int x2 = cx;
+                int y2 = cy;
+                int x3 = cx + size / 2;
+                int y3 = cy + size / 3;
+                g2d.drawLine(x1, y1, x2, y2);
+                g2d.drawLine(x2, y2, x3, y3);
+                // Tail
+                g2d.drawLine(x2, y2, x2 + size, y2);
+                g2d.dispose();
+            }
+        };
+        btn.setPreferredSize(new Dimension(44, 36));
+        btn.setMinimumSize(new Dimension(44, 36));
+        btn.setMaximumSize(new Dimension(44, 36));
+        btn.setOpaque(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addActionListener(e -> showCard("WELCOME"));
+        return btn;
+    }
+
+    private void updateBackButtonVisibility(String currentCard) {
+        if (backButton == null) return;
+        // Hide on welcome, onboarding and dashboard; show on auth screens and prompt
+        boolean shouldShow = !("WELCOME".equals(currentCard) || "ONBOARDING".equals(currentCard) || "ONBOARDING_PROMPT".equals(currentCard) || "DASHBOARD".equals(currentCard));
+        backButton.setVisible(shouldShow);
     }
     
     
