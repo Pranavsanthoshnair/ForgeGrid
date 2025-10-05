@@ -1222,27 +1222,27 @@ public class AuthUI extends JFrame {
                     System.out.println("Onboarding Language: " + profile.getOnboardingLanguage());
                     System.out.println("Onboarding Skill: " + profile.getOnboardingSkill());
                     
-                    // Check if user has completed onboarding
-                    if (profile.isOnboardingCompleted()) {
-                        System.out.println("→ Showing loading screen, then going to dashboard");
-                        // Show loading screen, then go to dashboard
-                        showCard("LOADING");
-                        new javax.swing.Timer(600, e2 -> {
-                            ((javax.swing.Timer) e2.getSource()).stop();
+                    // Always show loading, then ask whether to do onboarding now
+                    System.out.println("→ Showing loading screen then asking onboarding preference");
+                    showCard("LOADING");
+                    new javax.swing.Timer(600, e2 -> {
+                        ((javax.swing.Timer) e2.getSource()).stop();
+                        int choice = JOptionPane.showConfirmDialog(
+                            this,
+                            "Would you like to answer quick onboarding questions now?",
+                            "Onboarding",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (choice == JOptionPane.YES_OPTION) {
+                            showCard("ONBOARDING");
+                        } else {
                             String goal = profile.getOnboardingGoal();
                             String language = profile.getOnboardingLanguage();
                             String skill = profile.getOnboardingSkill();
                             openDashboardInCard(goal, language, skill);
-                        }).start();
-                    } else {
-                        System.out.println("→ Showing loading screen then onboarding questions");
-                        // Show loading screen for new users, then navigate to onboarding
-                        showCard("LOADING");
-                        new javax.swing.Timer(600, e2 -> {
-                            ((javax.swing.Timer) e2.getSource()).stop();
-                            showCard("ONBOARDING");
-                        }).start();
-                    }
+                        }
+                    }).start();
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     showCard("LOGIN");
