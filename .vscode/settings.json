@@ -1,0 +1,19 @@
+{
+    "java.project.sourcePaths": [
+        "src/main/java"
+    ],
+    "java.project.resourceFilters": [
+        "node_modules",
+        ".git"
+    ],
+    "java.project.referencedLibraries": [
+        "lib/sqlite-jdbc-3.44.1.0.jar",
+        "lib/slf4j-api-1.7.36.jar",
+        "lib/slf4j-simple-1.7.36.jar"
+    ],
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.project.outputPath": "bin",
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.debug.settings.console": "integratedTerminal"
+}

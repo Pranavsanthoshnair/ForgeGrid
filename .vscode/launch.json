@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch ForgeGrid",
+            "request": "launch",
+            "mainClass": "com.forgegrid.app.Main",
+            "projectName": "forgegrid",
+            "classPaths": [
+                "${workspaceFolder}/bin",
+                "${workspaceFolder}/lib/sqlite-jdbc-3.44.1.0.jar",
+                "${workspaceFolder}/lib/slf4j-api-1.7.36.jar",
+                "${workspaceFolder}/lib/slf4j-simple-1.7.36.jar"
+            ],
+            "modulePaths": [],
+            "args": "",
+            "vmArgs": "",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Launch ForgeGrid (All JARs)",
+            "request": "launch",
+            "mainClass": "com.forgegrid.app.Main",
+            "projectName": "forgegrid",
+            "classPaths": [
+                "${workspaceFolder}/bin",
+                "${workspaceFolder}/lib/*"
+            ],
+            "modulePaths": [],
+            "args": "",
+            "vmArgs": "",
+            "console": "integratedTerminal"
+        }
+    ]
+}

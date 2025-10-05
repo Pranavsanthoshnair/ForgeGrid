@@ -8,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class AuthUI extends JFrame {
     // Color scheme
@@ -24,7 +23,6 @@ public class AuthUI extends JFrame {
     private CardLayout cardLayout;
     private final Map<String, FadeInPanel> cardFades = new HashMap<>();
     private AuthService authService;
-    private JLabel statusLabel;
     private LoadingScreen loadingScreen;
     private PlayerProfile currentProfile;
     
@@ -77,8 +75,6 @@ public class AuthUI extends JFrame {
 		loadingScreen = new LoadingScreen();
 		addWithFade(loadingScreen, "LOADING");
         
-        // Create status indicator
-        createStatusIndicator();
         
 		// Create login and signup panels
         JPanel loginPanel = createLoginPanel();
@@ -150,186 +146,8 @@ public class AuthUI extends JFrame {
         showCard("DASHBOARD");
     }
 
-	private JPanel createLandingPanel() {
-		JPanel panel = new NeonBackgroundPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		panel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-		// Centered logo (slightly larger on landing page)
-		JPanel logoPanel = createLogoPanelWithScale(1.45);
-		logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		// Pull the title closer by reducing bottom margin of the logo panel
-		logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, -8, 0));
 
-		// Gradient brand title matching logo hues (yellow -> magenta)
-		Font stylish = getStylishFont("Montserrat", Font.BOLD, 58, new String[]{"Poppins","Segoe UI","Trebuchet MS"});
-		GradientTextLabel title = new GradientTextLabel(
-			"ForgeGrid",
-			stylish,
-			new Color(0xFF, 0xC1, 0x2B), // yellow-orange
-			new Color(0xC0, 0x1B, 0x6C)  // magenta
-		);
-		JPanel titleWrap = new JPanel();
-		titleWrap.setOpaque(false);
-		titleWrap.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-		titleWrap.add(title);
-		titleWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
-		// Nudge the title upward slightly
-		titleWrap.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-
-		// Tagline below the title
-		JLabel landingTagline = new JLabel("where coding challenges become milestones");
-		landingTagline.setFont(getStylishFont("Segoe UI", Font.PLAIN, 20, new String[]{"Poppins","Trebuchet MS","SansSerif"}));
-		landingTagline.setForeground(new Color(230, 230, 235));
-		landingTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		// "Let's start" button with yellow-orangish color, hover and loading animation
-		JButton startButton = new JButton("Let's start") {
-			private boolean hovering = false;
-			private boolean loading = false;
-			private int spin = 0;
-			private Timer loaderTimer;
-			@Override
-			public Dimension getPreferredSize() {
-				FontMetrics fm = getFontMetrics(getFont());
-				int w = fm.stringWidth(loading ? "Starting..." : getText());
-				int h = fm.getHeight();
-				// padding around text
-				int padX = 28; // 14px each side
-				int padY = 16; // top/bottom
-				// extra space for spinner when loading
-				int spinnerW = loading ? 26 : 0;
-				return new Dimension(w + padX + spinnerW, h + padY);
-			}
-			@Override
-			protected void paintComponent(Graphics g) {
-				Graphics2D g2d = (Graphics2D) g.create();
-				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				Color c1 = new Color(255, 193, 43);
-				Color c2 = new Color(255, 140, 0);
-				if (hovering) {
-					c1 = new Color(Math.min(255, c1.getRed()+20), Math.min(255, c1.getGreen()+20), Math.min(255, c1.getBlue()+20));
-					c2 = new Color(Math.min(255, c2.getRed()+20), Math.min(255, c2.getGreen()+20), Math.min(255, c2.getBlue()+20));
-				}
-				GradientPaint gp = new GradientPaint(0, 0, c1, getWidth(), getHeight(), c2);
-				g2d.setPaint(gp);
-				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 26, 26);
-				// inner glow
-				g2d.setColor(new Color(255, 255, 255, hovering ? 45 : 25));
-				g2d.fillRoundRect(2, 2, getWidth()-4, getHeight()/2, 22, 22);
-				// text
-				g2d.setFont(getFont());
-				g2d.setColor(Color.WHITE);
-				FontMetrics fm = g2d.getFontMetrics();
-				String text = loading ? "Starting..." : getText();
-				int textW = fm.stringWidth(text);
-				int x = (getWidth() - textW) / 2;
-				int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-				g2d.drawString(text, x, y);
-				// spinner when loading
-				if (loading) {
-					int r = 14;
-					int cx = x - 24;
-					int cy = getHeight()/2 - r/2;
-					g2d.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-					g2d.setColor(new Color(255,255,255,180));
-					g2d.drawArc(cx, cy, r, r, spin, 270);
-				}
-				g2d.dispose();
-			}
-			private void setLoading(boolean v){
-				loading = v;
-				setEnabled(!v);
-				if (v) {
-					if (loaderTimer != null) loaderTimer.stop();
-					loaderTimer = new Timer(40, e -> { spin = (spin + 12) % 360; repaint(); });
-					loaderTimer.start();
-				} else if (loaderTimer != null) {
-					loaderTimer.stop();
-				}
-				repaint();
-			}
-		};
-		// size and behavior: fit-to-text, no oversized width
-		double s = calculateProportionalScale();
-		startButton.setFont(getStylishFont("Montserrat", Font.BOLD, Math.max(18, (int)(22 * s)), new String[]{"Poppins","Segoe UI","Trebuchet MS"}));
-		startButton.setBorderPainted(false);
-		startButton.setContentAreaFilled(false);
-		startButton.setFocusPainted(false);
-		startButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		startButton.addMouseListener(new java.awt.event.MouseAdapter(){
-			@Override public void mouseEntered(java.awt.event.MouseEvent e){ startButton.repaint(); try{ java.lang.reflect.Field f = startButton.getClass().getDeclaredField("hovering"); f.setAccessible(true); f.set(startButton, true);}catch(Exception ignore){} }
-			@Override public void mouseExited(java.awt.event.MouseEvent e){ startButton.repaint(); try{ java.lang.reflect.Field f = startButton.getClass().getDeclaredField("hovering"); f.setAccessible(true); f.set(startButton, false);}catch(Exception ignore){} }
-		});
-		startButton.addActionListener(e -> {
-			// start loading animation on button, then switch to loading screen and begin auth
-			try { startButton.getClass().getDeclaredMethod("setLoading", boolean.class).invoke(startButton, true); } catch (Exception ignore) {}
-			showCard("LOADING");
-			initializeAuthentication();
-		});
-
-		panel.add(Box.createVerticalGlue());
-		panel.add(logoPanel);
-		panel.add(Box.createRigidArea(new Dimension(0, 0)));
-		panel.add(titleWrap);
-		// tighter gap between title and tagline (closer to the title)
-		panel.add(Box.createRigidArea(new Dimension(0, 4)));
-		panel.add(landingTagline);
-		// larger gap between tagline and the button for stronger hierarchy
-		panel.add(Box.createRigidArea(new Dimension(0, 56)));
-		panel.add(startButton);
-		panel.add(Box.createVerticalGlue());
-		return panel;
-	}
-
-	// Helper: create logo panel with size multiplier (landing needs larger logo)
-	private JPanel createLogoPanelWithScale(double multiplier) {
-		JPanel logoPanel = new JPanel();
-		logoPanel.setOpaque(false);
-		logoPanel.setLayout(new BorderLayout());
-		try {
-			java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo2_transparent.png");
-			if (logoUrl != null) {
-				ImageIcon logoIcon = new ImageIcon(logoUrl);
-				Image logoImage = logoIcon.getImage();
-				double scale = calculateProportionalScale() * multiplier;
-				int logoWidth = (int) (360 * scale);
-				int logoHeight = (int) (220 * scale);
-				logoWidth = Math.max(260, logoWidth);
-				logoHeight = Math.max(160, logoHeight);
-				Image scaledLogo = logoImage.getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
-				ImageIcon scaledIcon = new ImageIcon(scaledLogo);
-				JLabel logoLabel = new JLabel(scaledIcon);
-				logoLabel.setHorizontalAlignment(JLabel.CENTER);
-				logoPanel.add(logoLabel, BorderLayout.CENTER);
-				logoPanel.setPreferredSize(new Dimension(logoWidth, logoHeight));
-				logoPanel.setMaximumSize(new Dimension(logoWidth, logoHeight));
-			} else {
-				logoPanel = createLogoPanel();
-			}
-		} catch (Exception e) {
-			logoPanel = createLogoPanel();
-		}
-		return logoPanel;
-	}
-
-	// Helper: pick a stylish font with fallbacks
-	private Font getStylishFont(String primary, int style, int size, String[] fallbacks) {
-		try {
-			Font f = new Font(primary, style, size);
-			if (f != null) return f;
-		} catch (Exception ignore) {}
-		if (fallbacks != null) {
-			for (String name : fallbacks) {
-				try {
-					Font f = new Font(name, style, size);
-					if (f != null) return f;
-				} catch (Exception ignore) {}
-			}
-		}
-		return new Font("SansSerif", style, size);
-	}
     
     private JPanel createLoginPanel() {
         JPanel panel = new NeonBackgroundPanel();
@@ -507,7 +325,7 @@ public class AuthUI extends JFrame {
             
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                AuthUI.this.showResetPassword();
+                showPasswordResetDialog();
             }
         });
         card.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -1617,12 +1435,20 @@ public class AuthUI extends JFrame {
                 logoPanel.setPreferredSize(new Dimension(logoWidth, logoHeight));
                 logoPanel.setMaximumSize(new Dimension(logoWidth, logoHeight));
             } else {
-                // Fallback to gaming controller if logo not found
-                logoPanel = new GamingControllerLogo();
+                // Fallback to text if logo not found
+                JLabel fallbackLabel = new JLabel("ForgeGrid");
+                fallbackLabel.setFont(new Font("Arial", Font.BOLD, 24));
+                fallbackLabel.setForeground(PRIMARY_COLOR);
+                fallbackLabel.setHorizontalAlignment(JLabel.CENTER);
+                logoPanel.add(fallbackLabel, BorderLayout.CENTER);
             }
         } catch (Exception e) {
-            // Fallback to gaming controller if there's any error loading the logo
-            logoPanel = new GamingControllerLogo();
+            // Fallback to text if there's any error loading the logo
+            JLabel fallbackLabel = new JLabel("ForgeGrid");
+            fallbackLabel.setFont(new Font("Arial", Font.BOLD, 24));
+            fallbackLabel.setForeground(PRIMARY_COLOR);
+            fallbackLabel.setHorizontalAlignment(JLabel.CENTER);
+            logoPanel.add(fallbackLabel, BorderLayout.CENTER);
         }
         
         return logoPanel;
@@ -1712,56 +1538,27 @@ public class AuthUI extends JFrame {
     
     private void updateAllButtonSizes(int buttonWidth, int buttonHeight, int glassButtonHeight, 
                                    int buttonFontSize, int glassButtonFontSize) {
-        // Update all buttons in the card panel
-        Component[] components = cardPanel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JPanel) {
-                updateButtonsInPanel((JPanel) comp, buttonWidth, buttonHeight, glassButtonHeight, 
-                                   buttonFontSize, glassButtonFontSize);
-            }
+        // Simplified button size updates
+        if (loginButton != null) {
+            loginButton.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+            loginButton.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+            loginButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
         }
-    }
-    
-    private void updateButtonsInPanel(JPanel panel, int buttonWidth, int buttonHeight, 
-                                     int glassButtonHeight, int buttonFontSize, int glassButtonFontSize) {
-        Component[] components = panel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JButton) {
-                JButton button = (JButton) comp;
-                String text = button.getText();
-                
-                // Determine button type and apply appropriate sizing
-            if (text.contains("Sign Up") || text.contains("Login")) {
-                    button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-                    button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-                    button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
-                } else {
-                    // Glass buttons (like "New User? Sign Up", "Already have an account? Login")
-                    button.setMaximumSize(new Dimension(buttonWidth, glassButtonHeight));
-                    button.setPreferredSize(new Dimension(buttonWidth, glassButtonHeight));
-                    button.setFont(new Font("Trebuchet MS", Font.PLAIN, glassButtonFontSize));
-                }
-            } else if (comp instanceof JPanel) {
-                // Recursively update buttons in nested panels
-                updateButtonsInPanel((JPanel) comp, buttonWidth, buttonHeight, glassButtonHeight, 
-                                   buttonFontSize, glassButtonFontSize);
-            }
+        if (signupButton != null) {
+            signupButton.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+            signupButton.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+            signupButton.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
         }
     }
     
     
     /**
-     * Enhanced button hover and click animations
-     * Includes scale, shadow, and press effects
+     * Simplified button hover effect
      */
     private void addButtonHoverEffect(JButton button) {
         button.addMouseListener(new java.awt.event.MouseAdapter() {
-            private Timer hoverTimer;
-            
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                if (hoverTimer != null) hoverTimer.stop();
-                
                 // Set hover state for gradient buttons
                 if (button.getClass().getSimpleName().contains("$")) {
                     try {
@@ -1779,47 +1576,12 @@ public class AuthUI extends JFrame {
                             button.setBackground(hoverColor);
                         }
                     }
-                } else {
-                    // Change button color to a lighter version on hover
-                    Color currentColor = button.getBackground();
-                    if (currentColor != null) {
-                        Color hoverColor = new Color(
-                            Math.min(255, currentColor.getRed() + 30),
-                            Math.min(255, currentColor.getGreen() + 30),
-                            Math.min(255, currentColor.getBlue() + 30)
-                        );
-                        button.setBackground(hoverColor);
-                    }
                 }
-                
-                hoverTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
-                        
-                        // Apply hover effect (scale and shadow)
-                        button.repaint();
-                        
-                        if (progress >= 1.0f) {
-                            hoverTimer.stop();
-                        }
-                    }
-        });
-        hoverTimer.start();
-                
-                // Make sure to pass the event to parent components
-                if (e != null) {
-                    e.consume();
-                }
+                button.repaint();
             }
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (hoverTimer != null) hoverTimer.stop();
-                
                 // Reset hover state for gradient buttons
                 if (button.getClass().getSimpleName().contains("$")) {
                     try {
@@ -1837,246 +1599,54 @@ public class AuthUI extends JFrame {
                             button.setBackground(originalColor);
                         }
                     }
-                } else {
-                    // Restore original button color
-                    Color currentColor = button.getBackground();
-                    if (currentColor != null) {
-                        Color originalColor = new Color(
-                            Math.max(0, currentColor.getRed() - 30),
-                            Math.max(0, currentColor.getGreen() - 30),
-                            Math.max(0, currentColor.getBlue() - 30)
-                        );
-                        button.setBackground(originalColor);
-                    }
                 }
-                
-                hoverTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
-                        
-                        // Return to normal state
-                        button.repaint();
-                        
-                        if (progress >= 1.0f) {
-                            hoverTimer.stop();
-                        }
-                    }
-                });
-                hoverTimer.start();
-            }
-            
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                // Press-down effect with animation
-                Timer pressTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 100); // 100ms press animation
-                        
-                        // Apply press effect
-                        button.repaint();
-                        
-                        if (progress >= 1.0f) {
-                            ((Timer) evt.getSource()).stop();
-                        }
-                    }
-                });
-                pressTimer.start();
-            }
-            
-            @Override
-            public void mouseReleased(java.awt.event.MouseEvent e) {
-                // Return to hover state with animation
-                Timer releaseTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 100); // 100ms release animation
-                        
-                        // Return to hover state
-                        button.repaint();
-                        
-                        if (progress >= 1.0f) {
-                            ((Timer) evt.getSource()).stop();
-                        }
-                    }
-                });
-                releaseTimer.start();
+                button.repaint();
             }
         });
     }
     
     /**
-     * Smooth hover animation for links
-     * Animates color transition and optional underline effect
+     * Simplified link hover animation
      */
     private void addLinkHoverAnimation(JLabel link) {
         link.addMouseListener(new java.awt.event.MouseAdapter() {
-            private Timer colorTimer;
-            private Color startColor = new Color(255, 215, 0); // Golden yellow
-            private Color endColor = new Color(255, 165, 0); // Orange
+            private Color originalColor = link.getForeground();
             
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                if (colorTimer != null) colorTimer.stop();
-                
-                colorTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
-                        
-                        // Smooth ease-out function
-                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                        
-                        // Interpolate color
-                        int red = (int) (startColor.getRed() + (endColor.getRed() - startColor.getRed()) * easedProgress);
-                        int green = (int) (startColor.getGreen() + (endColor.getGreen() - startColor.getGreen()) * easedProgress);
-                        int blue = (int) (startColor.getBlue() + (endColor.getBlue() - startColor.getBlue()) * easedProgress);
-                        
-                        link.setForeground(new Color(red, green, blue));
-                        
-                        if (progress >= 1.0f) {
-                            colorTimer.stop();
-                        }
-                    }
-                });
-                colorTimer.start();
+                link.setForeground(new Color(255, 165, 0)); // Orange
             }
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (colorTimer != null) colorTimer.stop();
-                
-                colorTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200); // 200ms transition
-                        
-                        // Smooth ease-out function
-                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                        
-                        // Interpolate color back
-                        int red = (int) (endColor.getRed() + (startColor.getRed() - endColor.getRed()) * easedProgress);
-                        int green = (int) (endColor.getGreen() + (startColor.getGreen() - endColor.getGreen()) * easedProgress);
-                        int blue = (int) (endColor.getBlue() + (startColor.getBlue() - endColor.getBlue()) * easedProgress);
-                        
-                        link.setForeground(new Color(red, green, blue));
-                        
-                        if (progress >= 1.0f) {
-                            colorTimer.stop();
-                        }
-                    }
-                });
-                colorTimer.start();
+                link.setForeground(originalColor);
             }
             
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
-                link.setForeground(new Color(PRIMARY_COLOR.getRed() - 40, PRIMARY_COLOR.getGreen() - 40, PRIMARY_COLOR.getBlue() - 40)); // Darker primary color on click
+                link.setForeground(new Color(PRIMARY_COLOR.getRed() - 40, PRIMARY_COLOR.getGreen() - 40, PRIMARY_COLOR.getBlue() - 40));
             }
         });
     }
     
     /**
-     * Micro-animation for eye icon click
-     * Adds a subtle scale and rotation effect
+     * Simplified eye icon animation
      */
     private void addEyeIconAnimation(JPasswordField field) {
-        Timer eyeTimer = new Timer(16, new ActionListener() {
-            private int elapsed = 0;
-            private final int duration = 150; // 150ms animation
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                elapsed += 16;
-                float progress = Math.min(1.0f, (float) elapsed / duration);
-                
-                // Create a subtle bounce effect
-                float scale;
-                if (progress < 0.5f) {
-                    // Scale up
-                    scale = 1.0f + (progress * 2.0f * 0.1f); // Scale to 1.1
-                } else {
-                    // Scale back down
-                    scale = 1.1f - ((progress - 0.5f) * 2.0f * 0.1f); // Scale back to 1.0
-                }
-                
-                // Store scale for repaint
-                field.putClientProperty("eyeScale", scale);
-                field.repaint();
-                
-                if (progress >= 1.0f) {
-                    field.putClientProperty("eyeScale", 1.0f);
-                    ((Timer) e.getSource()).stop();
-                }
-            }
-        });
+        // Simple scale animation
+        field.putClientProperty("eyeScale", 1.1f);
+        field.repaint();
         
-        eyeTimer.start();
+        Timer resetTimer = new Timer(100, e -> {
+            field.putClientProperty("eyeScale", 1.0f);
+            field.repaint();
+            ((Timer) e.getSource()).stop();
+        });
+        resetTimer.setRepeats(false);
+        resetTimer.start();
     }
     
     
-    /**
-     * Professional entrance animation - fade in and slide up
-     * Duration: 500ms with smooth easing
-     */
-    private void addEntranceAnimation() {
-        // Initially hide the card panel
-        cardPanel.setVisible(false);
-        cardPanel.setLocation(0, 30); // Start 30px below final position
-        
-        Timer entranceTimer = new Timer(16, new ActionListener() {
-            private int elapsed = 0;
-            private final int duration = 500; // 500ms animation
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                elapsed += 16;
-                float progress = Math.min(1.0f, (float) elapsed / duration);
-                
-                // Smooth ease-out function (easeOutCubic)
-                float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 3);
-                
-                // Calculate current position and opacity
-                int currentY = (int) (30 * (1.0f - easedProgress));
-                float alpha = easedProgress;
-                
-                // Apply transform
-                cardPanel.setLocation(0, currentY);
-                cardPanel.setVisible(true);
-                
-                // Set opacity using AlphaComposite
-                Graphics2D g2d = (Graphics2D) cardPanel.getGraphics();
-                if (g2d != null) {
-                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-                }
-                
-                cardPanel.repaint();
-                
-                if (progress >= 1.0f) {
-                    cardPanel.setLocation(0, 0);
-                    ((Timer) e.getSource()).stop();
-                }
-            }
-        });
-        
-        entranceTimer.start();
-    }
     
     private void applyCustomStyling() {
         // Set larger default font for all components
@@ -2096,185 +1666,87 @@ public class AuthUI extends JFrame {
     
     // Main method removed since we're using Main.java
     
-    // Custom Gaming Controller Logo Component
-    private static class GamingControllerLogo extends JPanel {
-        private static final int LOGO_WIDTH = 80;
-        private static final int LOGO_HEIGHT = 50;
+    
+    /**
+     * Show password reset dialog
+     */
+    private void showPasswordResetDialog() {
+        // Create a simple input dialog for username
+        String username = JOptionPane.showInputDialog(
+            this, 
+            "Enter your username (email):", 
+            "Reset Password", 
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        public GamingControllerLogo() {
-            setPreferredSize(new Dimension(LOGO_WIDTH, LOGO_HEIGHT));
-            setMaximumSize(new Dimension(LOGO_WIDTH, LOGO_HEIGHT));
-            setOpaque(false);
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            int centerX = getWidth() / 2;
-            int centerY = getHeight() / 2;
-            
-            // Draw controller body (yellow with texture)
-            g2d.setColor(new Color(255, 215, 0)); // Bright yellow
-            g2d.fillRoundRect(centerX - 80, centerY - 30, 160, 60, 20, 20);
-            
-            // Add texture strokes
-            g2d.setColor(new Color(255, 182, 193, 100)); // Pink texture
-            g2d.fillRoundRect(centerX - 75, centerY - 25, 150, 50, 15, 15);
-            
-            g2d.setColor(new Color(70, 130, 180, 100)); // Blue texture
-            g2d.fillRoundRect(centerX - 70, centerY - 20, 140, 40, 10, 10);
-            
-            // Draw D-pad (left side - pink)
-            g2d.setColor(new Color(255, 105, 180)); // Hot pink
-            g2d.fillRoundRect(centerX - 65, centerY - 15, 25, 25, 5, 5);
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, 16));
-            g2d.drawString("+", centerX - 58, centerY + 2);
-            
-            // Draw action buttons (right side - pink)
-            g2d.setColor(new Color(255, 105, 180)); // Hot pink
-            int buttonSize = 12;
-            int buttonSpacing = 15;
-            int startX = centerX + 25;
-            int startY = centerY - 15;
-            
-            // Top button
-            g2d.fillOval(startX, startY, buttonSize, buttonSize);
-            g2d.setColor(Color.WHITE);
-            g2d.fillOval(startX + 4, startY + 4, 4, 4);
-            
-            // Right button
-            g2d.setColor(new Color(255, 105, 180));
-            g2d.fillOval(startX + buttonSpacing, startY + buttonSpacing, buttonSize, buttonSize);
-            g2d.setColor(Color.WHITE);
-            g2d.fillOval(startX + buttonSpacing + 4, startY + buttonSpacing + 4, 4, 4);
-            
-            // Bottom button
-            g2d.setColor(new Color(255, 105, 180));
-            g2d.fillOval(startX, startY + buttonSpacing * 2, buttonSize, buttonSize);
-            g2d.setColor(Color.WHITE);
-            g2d.fillOval(startX + 4, startY + buttonSpacing * 2 + 4, 4, 4);
-            
-            // Left button
-            g2d.setColor(new Color(255, 105, 180));
-            g2d.fillOval(startX - buttonSpacing, startY + buttonSpacing, buttonSize, buttonSize);
-            g2d.setColor(Color.WHITE);
-            g2d.fillOval(startX - buttonSpacing + 4, startY + buttonSpacing + 4, 4, 4);
-            
-            // Draw center screen (dark blue)
-            g2d.setColor(new Color(25, 25, 112)); // Dark blue
-            g2d.fillRoundRect(centerX - 20, centerY - 25, 40, 15, 5, 5);
-            
-            // Draw center buttons (light blue)
-            g2d.setColor(new Color(135, 206, 250)); // Light sky blue
-            g2d.fillOval(centerX - 8, centerY + 5, 8, 8);
-            g2d.fillOval(centerX + 2, centerY + 5, 8, 8);
-            
-            // Draw coding symbols above controller
-            drawCodingSymbols(g2d, centerX, centerY - 50);
-            
-            g2d.dispose();
-        }
-        
-        private void drawCodingSymbols(Graphics2D g2d, int centerX, int y) {
-            int symbolSize = 20;
-            int spacing = 25;
-            int startX = centerX - (spacing * 2);
-            
-            // Symbol 1: {/}
-            g2d.setColor(new Color(70, 130, 180)); // Steel blue
-            g2d.fillOval(startX, y, symbolSize, symbolSize);
-            g2d.setColor(new Color(255, 105, 180)); // Pink border
-            g2d.setStroke(new BasicStroke(2));
-            g2d.drawOval(startX, y, symbolSize, symbolSize);
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Courier New", Font.BOLD, 12));
-            g2d.drawString("{/}", startX + 2, y + 14);
-            
-            // Symbol 2: </>  
-            g2d.setColor(new Color(70, 130, 180));
-            g2d.fillOval(startX + spacing, y, symbolSize, symbolSize);
-            g2d.setColor(new Color(255, 105, 180));
-            g2d.drawOval(startX + spacing, y, symbolSize, symbolSize);
-            g2d.setColor(Color.WHITE);
-            g2d.drawString("</>", startX + spacing + 2, y + 14);
-            
-            // Symbol 3: >_
-            g2d.setColor(new Color(70, 130, 180));
-            g2d.fillOval(startX + spacing * 2, y, symbolSize, symbolSize);
-            g2d.setColor(new Color(255, 105, 180));
-            g2d.drawOval(startX + spacing * 2, y, symbolSize, symbolSize);
-            g2d.setColor(Color.WHITE);
-            g2d.drawString(">_", startX + spacing * 2 + 2, y + 14);
-            
-            // Symbol 4: *
-            g2d.setColor(new Color(70, 130, 180));
-            g2d.fillOval(startX + spacing * 3, y, symbolSize, symbolSize);
-            g2d.setColor(new Color(255, 105, 180));
-            g2d.drawOval(startX + spacing * 3, y, symbolSize, symbolSize);
-            g2d.setColor(Color.WHITE);
-            g2d.drawString("*", startX + spacing * 3 + 6, y + 14);
+        if (username != null && !username.trim().isEmpty()) {
+            // Check if user exists
+            if (authService.usernameExists(username.trim())) {
+                // Get new password
+                String newPassword = JOptionPane.showInputDialog(
+                    this, 
+                    "Enter your new password:", 
+                    "Reset Password", 
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (newPassword != null && !newPassword.trim().isEmpty()) {
+                    if (newPassword.length() < 6) {
+                        JOptionPane.showMessageDialog(
+                            this, 
+                            "Password must be at least 6 characters long.", 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
+                    }
+                    
+                    // Reset password
+                    boolean success = authService.resetPassword(username.trim(), newPassword);
+                    
+                    if (success) {
+                        JOptionPane.showMessageDialog(
+                            this, 
+                            "Password reset successfully!\nYou can now login with your new password.", 
+                            "Success", 
+                            JOptionPane.INFORMATION_MESSAGE
+                        );
+                    } else {
+                        JOptionPane.showMessageDialog(
+                            this, 
+                            "Failed to reset password. Please try again.", 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(
+                    this, 
+                    "Username not found. Please check your username and try again.", 
+                    "User Not Found", 
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
         }
     }
     
     /**
-     * Initialize authentication system and determine online/offline mode
+     * Initialize authentication system
      */
     private void initializeAuthentication() {
-        // SQLite authentication is ready immediately - no need for online checks
-        // Keep splash visible for ~5s then fade out and show auth screen
+        // SQLite authentication is ready immediately
         Timer showAuthTimer = new Timer(5000, e -> {
             if (loadingScreen != null) {
-                loadingScreen.startFadeOut(() -> {
-                    showLogin();
-                    updateStatusIndicator();
-                });
+                loadingScreen.startFadeOut(() -> showLogin());
             } else {
                 showLogin();
-                updateStatusIndicator();
             }
         });
         showAuthTimer.setRepeats(false);
         showAuthTimer.start();
     }
     
-    /**
-     * Update the status indicator based on current mode
-     */
-    private void updateStatusIndicator() {
-        // SQLite authentication - no status indicator needed
-        if (statusLabel != null) {
-            statusLabel.setVisible(false);
-        }
-    }
-    
-    /**
-     * Creates a status indicator to show online/offline mode
-     */
-    private void createStatusIndicator() {
-        statusLabel = new JLabel("", JLabel.CENTER);
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        statusLabel.setForeground(new Color(255, 152, 0)); // Orange
-        statusLabel.setOpaque(false);
-        statusLabel.setVisible(false); // Hidden by default
-        
-        // Add to the top of the card panel
-        cardPanel.add(statusLabel, "STATUS");
-        
-        // Update status periodically
-        updateConnectionStatus();
-    }
-    
-    /**
-     * Updates the connection status indicator
-     */
-    private void updateConnectionStatus() {
-        // Status is now updated in initializeAuthentication() and updateStatusIndicator()
-        // This method is kept for compatibility but no longer used
-    }
     
     /**
      * Show the SIGNUP card reliably and focus the first field.
@@ -2305,340 +1777,4 @@ public class AuthUI extends JFrame {
         });
     }
 
-    /**
-     * Show the reset password panel
-     */
-    private void showResetPassword() {
-        SwingUtilities.invokeLater(() -> {
-            JPanel resetPanel = createResetPasswordPanel();
-            cardPanel.add(resetPanel, "RESET");
-            cardLayout.show(cardPanel, "RESET");
-            cardPanel.revalidate();
-            cardPanel.repaint();
-        });
-    }
-
-    /**
-     * Create the reset password panel with email, new password, and confirm password fields
-     */
-    private JPanel createResetPasswordPanel() {
-        JPanel panel = new NeonBackgroundPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        
-        // Calculate proportional padding based on frame size
-        double scale = calculateProportionalScale();
-        int padding = (int) (60 * scale);
-        padding = Math.max(25, Math.min(100, padding));
-        panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
-        
-        // Logo panel
-        JPanel logoPanel = createLogoPanelWithScale(1.2);
-        logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-        
-        // Title
-        JLabel titleLabel = new JLabel("Reset Password");
-        titleLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
-        titleLabel.setForeground(PRIMARY_COLOR);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel subtitleLabel = new JLabel("Enter your email and new password");
-        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
-        subtitleLabel.setForeground(new Color(SECONDARY_COLOR.getRed(), SECONDARY_COLOR.getGreen(), SECONDARY_COLOR.getBlue(), 200));
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        // Form fields
-        JTextField resetEmailField = createModernTextField("Email");
-        JPasswordField newPasswordField = createModernPasswordField("New Password");
-        JPasswordField confirmPasswordField = createModernPasswordField("Confirm Password");
-        
-        // Add keyboard navigation
-        resetEmailField.addKeyListener(new java.awt.event.KeyAdapter() {
-            @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
-                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
-                    newPasswordField.requestFocus();
-                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
-                    newPasswordField.requestFocus();
-                }
-            }
-        });
-        
-        newPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
-            @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
-                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
-                    confirmPasswordField.requestFocus();
-                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
-                    confirmPasswordField.requestFocus();
-                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
-                    resetEmailField.requestFocus();
-                }
-            }
-        });
-        
-        confirmPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
-            @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
-                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
-                    handlePasswordReset(resetEmailField, newPasswordField, confirmPasswordField);
-                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN) {
-                    // Focus submit button
-                } else if (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP) {
-                    newPasswordField.requestFocus();
-                }
-            }
-        });
-        
-        // Buttons
-        JButton submitButton = createGradientButton("Reset Password", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
-        JButton backToLoginButton = createSolidButton("Back to Login", SECONDARY_COLOR, Color.WHITE);
-        
-        submitButton.addActionListener(e -> handlePasswordReset(resetEmailField, newPasswordField, confirmPasswordField));
-        backToLoginButton.addActionListener(e -> showLogin());
-        
-        // Build card container
-        CardContainerPanel card = new CardContainerPanel();
-        card.setAlignmentX(Component.CENTER_ALIGNMENT);
-        int cardMaxW = Math.max(600, (int)(600 * calculateProportionalScale()));
-        card.setMaximumSize(new Dimension(cardMaxW, Integer.MAX_VALUE));
-        
-        // Add components
-        card.add(logoPanel);
-        card.add(titleLabel);
-        card.add(Box.createRigidArea(new Dimension(0, 8)));
-        card.add(subtitleLabel);
-        card.add(Box.createRigidArea(new Dimension(0, 25)));
-        card.add(resetEmailField);
-        card.add(Box.createRigidArea(new Dimension(0, 20)));
-        card.add(newPasswordField);
-        card.add(Box.createRigidArea(new Dimension(0, 20)));
-        card.add(confirmPasswordField);
-        card.add(Box.createRigidArea(new Dimension(0, 25)));
-        card.add(submitButton);
-        card.add(Box.createRigidArea(new Dimension(0, 15)));
-        card.add(backToLoginButton);
-        card.add(Box.createRigidArea(new Dimension(0, 20))); // Extra space at bottom
-        
-        panel.add(Box.createVerticalGlue());
-        panel.add(card);
-        panel.add(Box.createVerticalGlue());
-        
-        return panel;
-    }
-
-    /**
-     * Handle password reset logic
-     */
-    private void handlePasswordReset(JTextField emailField, JPasswordField newPasswordField, JPasswordField confirmPasswordField) {
-        // Normalize placeholders
-        Object emailPA = emailField.getClientProperty("placeholderActive");
-        if (Boolean.TRUE.equals(emailPA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
-            emailField.setText("");
-            emailField.putClientProperty("placeholderActive", Boolean.FALSE);
-            emailField.setForeground(Color.WHITE);
-        }
-        
-        Object newPassPA = newPasswordField.getClientProperty("placeholderActive");
-        String newPassText = new String(newPasswordField.getPassword());
-        if (Boolean.TRUE.equals(newPassPA) && "New Password".equalsIgnoreCase(newPassText.trim())) {
-            newPasswordField.setText("");
-            newPasswordField.putClientProperty("placeholderActive", Boolean.FALSE);
-            newPasswordField.setForeground(Color.WHITE);
-            newPasswordField.setEchoChar('•');
-        }
-        
-        Object confirmPassPA = confirmPasswordField.getClientProperty("placeholderActive");
-        String confirmPassText = new String(confirmPasswordField.getPassword());
-        if (Boolean.TRUE.equals(confirmPassPA) && "Confirm Password".equalsIgnoreCase(confirmPassText.trim())) {
-            confirmPasswordField.setText("");
-            confirmPasswordField.putClientProperty("placeholderActive", Boolean.FALSE);
-            confirmPasswordField.setForeground(Color.WHITE);
-            confirmPasswordField.setEchoChar('•');
-        }
-        
-        String email = emailField.getText().trim();
-        String newPassword = new String(newPasswordField.getPassword());
-        String confirmPassword = new String(confirmPasswordField.getPassword());
-        
-        // Validation
-        boolean emailPlaceholderActive = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
-        boolean newPassPlaceholderActive = Boolean.TRUE.equals(newPasswordField.getClientProperty("placeholderActive"));
-        boolean confirmPassPlaceholderActive = Boolean.TRUE.equals(confirmPasswordField.getClientProperty("placeholderActive"));
-        
-        boolean emailEffectivelyEmpty = email.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(email));
-        boolean newPassEffectivelyEmpty = newPassword.isEmpty() || (newPassPlaceholderActive && "New Password".equalsIgnoreCase(newPassword));
-        boolean confirmPassEffectivelyEmpty = confirmPassword.isEmpty() || (confirmPassPlaceholderActive && "Confirm Password".equalsIgnoreCase(confirmPassword));
-        
-        if (emailEffectivelyEmpty || newPassEffectivelyEmpty || confirmPassEffectivelyEmpty) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        if (!newPassword.equals(confirmPassword)) {
-            JOptionPane.showMessageDialog(this, "New password and confirm password do not match.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        if (newPassword.length() < 6) {
-            JOptionPane.showMessageDialog(this, "Password must be at least 6 characters long.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        // Update password in offline profiles
-        boolean success = updateOfflinePassword(email, newPassword);
-        
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            showLogin();
-        } else {
-            JOptionPane.showMessageDialog(this, "Email not found in offline profiles.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Update password for offline profile
-     */
-    private boolean updateOfflinePassword(String email, String newPassword) {
-        try {
-            // Read current offline profiles
-            java.io.File file = new java.io.File("offline_profiles.json");
-            if (!file.exists()) {
-                return false;
-            }
-            
-            String content = new String(java.nio.file.Files.readAllBytes(file.toPath()));
-            
-            // Simple JSON parsing without Gson dependency
-            boolean found = false;
-            String updatedContent = content;
-            
-            // Find the profile with matching email and update password hash
-            String emailPattern = "\"email\"\\s*:\\s*\"" + java.util.regex.Pattern.quote(email) + "\"";
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(emailPattern);
-            java.util.regex.Matcher matcher = pattern.matcher(content);
-            
-            if (matcher.find()) {
-                // Hash the new password
-                String salt = java.util.Base64.getEncoder().encodeToString(java.security.SecureRandom.getInstanceStrong().generateSeed(16));
-                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-                String saltedPassword = newPassword + salt;
-                byte[] hash = digest.digest(saltedPassword.getBytes());
-                String hashString = java.util.Base64.getEncoder().encodeToString(hash);
-                String passwordHash = salt + ":" + hashString;
-                
-                // Find the profile object and update it
-                int startPos = matcher.start();
-                int profileStart = content.lastIndexOf("{", startPos);
-                int profileEnd = findMatchingBrace(content, profileStart);
-                
-                if (profileStart != -1 && profileEnd != -1) {
-                    String profileJson = content.substring(profileStart, profileEnd + 1);
-                    
-                    // Update the password hash in the profile
-                    String updatedProfile = profileJson.replaceAll(
-                        "\"local_password_hash\"\\s*:\\s*\"[^\"]*\"",
-                        "\"local_password_hash\":\"" + passwordHash + "\""
-                    );
-                    
-                    // If no existing password hash, add it
-                    if (!profileJson.contains("\"local_password_hash\"")) {
-                        updatedProfile = updatedProfile.replaceAll(
-                            "(\"updated_at\"\\s*:\\s*\"[^\"]*\")",
-                            "$1,\"local_password_hash\":\"" + passwordHash + "\""
-                        );
-                    }
-                    
-                    // Update the updated_at timestamp
-                    updatedProfile = updatedProfile.replaceAll(
-                        "\"updated_at\"\\s*:\\s*\"[^\"]*\"",
-                        "\"updated_at\":\"" + java.time.LocalDateTime.now().toString() + "\""
-                    );
-                    
-                    // Replace the profile in the content
-                    updatedContent = content.substring(0, profileStart) + 
-                                   updatedProfile + 
-                                   content.substring(profileEnd + 1);
-                    
-                    // Update the last_updated timestamp
-                    updatedContent = updatedContent.replaceAll(
-                        "\"last_updated\"\\s*:\\s*\"[^\"]*\"",
-                        "\"last_updated\":\"" + java.time.LocalDateTime.now().toString() + "\""
-                    );
-                    
-                    found = true;
-                }
-            }
-            
-            if (found) {
-                // Write back to file
-                java.nio.file.Files.write(file.toPath(), updatedContent.getBytes());
-                return true;
-            }
-            
-            return false;
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    /**
-     * Helper method to find matching closing brace
-     */
-    private int findMatchingBrace(String content, int startPos) {
-        int braceCount = 0;
-        boolean inString = false;
-        boolean escaped = false;
-        
-        for (int i = startPos; i < content.length(); i++) {
-            char c = content.charAt(i);
-            
-            if (escaped) {
-                escaped = false;
-                continue;
-            }
-            
-            if (c == '\\') {
-                escaped = true;
-                continue;
-            }
-            
-            if (c == '"' && !escaped) {
-                inString = !inString;
-                continue;
-            }
-            
-            if (!inString) {
-                if (c == '{') {
-                    braceCount++;
-                } else if (c == '}') {
-                    braceCount--;
-                    if (braceCount == 0) {
-                        return i;
-                    }
-                }
-            }
-        }
-        
-        return -1;
-    }
-
-    /**
-     * Simple method to check if we're online
-     */
-    private boolean checkOnlineStatus() {
-        try {
-            java.net.URL url = new java.net.URL("https://www.google.com");
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("HEAD");
-            connection.setConnectTimeout(3000);
-            connection.setReadTimeout(3000);
-            int responseCode = connection.getResponseCode();
-            return responseCode == 200;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }

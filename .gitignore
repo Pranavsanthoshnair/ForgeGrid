@@ -1,14 +1,7 @@
-# Maven
+# Build output directories (but keep bin/ for compiled classes)
+build/
 target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
+out/
 
 # IDE specific files
 .idea/
@@ -21,49 +14,6 @@ buildNumber.properties
 .factorypath
 .springBeans
 .sts4-cache/
-
-# Compiled class file
-*.class
-
-# Log file
-*.log
-
-# Package Files
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs
-hs_err_pid*
-replay_pid*
-
-# OS specific files
-.DS_Store
-Thumbs.db
-
-# Environment variables
-.env
-
-# Local configuration
-*.properties
-*.yml
-
-# Build output
-bin/
-build/
-.gradle/
-
-# Debug logs
-*.log.*
-
-# VS Code
-.vscode/
-
-# Eclipse
 .metadata/
 
 # NetBeans
@@ -73,15 +23,32 @@ build/
 /nbdist/
 /.nb-gradle/
 
-# VS Code - Java
+# VS Code - Java (keep .vscode/ for project settings)
 .apt_generated/
 .factorypath
 .springBeans
 
-# Windows
+# Log files
+*.log
+*.log.*
+
+# OS specific files
+.DS_Store
+Thumbs.db
 *.lnk
 
-# Application specific
+# Environment variables
+.env
+
+# Application specific - Database files
 *.db
-*.sql
 *.sqlite
+forgegrid.db
+
+# Keep these files (don't ignore):
+# - bin/ (contains compiled .class files needed to run)
+# - lib/ (contains required JARs)
+# - .vscode/ (contains project settings)
+# - config.properties (application config)
+# - build.bat, build.sh (build scripts)
+# - README.md (documentation)

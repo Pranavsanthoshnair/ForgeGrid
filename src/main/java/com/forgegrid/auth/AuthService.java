@@ -193,6 +193,42 @@ public class AuthService {
     }
     
     /**
+     * Reset password for a user
+     * 
+     * @param username Username to reset password for
+     * @param newPassword New password
+     * @return true if password reset successful, false if user not found
+     */
+    public boolean resetPassword(String username, String newPassword) {
+        if (username == null || username.trim().isEmpty() || 
+            newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+        
+        String hashedPassword = hashPassword(newPassword);
+        if (hashedPassword == null) {
+            return false;
+        }
+        
+        String updateSQL = "UPDATE users SET password = ? WHERE username = ?";
+        
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(updateSQL)) {
+            
+            pstmt.setString(1, hashedPassword);
+            pstmt.setString(2, username.trim());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error resetting password: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
      * Test database connection
      * 
      * @return true if database is accessible, false otherwise
