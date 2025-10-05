@@ -13,6 +13,6 @@ if not exist "bin" (
 )
 
 REM Run the application with explicit classpath
-java -cp "bin;lib/gson-2.10.1.jar;lib/sqlite-jdbc-3.44.1.0.jar;lib/slf4j-api-1.7.36.jar;lib/slf4j-simple-1.7.36.jar" com.forgegrid.app.Main
+java -cp "bin;lib/sqlite-jdbc-3.44.1.0.jar;lib/slf4j-api-1.7.36.jar;lib/slf4j-simple-1.7.36.jar" com.forgegrid.app.Main
 
 pause

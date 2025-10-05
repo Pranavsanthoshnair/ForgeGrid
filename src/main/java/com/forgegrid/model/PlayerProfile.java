@@ -1,8 +1,6 @@
 package com.forgegrid.model;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
+// Gson imports removed - using SQLite instead of JSON
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -17,39 +15,19 @@ import java.time.format.DateTimeFormatter;
 public class PlayerProfile implements Serializable {
     private static final long serialVersionUID = 1L;
     
-    // Supabase fields
-    @SerializedName("id")
-    private String id; // Supabase user ID
-    
-    @SerializedName("username")
+    // User profile fields
+    private String id; // User ID
     private String username;
-    
-    @SerializedName("email")
     private String email;
-    
-    @SerializedName("full_name")
     private String fullName;
-    
-    @SerializedName("score")
     private int score;
-    
-    @SerializedName("level")
     private int level;
-    
-    @SerializedName("achievements")
     private String achievements; // JSON string of achievements
-    
-    @SerializedName("last_login")
     private String lastLogin; // ISO 8601 format
-    
-    @SerializedName("created_at")
     private String createdAt;
-    
-    @SerializedName("updated_at")
     private String updatedAt;
     
     // Local-only fields
-    @SerializedName("local_password_hash")
     private String localPasswordHash; // Stored locally for offline auth
     private transient boolean isOnline; // Whether this profile is from online sync
     private transient LocalDateTime lastSyncTime; // When this was last synced with Supabase
@@ -207,23 +185,7 @@ public class PlayerProfile implements Serializable {
         return Math.max(1, score / 1000 + 1);
     }
     
-    /**
-     * Converts this profile to JSON string
-     */
-    public String toJson() {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-        return gson.toJson(this);
-    }
-    
-    /**
-     * Creates a PlayerProfile from JSON string
-     */
-    public static PlayerProfile fromJson(String json) {
-        Gson gson = new Gson();
-        return gson.fromJson(json, PlayerProfile.class);
-    }
+    // JSON methods removed - using SQLite instead of JSON files
     
     /**
      * Creates a copy of this profile for local storage
