@@ -12,7 +12,7 @@ import java.sql.Statement;
  */
 public class DatabaseHelper {
     
-    private static final String DB_URL = "jdbc:sqlite:forgegrid.db";
+    private String dbUrl;
     private static DatabaseHelper instance;
     private Connection connection;
     
@@ -20,6 +20,7 @@ public class DatabaseHelper {
      * Private constructor for singleton pattern
      */
     private DatabaseHelper() {
+        this.dbUrl = resolveDatabaseUrl();
         initializeDatabase();
     }
     
@@ -43,7 +44,7 @@ public class DatabaseHelper {
      */
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(DB_URL);
+            connection = DriverManager.getConnection(dbUrl);
         }
         return connection;
     }
@@ -57,7 +58,7 @@ public class DatabaseHelper {
             Class.forName("org.sqlite.JDBC");
             
             // Create connection
-            connection = DriverManager.getConnection(DB_URL);
+            connection = DriverManager.getConnection(dbUrl);
             
             // Create users table if it doesn't exist
             createUsersTable();
@@ -71,6 +72,51 @@ public class DatabaseHelper {
             System.err.println("Error initializing database: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Determine the SQLite JDBC URL, preferring config over defaults.
+     * Order:
+     * 1) config.properties key db.path (absolute or relative)
+     * 2) project root alongside the built classes/jar (../forgegrid.db from bin/ or jar dir)
+     * 3) current working directory (forgegrid.db)
+     */
+    private String resolveDatabaseUrl() {
+        // 1) config.properties
+        try {
+            java.util.Properties props = new java.util.Properties();
+            try (java.io.InputStream in = DatabaseHelper.class.getClassLoader().getResourceAsStream("config.properties")) {
+                if (in != null) {
+                    props.load(in);
+                    String path = props.getProperty("db.path");
+                    if (path != null && !path.trim().isEmpty()) {
+                        java.io.File f = new java.io.File(path.trim());
+                        String abs = f.getAbsolutePath();
+                        System.out.println("Using SQLite path from config: " + abs);
+                        return "jdbc:sqlite:" + abs;
+                    }
+                }
+            }
+        } catch (Exception ignore) {}
+
+        // 2) co-locate with classes/jar → project root (../forgegrid.db from bin/)
+        try {
+            java.net.URL loc = DatabaseHelper.class.getProtectionDomain().getCodeSource().getLocation();
+            java.nio.file.Path binOrJar = java.nio.file.Paths.get(loc.toURI());
+            java.nio.file.Path baseDir = binOrJar.toFile().isFile() ? binOrJar.getParent() : binOrJar; // jar dir or bin/
+            // project root when running from bin/: go one up; when jar, use jar dir
+            java.nio.file.Path candidate = baseDir.getFileName().toString().equalsIgnoreCase("bin")
+                ? baseDir.getParent().resolve("forgegrid.db")
+                : baseDir.resolve("forgegrid.db");
+            java.io.File f = candidate.toFile();
+            System.out.println("Using SQLite path near classes/jar: " + f.getAbsolutePath());
+            return "jdbc:sqlite:" + f.getAbsolutePath();
+        } catch (Exception ignore) {}
+
+        // 3) fallback: working directory
+        String fallback = new java.io.File("forgegrid.db").getAbsolutePath();
+        System.out.println("Using SQLite path from working dir: " + fallback);
+        return "jdbc:sqlite:" + fallback;
     }
     
     /**
