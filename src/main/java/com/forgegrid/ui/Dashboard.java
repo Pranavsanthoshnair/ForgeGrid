@@ -5,8 +5,6 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
-import java.util.List;
-import java.util.Random;
 
 public class Dashboard extends JFrame {
 
@@ -61,8 +59,25 @@ public class Dashboard extends JFrame {
     }
 
     private JPanel buildDashboardPanel() {
-        // Animated gradient background with floating programming symbols
-        JPanel panel = new AnimatedBackgroundPanel();
+        // Static gradient background without animations
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Dark blue gradient background
+                GradientPaint bgGradient = new GradientPaint(
+                    0, 0, new Color(11, 23, 54),
+                    getWidth(), getHeight(), new Color(19, 38, 77)
+                );
+                g2.setPaint(bgGradient);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                
+                g2.dispose();
+            }
+        };
         panel.setOpaque(true);
         panel.setLayout(new BorderLayout());
 
@@ -668,109 +683,6 @@ public class Dashboard extends JFrame {
         active.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
         active.putClientProperty("active", Boolean.TRUE);
         // In a larger app, we would switch content cards here
-    }
-
-    // Dynamic Dark Blue Theme background panel with floating particles
-    private static class AnimatedBackgroundPanel extends JPanel {
-        private final Timer animationTimer;
-        private final java.util.List<FloatingParticle> particles;
-        private long lastTime = System.currentTimeMillis();
-        
-        public AnimatedBackgroundPanel() {
-            particles = new java.util.ArrayList<>();
-            Random rand = new Random();
-            
-            // Create floating particles
-            for (int i = 0; i < 25; i++) {
-                particles.add(new FloatingParticle(
-                    rand.nextFloat() * 1200,
-                    rand.nextFloat() * 800,
-                    rand.nextFloat() * 0.5f + 0.2f, // speed
-                    rand.nextFloat() * 0.15f + 0.05f, // opacity
-                    rand.nextInt(3) + 2 // size
-                ));
-            }
-            
-            // Animation timer for floating particles
-            animationTimer = new Timer(50, e -> {
-                long currentTime = System.currentTimeMillis();
-                float deltaTime = (currentTime - lastTime) / 1000f;
-                lastTime = currentTime;
-                
-                for (FloatingParticle particle : particles) {
-                    particle.update(deltaTime, getWidth(), getHeight());
-                }
-                repaint();
-            });
-            animationTimer.start();
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            // Dark blue gradient background
-            GradientPaint bgGradient = new GradientPaint(
-                0, 0, new Color(15, 25, 45), // Deep navy blue
-                0, getHeight(), new Color(25, 35, 65) // Slightly lighter blue
-            );
-            g2.setPaint(bgGradient);
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            
-            // Draw floating particles
-            for (FloatingParticle particle : particles) {
-                particle.draw(g2);
-            }
-            
-            g2.dispose();
-        }
-        
-        private static class FloatingParticle {
-            float x, y;
-            float speed;
-            float opacity;
-            int size;
-            float angle = 0;
-            
-            FloatingParticle(float x, float y, float speed, float opacity, int size) {
-                this.x = x;
-                this.y = y;
-                this.speed = speed;
-                this.opacity = opacity;
-                this.size = size;
-            }
-            
-            void update(float deltaTime, int screenWidth, int screenHeight) {
-                // Gentle floating motion
-                angle += deltaTime * 0.5f;
-                y -= speed * deltaTime * 20;
-                x += Math.sin(angle) * 0.3f;
-                
-                // Reset particle when it goes off screen
-                if (y < -size) {
-                    y = screenHeight + size;
-                    x = (float)(Math.random() * screenWidth);
-                }
-                if (x < -size) x = screenWidth + size;
-                if (x > screenWidth + size) x = -size;
-            }
-            
-            void draw(Graphics2D g2) {
-                int alpha = (int)(opacity * 255);
-                g2.setColor(new Color(100, 150, 255, alpha));
-                
-                // Draw small circles and dots
-                if (size <= 2) {
-                    g2.fillOval((int)x, (int)y, size, size);
-                } else {
-                    // Larger particles as subtle rings
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawOval((int)x, (int)y, size, size);
-                }
-            }
-        }
     }
 
     // Modern outline icons for sidebar - Feather/Lucide style

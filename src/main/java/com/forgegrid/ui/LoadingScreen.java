@@ -147,8 +147,7 @@ public class LoadingScreen extends JPanel {
                     g2d.fillRect(0, 0, W, H);
                 }
                 
-                // Draw floating neon glyphs and background sparkles on landing page
-                drawAnimatedBackground(g2d);
+                // Background animations removed for cleaner look
 
                                 // Fade overlay (for fade-in/out transitions)
                 if (overlayAlpha > 0) {
@@ -234,7 +233,7 @@ public class LoadingScreen extends JPanel {
         startSpinner();
         startPulseAnimation();
         startMessageAnimation();
-        startSymbols();
+        // Symbols animation removed
     }
     
     /**
