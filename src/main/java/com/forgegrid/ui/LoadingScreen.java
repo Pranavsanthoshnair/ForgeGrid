@@ -14,10 +14,7 @@ public class LoadingScreen extends JPanel {
     private JLabel brandLabel;
     private JLabel taglineLabel;
     private PrizeWheelPanel spinnerContainer; // now a prize wheel
-    private Timer spinnerTimer;
-    private Timer pulseTimer;
-    private Timer symbolTimer;
-    private Timer fadeTimer;
+    private Timer spinnerTimer, pulseTimer, fadeTimer;
     private int pulseFrame = 0;
     private final String[] loadingMessages = {
         "Initializing ForgeGrid...",
@@ -93,38 +90,11 @@ public class LoadingScreen extends JPanel {
                         g2d.fillRect(0, 0, w, h);
                     }
                 } else {
-                    // Animated gradient background (navy -> purple -> dark teal)
-                    int H = Math.max(1, getHeight());
-                    int W = Math.max(1, getWidth());
-                    float phase = (pulseFrame % 900) / 900f; // ~36s cycle at 40ms ticks
-                    Color navy = new Color(10, 22, 50);
-                    Color purple = new Color(16, 46, 92);
-                    Color teal = new Color(22, 60, 110);
-                    Color top;
-                    Color bottom;
-                    float seg = 1f / 3f;
-                    if (phase < seg) {
-                        float t = phase / seg;
-                        top = LoadingScreen.lerpColor(navy, purple, t);
-                        bottom = LoadingScreen.lerpColor(LoadingScreen.lerpColor(navy, teal, t * 0.6f), purple, t * 0.3f);
-                    } else if (phase < 2 * seg) {
-                        float t = (phase - seg) / seg;
-                        top = LoadingScreen.lerpColor(purple, teal, t);
-                        bottom = LoadingScreen.lerpColor(LoadingScreen.lerpColor(purple, navy, t * 0.6f), teal, t * 0.3f);
-                    } else {
-                        float t = (phase - 2 * seg) / seg;
-                        top = LoadingScreen.lerpColor(teal, navy, t);
-                        bottom = LoadingScreen.lerpColor(LoadingScreen.lerpColor(teal, purple, t * 0.6f), navy, t * 0.3f);
-                    }
-                    int offsetY = (int) (Math.sin(pulseFrame * 0.01) * H * 0.05);
-                    int y1 = -offsetY;
-                    int y2 = H + offsetY;
-                    GradientPaint gradient = new GradientPaint(
-                        0, y1, top,
-                        0, y2, bottom
-                    );
+                    int w = getWidth();
+                    int h = getHeight();
+                    GradientPaint gradient = new GradientPaint(0, 0, new Color(20, 28, 48), 0, Math.max(1, h), new Color(10, 14, 24));
                     g2d.setPaint(gradient);
-                    g2d.fillRect(0, 0, W, H);
+                    g2d.fillRect(0, 0, Math.max(1, w), Math.max(1, h));
                 }
                 
                 // Background animations removed for cleaner look
@@ -182,62 +152,38 @@ public class LoadingScreen extends JPanel {
         startFadeIn();
     }
     
-    /**
-     * Start all animations
-     */
     private void startAnimations() {
         startSpinner();
         startPulseAnimation();
         startMessageAnimation();
-        // Symbols animation removed
     }
     
     /**
      * Start the spinner animation
      */
     private void startSpinner() {
-        spinnerTimer = new Timer(100, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Drive prize wheel physics and repaint
-                if (wheelSpinning) {
-                    // Update angle by velocity
-                    wheelAngle = (wheelAngle + wheelVelocity) % 360f;
-                    // Decelerate with friction
-                    wheelVelocity *= 0.965f;
-                    // Ticking when passing slice boundaries
-                    int idx = currentSliceIndex();
-                    if (idx != lastTickIndex) {
-                        java.awt.Toolkit.getDefaultToolkit().beep();
-                        lastTickIndex = idx;
-                    }
-                    // Stop condition
-                    if (wheelVelocity < 0.5f) {
-                        wheelVelocity = 0f;
-                        wheelSpinning = false;
-                        triggerWinEffects(idx);
-                    }
-                    if (spinnerContainer != null) spinnerContainer.repaint();
-                } else {
-                    // idle subtle wobble via pulse
-                    if (spinnerContainer != null) spinnerContainer.repaint();
+        spinnerTimer = new Timer(100, e -> {
+            if (wheelSpinning) {
+                wheelAngle = (wheelAngle + wheelVelocity) % 360f;
+                wheelVelocity *= 0.965f;
+                int idx = currentSliceIndex();
+                if (idx != lastTickIndex) {
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+                    lastTickIndex = idx;
+                }
+                if (wheelVelocity < 0.5f) {
+                    wheelVelocity = 0f;
+                    wheelSpinning = false;
+                    triggerWinEffects(idx);
                 }
             }
+            if (spinnerContainer != null) spinnerContainer.repaint();
         });
         spinnerTimer.start();
     }
     
-    /**
-     * Start the pulse animation
-     */
     private void startPulseAnimation() {
-        pulseTimer = new Timer(50, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pulseFrame++;
-                repaint();
-            }
-        });
+        pulseTimer = new Timer(50, e -> { pulseFrame++; repaint(); });
         pulseTimer.start();
     }
     
@@ -287,73 +233,39 @@ public class LoadingScreen extends JPanel {
     }
     
     
-    /**
-     * Fade-in effect when showing the loading screen
-     */
     private void startFadeIn() {
-        isFadingIn = true;
-        overlayAlpha = 255;
-        if (fadeTimer != null) fadeTimer.stop();
-        fadeTimer = new Timer(16, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                overlayAlpha -= 20; // ~200ms total
-                if (overlayAlpha <= 0) {
-                    overlayAlpha = 0;
-                    fadeTimer.stop();
-                }
-                repaint();
-            }
-        });
-        fadeTimer.start();
+        startFade(true, 255, -20, null);
     }
     
-    /**
-     * Fade-out effect before switching away
-     */
     public void startFadeOut(Runnable onComplete) {
-        isFadingIn = false;
-        overlayAlpha = 0;
+        startFade(false, 0, 15, onComplete);
+    }
+    
+    private void startFade(boolean fadeIn, int startAlpha, int delta, Runnable onComplete) {
+        isFadingIn = fadeIn;
+        overlayAlpha = startAlpha;
         if (fadeTimer != null) fadeTimer.stop();
-        fadeTimer = new Timer(16, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                overlayAlpha += 15; // ~270ms total
-                if (overlayAlpha >= 255) {
-                    overlayAlpha = 255;
-                    fadeTimer.stop();
-                    if (onComplete != null) onComplete.run();
-                }
-                repaint();
-            }
-        });
+        int endAlpha = (delta < 0) ? 0 : 255;
+        fadeTimer = AnimationUtils.createFadeTimer(
+            startAlpha,
+            endAlpha,
+            Math.abs(delta),
+            alpha -> { overlayAlpha = alpha; repaint(); },
+            onComplete
+        );
         fadeTimer.start();
     }
     
-    /**
-     * Start the message animation
-     */
     private void startMessageAnimation() {
-        Timer messageTimer = new Timer(2000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                messageIndex = (messageIndex + 1) % loadingMessages.length;
-                statusLabel.setText(loadingMessages[messageIndex]);
-            }
-        });
-        messageTimer.start();
+        new Timer(2000, e -> {
+            messageIndex = (messageIndex + 1) % loadingMessages.length;
+            statusLabel.setText(loadingMessages[messageIndex]);
+        }).start();
     }
     
-    /**
-     * Stop all animations
-     */
     public void stopSpinner() {
-        if (spinnerTimer != null) {
-            spinnerTimer.stop();
-        }
-        if (pulseTimer != null) {
-            pulseTimer.stop();
-        }
+        if (spinnerTimer != null) spinnerTimer.stop();
+        if (pulseTimer != null) pulseTimer.stop();
     }
     
 
@@ -363,13 +275,8 @@ public class LoadingScreen extends JPanel {
         int life;
     }
 
-    // Linear color interpolation helper for animated gradient
     private static Color lerpColor(Color a, Color b, float t) {
-        t = Math.max(0f, Math.min(1f, t));
-        int r = (int) (a.getRed() + (b.getRed() - a.getRed()) * t);
-        int g = (int) (a.getGreen() + (b.getGreen() - a.getGreen()) * t);
-        int bl = (int) (a.getBlue() + (b.getBlue() - a.getBlue()) * t);
-        return new Color(r, g, bl);
+        return AnimationUtils.lerpColor(a, b, t);
     }
 
     private class PrizeWheelPanel extends JPanel {

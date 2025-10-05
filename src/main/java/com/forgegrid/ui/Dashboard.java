@@ -357,6 +357,143 @@ public class Dashboard extends JFrame {
             infoLabel.setForeground(TEXT_SECONDARY);
             infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+<<<<<<< HEAD
+        // Top metrics row with 16px spacing between cards
+        JPanel metricsRow = new JPanel();
+        metricsRow.setOpaque(false);
+        metricsRow.setLayout(new GridLayout(1, 4, 16, 16)); // 16px margin between cards
+        metricsRow.add(buildStatCard("Total Problems", String.valueOf(problemsGoal)));
+        metricsRow.add(buildStatCard("Solved", String.valueOf(problemsSolved)));
+        metricsRow.add(buildStatCard("Current Streak", String.valueOf(currentStreak)));
+        metricsRow.add(buildStatCard("Level", String.valueOf(profile != null ? profile.getLevel() : 1)));
+        homeView.add(metricsRow, BorderLayout.NORTH);
+
+        // Right column (profile card with enhanced colors)
+        JPanel rightCol = new JPanel();
+        rightCol.setOpaque(false);
+        rightCol.setLayout(new BorderLayout());
+        rightCol.add(card, BorderLayout.NORTH);
+        // Dynamic CTA button with smooth animations
+        JButton startBtn = new JButton("Start your journey") {
+            private float animationProgress = 0f;
+            private Timer animationTimer;
+            private boolean isAnimating = false;
+            
+            {
+                animationTimer = new Timer(30, e -> {
+                    Boolean animatingProperty = (Boolean) getClientProperty("isAnimating");
+                    isAnimating = animatingProperty != null && animatingProperty;
+                    
+                    if (isAnimating) {
+                        boolean isHovered = getClientProperty("hovered") == Boolean.TRUE;
+                        if (isHovered && animationProgress < 1.0f) {
+                            animationProgress = Math.min(1.0f, animationProgress + 0.1f);
+                        } else if (!isHovered && animationProgress > 0.0f) {
+                            animationProgress = Math.max(0.0f, animationProgress - 0.1f);
+                        }
+                        repaint();
+                        
+                        if ((isHovered && animationProgress >= 1.0f) || (!isHovered && animationProgress <= 0.0f)) {
+                            putClientProperty("isAnimating", false);
+                        }
+                    }
+                });
+                animationTimer.start();
+            }
+            
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int w = getWidth();
+                int h = getHeight();
+                
+                // Smooth lift animation
+                int liftOffset = (int)(animationProgress * 3);
+                g2.translate(0, -liftOffset);
+                
+                // Animated glow effect
+                if (animationProgress > 0) {
+                    g2.setColor(new Color(100, 180, 255, (int)(animationProgress * 50)));
+                    g2.fillRoundRect(-2, -2, w + 4, h + 4, 16, 16);
+                }
+                
+                // Smooth color transition
+                int r = (int)(60 + animationProgress * 20);
+                int g_ = (int)(120 + animationProgress * 30);
+                int b = (int)(200 + animationProgress * 20);
+                g2.setColor(new Color(r, g_, b));
+                
+                // Pill shape (12px border radius)
+                g2.fillRoundRect(0, 0, w, h, 12, 12);
+                
+                // Animated highlight
+                if (animationProgress > 0) {
+                    g2.setColor(new Color(255, 255, 255, (int)(animationProgress * 60)));
+                    g2.fillRoundRect(2, 2, w - 4, h/2 - 2, 10, 10);
+                }
+                
+                g2.dispose();
+                
+                // Draw text
+                super.paintComponent(g);
+            }
+        };
+        startBtn.setFocusPainted(false);
+        startBtn.setForeground(new Color(255, 255, 255)); // Pure white text
+        startBtn.setOpaque(false);
+        startBtn.setContentAreaFilled(false);
+        startBtn.setBorderPainted(false);
+        startBtn.setFont(new Font("Inter", Font.BOLD, 16)); // 16px, 600 weight
+        startBtn.setBorder(BorderFactory.createEmptyBorder(14, 28, 14, 28)); // 14px vertical, 28px horizontal padding
+        startBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        startBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) { 
+                startBtn.putClientProperty("hovered", true);
+                startBtn.putClientProperty("isAnimating", true);
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) { 
+                startBtn.putClientProperty("hovered", false);
+                startBtn.putClientProperty("isAnimating", true);
+            }
+        });
+        JPanel startWrap = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        startWrap.setOpaque(false);
+        startWrap.setBorder(BorderFactory.createEmptyBorder(8, 6, 0, 0));
+        startWrap.add(startBtn);
+        rightCol.add(startWrap, BorderLayout.SOUTH);
+
+        // Only show the profile column on dashboard; charts moved to Progress view
+        homeView.add(rightCol, BorderLayout.CENTER);
+
+        // Recommendations appear above the start button on the right column
+        recommendationsPanel = new JPanel();
+        recommendationsPanel.setOpaque(true);
+        recommendationsPanel.setBackground(new Color(19, 38, 77)); // Slightly lighter navy #13264D
+        recommendationsPanel.setLayout(new BoxLayout(recommendationsPanel, BoxLayout.Y_AXIS));
+        recommendationsPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(12, 12, 12, 12),
+                BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(50, 70, 110))));
+        rightCol.add(recommendationsPanel, BorderLayout.CENTER);
+        updateRecommendations(java.util.Collections.emptyList(), null, null);
+
+        JPanel accountView = buildAccountView();
+        JPanel progressView = buildProgressView();
+        JPanel settingsView = buildSettingsView();
+
+        mainContent.add(homeView, VIEW_HOME);
+        mainContent.add(accountView, VIEW_ACCOUNT);
+        mainContent.add(progressView, VIEW_PROGRESS);
+        mainContent.add(settingsView, VIEW_SETTINGS);
+
+        content.add(mainContent);
+
+        panel.add(sidebar, BorderLayout.WEST);
+        panel.add(content, BorderLayout.CENTER);
+=======
             contentArea.add(placeholderLabel);
             contentArea.add(Box.createVerticalStrut(10));
             contentArea.add(infoLabel);
@@ -366,6 +503,7 @@ public class Dashboard extends JFrame {
         panel.add(Box.createVerticalStrut(20));
         panel.add(contentArea, BorderLayout.CENTER);
         
+>>>>>>> 900e92a45150a61f3e48121550a458a6ff8a9990
         return panel;
     }
 
@@ -680,4 +818,599 @@ public class Dashboard extends JFrame {
             };
         }
     }
+<<<<<<< HEAD
+
+    private void updateStreakLabel() {
+        if (streakLabel != null) {
+            String suffix = currentStreak > 0 ? ("" + currentStreak) : "0";
+            streakLabel.setText("Current streak: " + suffix);
+        }
+    }
+
+    // Called after onboarding to apply user's selections to the profile card
+    public void applyOnboardingSelections(String goal, String language, String skill, String practice) {
+        if (skill != null && !skill.isBlank()) {
+            profileSkillLabel.setText("Skill: " + skill);
+        }
+        if (goal != null && !goal.isBlank()) {
+            profileGoalLabel.setText("Goal: " + goal);
+            profileGoalLabel.setVisible(true);
+        }
+        if (language != null && !language.isBlank()) {
+            profileLanguageLabel.setText("Language: " + language);
+            profileLanguageLabel.setVisible(true);
+        }
+        if (practice != null && !practice.isBlank()) {
+            profilePracticeLabel.setText("Practice: " + practice);
+            profilePracticeLabel.setVisible(true);
+        }
+        revalidate();
+        repaint();
+    }
+
+    private void refreshBadges() {
+        if (badgesPanel == null) return;
+        badgesPanel.removeAll();
+        if (badges.isEmpty()) {
+            // Show nothing if no badges per request
+            badgesPanel.setPreferredSize(new Dimension(1, 1));
+        } else {
+            for (String b : badges) {
+                JLabel badge = new JLabel(b);
+                badge.setOpaque(true);
+                badge.setBackground(new Color(255, 215, 0)); // Gold/Yellow
+                badge.setForeground(new Color(20, 30, 50)); // Dark text on gold
+                badge.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+                badgesPanel.add(badge);
+            }
+            // Reset size when badges exist
+            badgesPanel.setPreferredSize(null);
+        }
+        badgesPanel.revalidate();
+        badgesPanel.repaint();
+    }
+
+    private void openPreferencesDialog() {
+        JDialog dialog = new JDialog(this, "Preferences", true);
+        dialog.setLayout(new BorderLayout());
+        JPanel form = new JPanel();
+        form.setLayout(new GridBagLayout());
+        form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.WEST; gbc.insets = new Insets(6,6,6,6);
+
+        form.add(new JLabel("Languages to practice:"), gbc);
+        gbc.gridx = 1;
+        JCheckBox java = new JCheckBox("Java", true);
+        JCheckBox js = new JCheckBox("JavaScript");
+        JCheckBox py = new JCheckBox("Python");
+        JPanel langs = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        langs.add(java); langs.add(js); langs.add(py);
+        form.add(langs, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Coding goal:"), gbc);
+        gbc.gridx = 1;
+        JComboBox<String> goal = new JComboBox<>(new String[]{"Interview prep", "Competitive programming", "Projects"});
+        form.add(goal, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Weekly time commitment:"), gbc);
+        gbc.gridx = 1;
+        JComboBox<String> time = new JComboBox<>(new String[]{"2 hrs", "5 hrs", "10+ hrs"});
+        form.add(time, gbc);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancel = new JButton("Cancel");
+        JButton save = new JButton("Save");
+        actions.add(cancel); actions.add(save);
+
+        cancel.addActionListener(e -> dialog.dispose());
+        save.addActionListener(e -> {
+            java.util.List<String> langsSelected = new java.util.ArrayList<>();
+            if (java.isSelected()) langsSelected.add("Java");
+            if (js.isSelected()) langsSelected.add("JavaScript");
+            if (py.isSelected()) langsSelected.add("Python");
+            updateRecommendations(langsSelected, (String) goal.getSelectedItem(), (String) time.getSelectedItem());
+            dialog.dispose();
+        });
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private void updateRecommendations(java.util.List<String> langs, String goal, String time) {
+        recommendationsPanel.removeAll();
+        
+        // Current Quest Card - Modern Tech Dark Mode
+        JPanel questCard = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Subtle shadow for depth
+                g2.setColor(new Color(0, 0, 0, 25));
+                g2.fillRoundRect(4, 8, getWidth() - 8, getHeight() - 8, 16, 16);
+                
+                // Deep Charcoal background (#161B22)
+                g2.setColor(new Color(22, 27, 34)); // #161B22
+                g2.fillRoundRect(0, 0, getWidth() - 8, getHeight() - 8, 16, 16);
+                
+                // Subtle border (#30363D)
+                g2.setStroke(new BasicStroke(1f));
+                g2.setColor(new Color(48, 54, 61)); // #30363D
+                g2.drawRoundRect(0, 0, getWidth() - 9, getHeight() - 9, 16, 16);
+                
+                g2.dispose();
+            }
+        };
+        questCard.setOpaque(false);
+        questCard.setLayout(new BorderLayout());
+        questCard.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24)); // 24px padding
+        
+        JLabel questTitle = new JLabel("Current Quest");
+        questTitle.setForeground(new Color(139, 148, 158)); // #8B949E Medium Grey
+        questTitle.setFont(new Font("Inter", Font.PLAIN, 16)); // Card title styling (using PLAIN as closest to medium)
+        
+        JLabel questDesc = new JLabel("<html>Solve 5 problems today<br/>Reward: +50 XP</html>");
+        questDesc.setForeground(new Color(230, 237, 243)); // #E6EDF3 Off-White
+        questDesc.setFont(new Font("Inter", Font.PLAIN, 14)); // Body text styling
+        
+        JProgressBar questProgress = new JProgressBar(0, 5) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int w = getWidth();
+                int h = getHeight();
+                
+                // Track background (dark blue)
+                g2.setColor(new Color(30, 50, 80)); // Dark blue track
+                g2.fillRoundRect(0, 0, w, h, h, h); // Pill shape
+                
+                // Progress fill with blue gradient
+                int fill = (int) Math.round(((double) getValue() / getMaximum()) * w);
+                if (fill > 0) {
+                    GradientPaint gradient = new GradientPaint(
+                        0, 0, new Color(60, 120, 200), // Light blue
+                        w, 0, new Color(100, 180, 255)  // Brighter blue
+                    );
+                    g2.setPaint(gradient);
+                    g2.fillRoundRect(0, 0, fill, h, h, h); // Pill shape
+                }
+                
+                g2.dispose();
+            }
+        };
+        questProgress.setValue(0); // Start quest at 0
+        questProgress.setStringPainted(true);
+        questProgress.setString("0/5 completed");
+        questProgress.setForeground(new Color(160, 190, 230)); // Medium blue-grey for text
+        questProgress.setFont(new Font("Inter", Font.PLAIN, 12)); // Subtle text
+        questProgress.setBorderPainted(false);
+        questProgress.setOpaque(false);
+        
+        JPanel questTop = new JPanel(new BorderLayout());
+        questTop.setOpaque(false);
+        questTop.add(questTitle, BorderLayout.WEST);
+        
+        questCard.add(questTop, BorderLayout.NORTH);
+        questCard.add(questDesc, BorderLayout.CENTER);
+        questCard.add(questProgress, BorderLayout.SOUTH);
+        questCard.setPreferredSize(new Dimension(0, 90));
+        
+        recommendationsPanel.add(questCard);
+        recommendationsPanel.add(Box.createRigidArea(new Dimension(0, 12)));
+        
+        // Regular recommendations
+        JLabel title = new JLabel("📋 Personalized Recommendations");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        recommendationsPanel.add(title);
+        recommendationsPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+
+        if (langs == null || langs.isEmpty()) {
+            // Default recommendations
+            for (String rec : new String[]{"🔥 Daily coding challenge", "📚 Algorithm fundamentals", "⚔️ Weekly contest prep"}) {
+                JLabel r = new JLabel(rec);
+                r.setForeground(new Color(200, 220, 255));
+                r.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                recommendationsPanel.add(r);
+                recommendationsPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            }
+        } else {
+            JLabel based = new JLabel("Based on: " + String.join(", ", langs) + (goal != null ? ", goal: " + goal : "") + (time != null ? ", time: " + time : ""));
+            based.setForeground(new Color(200, 200, 220));
+            recommendationsPanel.add(based);
+            recommendationsPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+
+            // Enhanced recommendations with icons
+            for (String rec : new String[]{"🔥 Warm-up set for this week", "⚙️ Core algorithms module", "🏆 Challenge of the week"}) {
+                JLabel r = new JLabel(rec);
+                r.setForeground(new Color(200, 220, 255));
+                r.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                recommendationsPanel.add(r);
+                recommendationsPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            }
+        }
+        recommendationsPanel.revalidate();
+        recommendationsPanel.repaint();
+    }
+
+    // Styled option toggle (square, blue; hover lighter; selected green)
+    private JToggleButton createOptionButton(String text) {
+        JToggleButton btn = new JToggleButton(text);
+        btn.setFocusPainted(false);
+        btn.setBackground(new Color(19, 38, 77)); // Lighter navy
+        btn.setForeground(Color.WHITE);
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(28, 72, 160)),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+        btn.addChangeListener(e -> {
+            if (btn.isSelected()) {
+                btn.setBackground(new Color(255, 215, 0)); // Gold/Yellow
+                btn.setForeground(new Color(20, 30, 50)); // Dark text
+            } else {
+                btn.setBackground(new Color(19, 38, 77)); // Lighter navy
+                btn.setForeground(Color.WHITE);
+            }
+        });
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (!btn.isSelected()) btn.setBackground(new Color(30, 50, 90));
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (!btn.isSelected()) btn.setBackground(new Color(19, 38, 77));
+            }
+        });
+        return btn;
+    }
+
+    // Primary action button (yellowish)
+    private JButton createPrimaryActionButton(String text) {
+        JButton b = new JButton(text);
+        b.setFocusPainted(false);
+        b.setBackground(new Color(255, 215, 0)); // Gold/Yellow
+        b.setForeground(Color.WHITE);
+        b.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                b.setBackground(new Color(255, 223, 50));
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                b.setBackground(new Color(255, 215, 0));
+            }
+        });
+        return b;
+    }
+
+    // Placeholder views for non-dashboard sections
+    private JPanel buildPlaceholderView(String text) {
+        JPanel p = new JPanel();
+        p.setOpaque(true);
+        p.setBackground(new Color(19, 38, 77)); // Lighter navy #13264D
+        p.setLayout(new GridBagLayout());
+        JLabel l = new JLabel(text);
+        l.setForeground(Color.WHITE);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        p.add(l);
+        return p;
+    }
+
+    // Progress view with charts
+    private JPanel buildProgressView() {
+        JPanel p = new JPanel(new BorderLayout(16, 16));
+        p.setOpaque(false);
+        JLabel t = new JLabel("Progress");
+        t.setForeground(new Color(30, 35, 45));
+        t.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        p.add(t, BorderLayout.NORTH);
+        JPanel grid = new JPanel(new GridLayout(1, 1, 16, 16));
+        grid.setOpaque(false);
+        grid.add(buildLineChartPlaceholder());
+        p.add(grid, BorderLayout.CENTER);
+        return p;
+    }
+
+    // Account view with profile information
+    private JPanel buildAccountView() {
+        JPanel p = new JPanel(new BorderLayout(16, 16));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        
+        // Title
+        JLabel title = new JLabel("Account Settings");
+        title.setForeground(new Color(255, 255, 255));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        p.add(title, BorderLayout.NORTH);
+        
+        // Content panel
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        
+        // Profile section
+        JPanel profileSection = createSettingsSection("Profile Information");
+        profileSection.add(createSettingRow("Username:", profile != null ? profile.getUsername() : "Guest"));
+        profileSection.add(createSettingRow("Email:", profile != null ? profile.getUsername() : "Not set"));
+        profileSection.add(createSettingRow("Member since:", "2025"));
+        content.add(profileSection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Preferences section
+        JPanel prefsSection = createSettingsSection("Preferences");
+        prefsSection.add(createSettingRow("Goal:", profile != null ? profile.getOnboardingGoal() : "Not set"));
+        prefsSection.add(createSettingRow("Language:", profile != null ? profile.getOnboardingLanguage() : "Not set"));
+        prefsSection.add(createSettingRow("Skill Level:", profile != null ? profile.getOnboardingSkill() : "Not set"));
+        JButton editPrefsBtn = new JButton("Edit Preferences");
+        editPrefsBtn.setBackground(new Color(255, 215, 0));
+        editPrefsBtn.setForeground(new Color(20, 30, 50));
+        editPrefsBtn.setFocusPainted(false);
+        editPrefsBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        editPrefsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        editPrefsBtn.addActionListener(e -> showOnboarding());
+        prefsSection.add(Box.createRigidArea(new Dimension(0, 12)));
+        prefsSection.add(editPrefsBtn);
+        content.add(prefsSection);
+        
+        p.add(content, BorderLayout.CENTER);
+        return p;
+    }
+
+    // Settings view with app configuration
+    private JPanel buildSettingsView() {
+        JPanel p = new JPanel(new BorderLayout(16, 16));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        
+        // Title
+        JLabel title = new JLabel("Settings");
+        title.setForeground(new Color(255, 255, 255));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        p.add(title, BorderLayout.NORTH);
+        
+        // Content panel
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        
+        // Appearance section
+        JPanel appearanceSection = createSettingsSection("Appearance");
+        JCheckBox darkModeCheck = new JCheckBox("Dark Mode (Always On)");
+        darkModeCheck.setSelected(true);
+        darkModeCheck.setEnabled(false);
+        darkModeCheck.setOpaque(false);
+        darkModeCheck.setForeground(new Color(200, 200, 220));
+        darkModeCheck.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        appearanceSection.add(darkModeCheck);
+        content.add(appearanceSection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Notifications section
+        JPanel notifSection = createSettingsSection("Notifications");
+        JCheckBox achievementNotif = new JCheckBox("Achievement Notifications");
+        achievementNotif.setSelected(true);
+        achievementNotif.setOpaque(false);
+        achievementNotif.setForeground(new Color(200, 200, 220));
+        achievementNotif.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JCheckBox streakNotif = new JCheckBox("Streak Reminders");
+        streakNotif.setSelected(true);
+        streakNotif.setOpaque(false);
+        streakNotif.setForeground(new Color(200, 200, 220));
+        streakNotif.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        notifSection.add(achievementNotif);
+        notifSection.add(Box.createRigidArea(new Dimension(0, 8)));
+        notifSection.add(streakNotif);
+        content.add(notifSection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Privacy section
+        JPanel privacySection = createSettingsSection("Privacy & Data");
+        JButton clearDataBtn = new JButton("Clear Local Preferences");
+        clearDataBtn.setBackground(new Color(200, 50, 50));
+        clearDataBtn.setForeground(Color.WHITE);
+        clearDataBtn.setFocusPainted(false);
+        clearDataBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        clearDataBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        clearDataBtn.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this,
+                "This will clear your saved email and preferences. Continue?",
+                "Clear Data",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            if (result == JOptionPane.YES_OPTION) {
+                // Clear preferences logic here
+                JOptionPane.showMessageDialog(this, "Preferences cleared successfully!");
+            }
+        });
+        privacySection.add(clearDataBtn);
+        content.add(privacySection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // About section
+        JPanel aboutSection = createSettingsSection("About");
+        aboutSection.add(createSettingRow("Version:", "1.0.0"));
+        aboutSection.add(createSettingRow("Build:", "2025.01"));
+        JButton aboutBtn = new JButton("View Licenses");
+        aboutBtn.setBackground(new Color(60, 120, 200));
+        aboutBtn.setForeground(Color.WHITE);
+        aboutBtn.setFocusPainted(false);
+        aboutBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        aboutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        aboutSection.add(Box.createRigidArea(new Dimension(0, 12)));
+        aboutSection.add(aboutBtn);
+        content.add(aboutSection);
+        
+        p.add(content, BorderLayout.CENTER);
+        return p;
+    }
+
+    // Helper method to create settings sections
+    private JPanel createSettingsSection(String sectionTitle) {
+        JPanel section = new JPanel();
+        section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+        section.setOpaque(true);
+        section.setBackground(new Color(30, 40, 60));
+        section.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(50, 70, 110), 1),
+            BorderFactory.createEmptyBorder(16, 16, 16, 16)
+        ));
+        section.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel title = new JLabel(sectionTitle);
+        title.setForeground(new Color(255, 215, 0));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        section.add(title);
+        section.add(Box.createRigidArea(new Dimension(0, 12)));
+        
+        return section;
+    }
+
+    // Helper method to create setting rows
+    private JPanel createSettingRow(String label, String value) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
+        row.setOpaque(false);
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel labelComp = new JLabel(label);
+        labelComp.setForeground(new Color(160, 180, 220));
+        labelComp.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        labelComp.setPreferredSize(new Dimension(150, 20));
+        
+        JLabel valueComp = new JLabel(value);
+        valueComp.setForeground(new Color(255, 255, 255));
+        valueComp.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        
+        row.add(labelComp);
+        row.add(valueComp);
+        
+        return row;
+    }
+
+    // Full-screen onboarding wizard inside main content
+    private void showOnboarding() {
+        JPanel wizard = buildOnboardingWizard();
+        mainContent.add(wizard, VIEW_ONBOARDING);
+        mainContentLayout.show(mainContent, VIEW_ONBOARDING);
+    }
+
+    private JPanel buildOnboardingWizard() {
+        CardLayout flow = new CardLayout();
+        JPanel wizardRoot = new JPanel(flow);
+        wizardRoot.setOpaque(true);
+        wizardRoot.setBackground(new Color(19, 38, 77)); // Lighter navy #13264D
+        wizardRoot.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+
+        // State
+        java.util.List<String> langs = new java.util.ArrayList<>();
+        final String[] goalSel = {null};
+        final String[] timeSel = {null};
+        final String[] skillSel = {null};
+
+        // Step 1: Skill level
+        JPanel step1 = new JPanel();
+        step1.setOpaque(false);
+        step1.setLayout(new BoxLayout(step1, BoxLayout.Y_AXIS));
+        JLabel q1 = new JLabel("What is your current skill level?");
+        q1.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        q1.setForeground(new Color(30, 35, 45));
+        ButtonGroup g1 = new ButtonGroup();
+        JToggleButton beginner = createOptionButton("Beginner");
+        JToggleButton intermediate = createOptionButton("Intermediate");
+        JToggleButton advanced = createOptionButton("Advanced");
+        ButtonGroup group1 = new ButtonGroup();
+        group1.add(beginner); group1.add(intermediate); group1.add(advanced);
+
+        JPanel opts1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        opts1.setOpaque(false);
+        opts1.add(beginner); opts1.add(intermediate); opts1.add(advanced);
+        JButton next1 = createPrimaryActionButton("Continue");
+        next1.addActionListener(e -> {
+            skillSel[0] = beginner.isSelected() ? "Beginner" : intermediate.isSelected() ? "Intermediate" : advanced.isSelected() ? "Advanced" : null;
+            flow.show(wizardRoot, "step2");
+        });
+        step1.add(q1); step1.add(Box.createRigidArea(new Dimension(0, 12))); step1.add(opts1); step1.add(Box.createRigidArea(new Dimension(0, 20))); step1.add(next1);
+
+        // Step 2: Languages
+        JPanel step2 = new JPanel();
+        step2.setOpaque(false);
+        step2.setLayout(new BoxLayout(step2, BoxLayout.Y_AXIS));
+        JLabel q2 = new JLabel("Which languages do you want to practice?");
+        q2.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        q2.setForeground(new Color(30, 35, 45));
+        JToggleButton java = createOptionButton("Java");
+        java.setSelected(true);
+        JToggleButton js = createOptionButton("JavaScript");
+        JToggleButton py = createOptionButton("Python");
+        JToggleButton c = createOptionButton("C");
+
+        JPanel opts2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        opts2.setOpaque(false);
+        opts2.add(java); opts2.add(js); opts2.add(py); opts2.add(c);
+        JButton next2 = createPrimaryActionButton("Continue");
+        next2.addActionListener(e -> {
+            langs.clear();
+            if (java.isSelected()) langs.add("Java");
+            if (js.isSelected()) langs.add("JavaScript");
+            if (py.isSelected()) langs.add("Python");
+            if (c.isSelected()) langs.add("C");
+            flow.show(wizardRoot, "step3");
+        });
+        step2.add(q2); step2.add(Box.createRigidArea(new Dimension(0, 12))); step2.add(opts2); step2.add(Box.createRigidArea(new Dimension(0, 20))); step2.add(next2);
+
+        // Step 3: Goal
+        JPanel step3 = new JPanel();
+        step3.setOpaque(false);
+        step3.setLayout(new BoxLayout(step3, BoxLayout.Y_AXIS));
+        JLabel q3 = new JLabel("What’s your coding goal?");
+        q3.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        q3.setForeground(new Color(30, 35, 45));
+        JComboBox<String> goal = new JComboBox<>(new String[]{"Interview prep", "Competitive programming", "Projects"});
+        goal.setMaximumSize(new Dimension(260, 28));
+        JButton next3 = createPrimaryActionButton("Continue");
+        next3.addActionListener(e -> { goalSel[0] = (String) goal.getSelectedItem(); flow.show(wizardRoot, "step4"); });
+        step3.add(q3); step3.add(Box.createRigidArea(new Dimension(0, 12))); step3.add(goal); step3.add(Box.createRigidArea(new Dimension(0, 20))); step3.add(next3);
+
+        // Step 4: Time commitment
+        JPanel step4 = new JPanel();
+        step4.setOpaque(false);
+        step4.setLayout(new BoxLayout(step4, BoxLayout.Y_AXIS));
+        JLabel q4 = new JLabel("Weekly time commitment");
+        q4.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        q4.setForeground(new Color(30, 35, 45));
+        JComboBox<String> time = new JComboBox<>(new String[]{"2 hrs", "5 hrs", "10+ hrs"});
+        time.setMaximumSize(new Dimension(260, 28));
+        JButton submit = createPrimaryActionButton("Submit");
+        submit.addActionListener(e -> {
+            timeSel[0] = (String) time.getSelectedItem();
+            // Simple updates to state (simulate progress boost on submit)
+            currentStreak = Math.max(currentStreak, 1);
+            updateStreakLabel();
+            updateRecommendations(langs, goalSel[0], timeSel[0]);
+            mainContentLayout.show(mainContent, VIEW_HOME);
+        });
+        step4.add(q4); step4.add(Box.createRigidArea(new Dimension(0, 12))); step4.add(time); step4.add(Box.createRigidArea(new Dimension(0, 20))); step4.add(submit);
+
+        wizardRoot.add(step1, "step1");
+        wizardRoot.add(step2, "step2");
+        wizardRoot.add(step3, "step3");
+        wizardRoot.add(step4, "step4");
+        flow.show(wizardRoot, "step1");
+
+        return wizardRoot;
+    }
+=======
+>>>>>>> 900e92a45150a61f3e48121550a458a6ff8a9990
 }
