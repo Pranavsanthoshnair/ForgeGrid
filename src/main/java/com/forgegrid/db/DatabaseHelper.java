@@ -2,6 +2,7 @@ package com.forgegrid.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -11,7 +12,7 @@ import java.sql.Statement;
  */
 public class DatabaseHelper {
     
-    private static final String DB_URL = "jdbc:sqlite:forgegrid.db";
+    private String dbUrl;
     private static DatabaseHelper instance;
     private Connection connection;
     
@@ -19,6 +20,7 @@ public class DatabaseHelper {
      * Private constructor for singleton pattern
      */
     private DatabaseHelper() {
+        this.dbUrl = resolveDatabaseUrl();
         initializeDatabase();
     }
     
@@ -42,7 +44,7 @@ public class DatabaseHelper {
      */
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(DB_URL);
+            connection = DriverManager.getConnection(dbUrl);
         }
         return connection;
     }
@@ -56,7 +58,7 @@ public class DatabaseHelper {
             Class.forName("org.sqlite.JDBC");
             
             // Create connection
-            connection = DriverManager.getConnection(DB_URL);
+            connection = DriverManager.getConnection(dbUrl);
             
             // Create users table if it doesn't exist
             createUsersTable();
@@ -71,6 +73,51 @@ public class DatabaseHelper {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Determine the SQLite JDBC URL, preferring config over defaults.
+     * Order:
+     * 1) config.properties key db.path (absolute or relative)
+     * 2) project root alongside the built classes/jar (../forgegrid.db from bin/ or jar dir)
+     * 3) current working directory (forgegrid.db)
+     */
+    private String resolveDatabaseUrl() {
+        // 1) config.properties
+        try {
+            java.util.Properties props = new java.util.Properties();
+            try (java.io.InputStream in = DatabaseHelper.class.getClassLoader().getResourceAsStream("config.properties")) {
+                if (in != null) {
+                    props.load(in);
+                    String path = props.getProperty("db.path");
+                    if (path != null && !path.trim().isEmpty()) {
+                        java.io.File f = new java.io.File(path.trim());
+                        String abs = f.getAbsolutePath();
+                        System.out.println("Using SQLite path from config: " + abs);
+                        return "jdbc:sqlite:" + abs;
+                    }
+                }
+            }
+        } catch (Exception ignore) {}
+
+        // 2) co-locate with classes/jar → project root (../forgegrid.db from bin/)
+        try {
+            java.net.URL loc = DatabaseHelper.class.getProtectionDomain().getCodeSource().getLocation();
+            java.nio.file.Path binOrJar = java.nio.file.Paths.get(loc.toURI());
+            java.nio.file.Path baseDir = binOrJar.toFile().isFile() ? binOrJar.getParent() : binOrJar; // jar dir or bin/
+            // project root when running from bin/: go one up; when jar, use jar dir
+            java.nio.file.Path candidate = baseDir.getFileName().toString().equalsIgnoreCase("bin")
+                ? baseDir.getParent().resolve("forgegrid.db")
+                : baseDir.resolve("forgegrid.db");
+            java.io.File f = candidate.toFile();
+            System.out.println("Using SQLite path near classes/jar: " + f.getAbsolutePath());
+            return "jdbc:sqlite:" + f.getAbsolutePath();
+        } catch (Exception ignore) {}
+
+        // 3) fallback: working directory
+        String fallback = new java.io.File("forgegrid.db").getAbsolutePath();
+        System.out.println("Using SQLite path from working dir: " + fallback);
+        return "jdbc:sqlite:" + fallback;
+    }
     
     /**
      * Create the users table with required columns including onboarding fields
@@ -80,6 +127,7 @@ public class DatabaseHelper {
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
                 onboarding_completed INTEGER DEFAULT 0,
                 onboarding_goal TEXT,
@@ -94,8 +142,35 @@ public class DatabaseHelper {
             statement.execute(createTableSQL);
             System.out.println("Users table created/verified successfully");
             
-            // Add onboarding columns to existing tables (migration)
+            // Add onboarding and email columns to existing tables (migration)
             migrateOnboardingColumns();
+            migrateEmailColumn();
+        }
+    }
+    
+    /**
+     * Migrate existing users table to add email column if it doesn't exist
+     */
+    private void migrateEmailColumn() {
+        try (Statement statement = connection.createStatement()) {
+            // Check if email column exists
+            ResultSet rs = statement.executeQuery("PRAGMA table_info(users)");
+            boolean emailExists = false;
+            while (rs.next()) {
+                if ("email".equals(rs.getString("name"))) {
+                    emailExists = true;
+                    break;
+                }
+            }
+            rs.close();
+            
+            // Add email column if it doesn't exist
+            if (!emailExists) {
+                statement.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
+                System.out.println("Email column added to users table");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error migrating email column: " + e.getMessage());
         }
     }
     

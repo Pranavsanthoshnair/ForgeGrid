@@ -41,9 +41,10 @@ Thumbs.db
 .env
 
 # Application specific - Database files
+# forgegrid.db is tracked for collaboration
 *.db
+!forgegrid.db
 *.sqlite
-forgegrid.db
 
 # User preferences (device-specific, should not be shared)
 forgegrid.prefs

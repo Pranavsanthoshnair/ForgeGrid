@@ -2,53 +2,72 @@ package com.forgegrid.ui;
 
 import com.forgegrid.model.PlayerProfile;
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicProgressBarUI;
+import javax.swing.border.EmptyBorder;
+import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
+import java.awt.event.*;
+import java.awt.geom.*;
 
 public class Dashboard extends JFrame {
 
     private final PlayerProfile profile;
-    // Simple state for demo - all set to 0 for fresh start
-    private int problemsSolved = 0;
-    private int problemsGoal = 100;
+    
+    // UI Components
+    private JPanel centerPanel;
+    private CardLayout centerLayout;
+    private JLabel currentViewLabel;
+    
+    // Player stats (placeholders for now)
+    private int currentXP = 0;
+    private int maxXP = 100;
     private int currentStreak = 0;
-    private java.util.List<String> badges = new java.util.ArrayList<>();
-
-    // UI references to update dynamically
-    private JLabel problemsLabel;
-    private JProgressBar problemsProgress;
-    private JLabel streakLabel;
-    // Profile labels to reflect onboarding selections
-    private JLabel profileSkillLabel;
-    private JLabel profileGoalLabel;
-    private JLabel profileLanguageLabel;
-    private JLabel profilePracticeLabel;
-    private JPanel badgesPanel;
-    private JPanel recommendationsPanel;
-
-    // Main content switching (prevents overlapping text)
-    private CardLayout mainContentLayout;
-    private JPanel mainContent;
-    private static final String VIEW_HOME = "home";
-    private static final String VIEW_ACCOUNT = "account";
-    private static final String VIEW_PROGRESS = "progress";
-    private static final String VIEW_SETTINGS = "settings";
-    private static final String VIEW_ONBOARDING = "onboarding";
+    private int currentLevel = 1;
+    private String playerRank = "Novice";
+    
+    // Color scheme - minimalistic dark theme
+    private static final Color BG_COLOR = new Color(30, 33, 38);
+    private static final Color SIDEBAR_COLOR = new Color(24, 26, 31);
+    private static final Color PANEL_COLOR = new Color(40, 43, 48);
+    private static final Color ACCENT_COLOR = new Color(88, 166, 255);
+    private static final Color TEXT_COLOR = new Color(220, 220, 220);
+    private static final Color TEXT_SECONDARY = new Color(160, 160, 160);
+    private static final Color HOVER_COLOR = new Color(50, 53, 58);
+    
+    // View constants
+    private static final String VIEW_DASHBOARD = "Dashboard";
+    private static final String VIEW_ASSIGNED = "Assigned Tasks";
+    private static final String VIEW_COMPLETED = "Completed Tasks";
+    private static final String VIEW_SKIPPED = "Skipped/Missed";
+    private static final String VIEW_GOATED = "Goated Tasks";
+    private static final String VIEW_PROFILE = "Profile";
+    private static final String VIEW_ACHIEVEMENTS = "Achievements";
+    private static final String VIEW_PROGRESS = "Progress Tracker";
+    private static final String VIEW_DEADLINE = "Deadline Tracker";
+    private static final String VIEW_SAVE_LOAD = "Save/Load Progress";
+    private static final String VIEW_SETTINGS = "Settings";
+    private static final String VIEW_HELP = "Help & Docs";
 
     public Dashboard(PlayerProfile profile) {
-        this(profile, false); // Default: show welcome screen
+        this(profile, false);
     }
     
     public Dashboard(PlayerProfile profile, boolean skipWelcome) {
         this.profile = profile;
+        
+        // Initialize player stats from profile
+        if (profile != null) {
+            this.currentLevel = profile.getLevel();
+            this.currentXP = profile.getScore() % 100; // XP is remainder of score divided by 100
+            this.maxXP = currentLevel * 100;
+        }
+        
         setTitle("ForgeGrid - Dashboard");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
         // Add window listener for close confirmation
-        addWindowListener(new java.awt.event.WindowAdapter() {
+        addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
+            public void windowClosing(WindowEvent e) {
                 int result = JOptionPane.showConfirmDialog(
                     Dashboard.this,
                     "Are you sure you want to exit?",
@@ -62,425 +81,283 @@ public class Dashboard extends JFrame {
             }
         });
         
-        setSize(900, 600);
+        setSize(1200, 700);
         setLocationRelativeTo(null);
-        setMinimumSize(new Dimension(720, 480));
+        setMinimumSize(new Dimension(1000, 600));
 
-        initUI(skipWelcome);
+        initUI();
     }
 
-    private void initUI(boolean skipWelcome) {
-        // Directly show dashboard without any welcome screen
-        JPanel dashboardPanel = buildDashboardPanel();
-        dashboardPanel.setBackground(new Color(25, 35, 55)); // Match AuthUI background
-        setContentPane(dashboardPanel);
+    private void initUI() {
+        // Main container
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(BG_COLOR);
+        
+        // Create the main sections
+        JPanel topPanel = createTopPanel();
+        JPanel sidebarPanel = createSidebarPanel();
+        JPanel centerContainer = createCenterContainer();
+        
+        // Add components to main panel
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(sidebarPanel, BorderLayout.WEST);
+        mainPanel.add(centerContainer, BorderLayout.CENTER);
+        
+        setContentPane(mainPanel);
     }
-
-    private JPanel buildDashboardPanel() {
-        // Static solid background matching AuthUI
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Solid dark blue background matching AuthUI (25, 35, 55)
-                g2.setColor(new Color(25, 35, 55));
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                
-                g2.dispose();
-            }
-        };
-        panel.setOpaque(true);
-        panel.setLayout(new BorderLayout());
-
-        // Left sidebar with dark blue theme styling
-        JPanel sidebar = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Dark blue gradient background
-                GradientPaint sidebarGradient = new GradientPaint(
-                    0, 0, new Color(20, 30, 55), // Darker blue
-                    getWidth(), 0, new Color(25, 40, 70) // Slightly lighter blue
-                );
-                g2.setPaint(sidebarGradient);
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                
-                // Blue accent border on the right edge
-                g2.setColor(new Color(60, 120, 200)); // Light blue accent
-                g2.fillRect(getWidth() - 2, 0, 2, getHeight());
-                
-                g2.dispose();
-            }
-        };
-        sidebar.setOpaque(false);
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setPreferredSize(new Dimension(200, 0)); // Standard width for modern layout
-        sidebar.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24)); // 24px padding (3 * 8px base unit)
-
-        JLabel menuTitle = new JLabel("Menu");
-        menuTitle.setForeground(new Color(200, 220, 255)); // Light blue-white
-        menuTitle.setFont(new Font("Inter", Font.BOLD, 16));
-        menuTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        sidebar.add(menuTitle);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 16))); // 16px spacing (2 * 8px base unit)
-
-        JPanel navContainer = new JPanel();
-        navContainer.setOpaque(false);
-        navContainer.setLayout(new BoxLayout(navContainer, BoxLayout.Y_AXIS));
-
-        String[] items = {"Dashboard", "Account", "Progress", "Settings"};
-        for (String item : items) {
-            JLabel label = createNavLabel(item);
-            navContainer.add(label);
-        }
-        sidebar.add(navContainer);
-
-        // Main content area
-        JPanel content = new JPanel();
-        content.setOpaque(false);
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-
-        // Removed global "Your Dashboard" heading to avoid showing it on all views
-
-        // Dark Blue Theme Profile card
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Enhanced shadow for depth
-                g2.setColor(new Color(0, 0, 0, 40));
-                g2.fillRoundRect(6, 10, getWidth() - 12, getHeight() - 12, 16, 16);
-                
-                // Dark blue gradient background
-                GradientPaint cardGradient = new GradientPaint(
-                    0, 0, new Color(25, 40, 70), // Darker blue
-                    0, getHeight(), new Color(20, 30, 55) // Even darker blue
-                );
-                g2.setPaint(cardGradient);
-                g2.fillRoundRect(0, 0, getWidth() - 12, getHeight() - 12, 16, 16);
-                
-                // Blue accent border
-                g2.setStroke(new BasicStroke(1.5f));
-                g2.setColor(new Color(60, 120, 200, 80)); // Light blue border
-                g2.drawRoundRect(1, 1, getWidth() - 14, getHeight() - 14, 16, 16);
-                
-                g2.dispose();
-            }
-        };
-        card.setOpaque(false);
-        card.setLayout(new BorderLayout());
-        card.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24)); // 24px padding (3 * 8px base unit)
-        card.setPreferredSize(new Dimension(720, 300));
-
-        JPanel left = new JPanel() {
-            private Timer pulseTimer;
-            private float pulseIntensity = 0f;
-            private boolean pulseDirection = true;
-            
-            {
-                // Initialize pulsing glow animation
-                pulseTimer = new Timer(100, e -> {
-                    if (pulseDirection) {
-                        pulseIntensity += 0.1f;
-                        if (pulseIntensity >= 1.0f) {
-                            pulseIntensity = 1.0f;
-                            pulseDirection = false;
-                        }
-                    } else {
-                        pulseIntensity -= 0.1f;
-                        if (pulseIntensity <= 0.3f) {
-                            pulseIntensity = 0.3f;
-                            pulseDirection = true;
-                        }
-                    }
-                    repaint();
-                });
-                pulseTimer.start();
-            }
-            
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                // Animated Avatar with pulsing glow
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                int size = 80; // 80px diameter as specified
-                int x = (getWidth() - size) / 2;
-                int y = (getHeight() - size) / 2;
-                
-                // Animated outer glow with pulse effect
-                int glowSize = (int)(size + 20 * pulseIntensity);
-                int glowOffset = (glowSize - size) / 2;
-                java.awt.RadialGradientPaint outerGlow = new java.awt.RadialGradientPaint(
-                    x + size/2f, y + size/2f, glowSize/2f,
-                    new float[]{0.0f, 0.7f, 1.0f},
-                    new Color[]{
-                        new Color(100, 180, 255, (int)(80 * pulseIntensity)),
-                        new Color(60, 120, 200, (int)(40 * pulseIntensity)), 
-                        new Color(60, 120, 200, 0)
-                    }
-                );
-                g2.setPaint(outerGlow);
-                g2.fillOval(x - glowOffset, y - glowOffset, glowSize, glowSize);
-                
-                // Blue gradient background for avatar
-                GradientPaint avatarGradient = new GradientPaint(
-                    x, y, new Color(60, 120, 200), // Light blue
-                    x + size, y + size, new Color(30, 60, 120) // Darker blue
-                );
-                g2.setPaint(avatarGradient);
-                g2.fill(new Ellipse2D.Double(x, y, size, size));
-                
-                // Animated blue glowing border
-                g2.setStroke(new BasicStroke(2f + pulseIntensity));
-                int borderAlpha = (int)(100 + 80 * pulseIntensity);
-                g2.setColor(new Color(100, 180, 255, borderAlpha));
-                g2.draw(new Ellipse2D.Double(x + 1.5, y + 1.5, size - 3, size - 3));
-                
-                // Initials text with subtle glow
-                String initials = getInitials();
-                g2.setFont(new Font("Inter", Font.BOLD, 32));
-                FontMetrics fm = g2.getFontMetrics();
-                int tx = x + (size - fm.stringWidth(initials)) / 2;
-                int ty = y + (size - fm.getHeight()) / 2 + fm.getAscent();
-                
-                // Text glow effect
-                g2.setColor(new Color(100, 180, 255, (int)(30 * pulseIntensity)));
-                g2.drawString(initials, tx + 1, ty + 1);
-                
-                // Main text
-                g2.setColor(new Color(240, 250, 255));
-                g2.drawString(initials, tx, ty);
-                
-                g2.dispose();
-            }
-        };
-        left.setOpaque(false);
-        left.setPreferredSize(new Dimension(120, 120)); // Smaller container for 80px avatar
-
-        JPanel center = new JPanel();
-        center.setOpaque(false);
-        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-
-        // Username with blue theme styling
-        String username = profile != null && profile.getUsername() != null ? profile.getUsername() : "lonelyammavan";
-        JLabel nameLabel = new JLabel(username);
-        nameLabel.setForeground(new Color(240, 250, 255)); // Very light blue-white
-        nameLabel.setFont(new Font("Inter", Font.BOLD, 24)); // Font Size: 24px, Font Weight: 600 (Semi-Bold)
-
-        // Skill with blue theme styling
-        String skill = computeSkill(profile != null ? profile.getLevel() : 1);
-        profileSkillLabel = new JLabel("Skill: " + skill);
-        profileSkillLabel.setForeground(new Color(180, 220, 255)); // Light blue
-        profileSkillLabel.setFont(new Font("Inter", Font.PLAIN, 14)); // Font Size: 14px, Font Weight: 400 (Regular)
-
-        // Level with blue theme styling
-        int level = profile != null ? profile.getLevel() : 1;
-        JLabel levelLabel = new JLabel("Level: " + level);
-        levelLabel.setForeground(new Color(180, 220, 255)); // Light blue
-        levelLabel.setFont(new Font("Inter", Font.PLAIN, 14)); // Font Size: 14px, Font Weight: 400 (Regular)
-
-        // XP Progress Bar with Modern Tech Dark Mode styling
-        int currentXP = 0; // Start at 0 XP
-        int nextLevelXP = level * 100;
+    
+    /**
+     * Creates the top panel with player stats
+     */
+    private JPanel createTopPanel() {
+        JPanel topPanel = new JPanel();
+        topPanel.setBackground(PANEL_COLOR);
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        topPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
         
-        JLabel xpLabel = new JLabel("XP: " + currentXP + " / " + nextLevelXP);
-        xpLabel.setForeground(new Color(160, 190, 230)); // Medium blue-grey
-        xpLabel.setFont(new Font("Inter", Font.PLAIN, 12)); // Subtle Text: 12px, 400 weight
+        // Player Name
+        String playerName = (profile != null && profile.getUsername() != null) ? profile.getUsername() : "Player";
+        JLabel nameLabel = new JLabel(playerName);
+        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        nameLabel.setForeground(TEXT_COLOR);
         
-        JProgressBar xpBar = new JProgressBar(0, 100) {
-            private float animatedValue = 0f;
-            private Timer animationTimer;
-            
-            {
-                // Initialize animation timer
-                animationTimer = new Timer(50, e -> {
-                    float targetValue = getValue();
-                    if (animatedValue < targetValue) {
-                        animatedValue = Math.min(targetValue, animatedValue + 2f);
-                        repaint();
-                    } else if (animatedValue > targetValue) {
-                        animatedValue = Math.max(targetValue, animatedValue - 2f);
-                        repaint();
-                    }
-                });
-                animationTimer.start();
-            }
-            
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                int w = getWidth();
-                int h = getHeight();
-                
-                // Track background (dark blue)
-                g2.setColor(new Color(30, 50, 80)); // Dark blue track
-                g2.fillRoundRect(0, 0, w, h, h, h); // Pill shape (border-radius: 999px)
-                
-                // Animated progress fill with blue gradient
-                int fill = (int) Math.round((animatedValue / getMaximum()) * w);
-                if (fill > 0) {
-                    GradientPaint gradient = new GradientPaint(
-                        0, 0, new Color(60, 120, 200), // Light blue
-                        w, 0, new Color(100, 180, 255)  // Brighter blue
-                    );
-                    g2.setPaint(gradient);
-                    g2.fillRoundRect(0, 0, fill, h, h, h); // Pill shape
-                    
-                    // Add shimmer effect
-                    if (animatedValue > 0) {
-                        float shimmerX = (System.currentTimeMillis() % 2000) / 2000f * w;
-                        GradientPaint shimmer = new GradientPaint(
-                            shimmerX - 10, 0, new Color(255, 255, 255, 0),
-                            shimmerX + 10, 0, new Color(255, 255, 255, 80)
-                        );
-                        g2.setPaint(shimmer);
-                        g2.fillRoundRect(0, 0, fill, h, h, h);
-                    }
-                }
-                
-                g2.dispose();
-            }
-        };
-        xpBar.setValue(0); // Start at 0%
-        xpBar.setStringPainted(false);
-        xpBar.setBorderPainted(false);
-        xpBar.setOpaque(false);
-        xpBar.setPreferredSize(new Dimension(200, 10)); // 10px height as specified
-
-        center.add(nameLabel);
-        center.add(Box.createRigidArea(new Dimension(0, 16))); // 16px spacing (2 * 8px base unit)
-        center.add(profileSkillLabel);
-        center.add(Box.createRigidArea(new Dimension(0, 8))); // 8px spacing (1 * base unit)
-        center.add(levelLabel);
-        center.add(Box.createRigidArea(new Dimension(0, 16))); // 16px spacing (2 * 8px base unit)
-        center.add(xpLabel);
-        center.add(Box.createRigidArea(new Dimension(0, 8))); // 8px spacing (1 * base unit)
-        center.add(xpBar);
-
-        // Onboarding selections (hidden until provided)
-        profileGoalLabel = new JLabel("Goal: ");
-        profileGoalLabel.setForeground(new Color(200, 200, 220));
-        profileGoalLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        profileGoalLabel.setVisible(false);
-
-        profileLanguageLabel = new JLabel("Language: ");
-        profileLanguageLabel.setForeground(new Color(200, 200, 220));
-        profileLanguageLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        profileLanguageLabel.setVisible(false);
-
-        profilePracticeLabel = new JLabel("Practice: ");
-        profilePracticeLabel.setForeground(new Color(200, 200, 220));
-        profilePracticeLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        profilePracticeLabel.setVisible(false);
-
-        center.add(Box.createRigidArea(new Dimension(0, 8)));
-        center.add(profileGoalLabel);
-        center.add(profileLanguageLabel);
-        center.add(profilePracticeLabel);
-
-        JPanel progressPanel = new JPanel();
-        progressPanel.setOpaque(false);
-        progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.Y_AXIS));
-        progressPanel.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
-        problemsLabel = new JLabel();
-        problemsLabel.setForeground(Color.WHITE);
-        problemsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        updateProblemsLabel();
-
-        problemsProgress = new JProgressBar(0, problemsGoal);
-        problemsProgress.setValue(problemsSolved);
-        problemsProgress.setForeground(new Color(255, 215, 0)); // Gold/Yellow
-        problemsProgress.setBackground(new Color(19, 38, 77)); // Slightly lighter navy
-        problemsProgress.setPreferredSize(new Dimension(380, 20));
-        problemsProgress.setMaximumSize(new Dimension(Short.MAX_VALUE, 20));
-        problemsProgress.setStringPainted(true);
-        problemsProgress.setUI(new BasicProgressBarUI() {
-            @Override
-            protected void paintDeterminate(Graphics g, JComponent c) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int w = progressBar.getWidth();
-                int h = progressBar.getHeight();
-                // track
-                g2.setColor(new Color(235, 240, 250));
-                g2.fillRoundRect(0, 0, w, h, h, h);
-                // fill
-                int fill = (int) Math.round(((double) progressBar.getValue() / progressBar.getMaximum()) * w);
-                g2.setPaint(new GradientPaint(0, 0, new Color(46, 196, 182), w, 0, new Color(56, 120, 220)));
-                g2.fillRoundRect(0, 0, fill, h, h, h);
-                // text
-                String s = progressBar.getString();
-                if (s != null) {
-                    g2.setColor(new Color(40, 50, 70));
-                    FontMetrics fm = g2.getFontMetrics();
-                    int tx = (w - fm.stringWidth(s)) / 2;
-                    int ty = (h - fm.getHeight()) / 2 + fm.getAscent();
-                    g2.drawString(s, tx, ty);
-                }
-                g2.dispose();
-            }
-        });
-
-        streakLabel = new JLabel();
-        streakLabel.setForeground(Color.WHITE);
+        topPanel.add(nameLabel);
+        topPanel.add(Box.createHorizontalStrut(30));
+        
+        // Level
+        JLabel levelLabel = new JLabel("Level: " + currentLevel);
+        levelLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        levelLabel.setForeground(TEXT_SECONDARY);
+        
+        topPanel.add(levelLabel);
+        topPanel.add(Box.createHorizontalStrut(30));
+        
+        // XP Progress Bar
+        JPanel xpPanel = new JPanel();
+        xpPanel.setLayout(new BoxLayout(xpPanel, BoxLayout.Y_AXIS));
+        xpPanel.setOpaque(false);
+        
+        JLabel xpLabel = new JLabel("XP: " + currentXP + " / " + maxXP);
+        xpLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        xpLabel.setForeground(TEXT_SECONDARY);
+        xpLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JProgressBar xpBar = new JProgressBar(0, maxXP);
+        xpBar.setValue(currentXP);
+        xpBar.setPreferredSize(new Dimension(200, 8));
+        xpBar.setMaximumSize(new Dimension(200, 8));
+        xpBar.setForeground(ACCENT_COLOR);
+        xpBar.setBackground(SIDEBAR_COLOR);
+        xpBar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        xpPanel.add(xpLabel);
+        xpPanel.add(Box.createVerticalStrut(5));
+        xpPanel.add(xpBar);
+        
+        topPanel.add(xpPanel);
+        topPanel.add(Box.createHorizontalStrut(30));
+        
+        // Rank
+        JLabel rankLabel = new JLabel("Rank: " + playerRank);
+        rankLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        rankLabel.setForeground(TEXT_SECONDARY);
+        
+        topPanel.add(rankLabel);
+        topPanel.add(Box.createHorizontalStrut(30));
+        
+        // Streak
+        JLabel streakLabel = new JLabel("🔥 Streak: " + currentStreak);
         streakLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        updateStreakLabel();
-
-        JLabel badgesTitle = new JLabel("Badges / Achievements");
-        badgesTitle.setForeground(Color.WHITE);
-        badgesTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        badgesPanel = new JPanel();
-        badgesPanel.setOpaque(true);
-        badgesPanel.setBackground(new Color(19, 38, 77)); // Slightly lighter navy #13264D
-        badgesPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        refreshBadges();
-
-        progressPanel.add(problemsLabel);
-        progressPanel.add(Box.createRigidArea(new Dimension(0, 6)));
-        progressPanel.add(problemsProgress);
-        // Navigate to Progress view when clicking the bar
-        problemsProgress.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        problemsProgress.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                mainContentLayout.show(mainContent, VIEW_PROGRESS);
-                setActiveNav(findSidebarLabel("Progress"));
+        streakLabel.setForeground(TEXT_SECONDARY);
+        
+        topPanel.add(streakLabel);
+        topPanel.add(Box.createHorizontalGlue());
+        
+        return topPanel;
+    }
+    
+    /**
+     * Creates the sidebar with enhanced tree menu
+     */
+    private JPanel createSidebarPanel() {
+        JPanel sidebarPanel = new JPanel(new BorderLayout());
+        sidebarPanel.setBackground(SIDEBAR_COLOR);
+        sidebarPanel.setPreferredSize(new Dimension(260, 0));
+        
+        // Title
+        JLabel titleLabel = new JLabel("ForgeGrid");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titleLabel.setForeground(ACCENT_COLOR);
+        titleLabel.setBorder(new EmptyBorder(20, 20, 15, 20));
+        
+        sidebarPanel.add(titleLabel, BorderLayout.NORTH);
+        
+        // Menu tree
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Menu");
+        
+        // MAIN
+        DefaultMutableTreeNode main = new DefaultMutableTreeNode("MAIN");
+        main.add(new DefaultMutableTreeNode(VIEW_DASHBOARD));
+        root.add(main);
+        
+        // TASKS
+        DefaultMutableTreeNode tasks = new DefaultMutableTreeNode("TASKS");
+        tasks.add(new DefaultMutableTreeNode(VIEW_ASSIGNED));
+        tasks.add(new DefaultMutableTreeNode(VIEW_COMPLETED));
+        tasks.add(new DefaultMutableTreeNode(VIEW_SKIPPED));
+        tasks.add(new DefaultMutableTreeNode(VIEW_GOATED));
+        root.add(tasks);
+        
+        // PLAYER
+        DefaultMutableTreeNode player = new DefaultMutableTreeNode("PLAYER");
+        player.add(new DefaultMutableTreeNode(VIEW_PROFILE));
+        player.add(new DefaultMutableTreeNode(VIEW_ACHIEVEMENTS));
+        player.add(new DefaultMutableTreeNode(VIEW_PROGRESS));
+        root.add(player);
+        
+        // COMPONENTS
+        DefaultMutableTreeNode components = new DefaultMutableTreeNode("COMPONENTS");
+        components.add(new DefaultMutableTreeNode(VIEW_DEADLINE));
+        components.add(new DefaultMutableTreeNode(VIEW_SAVE_LOAD));
+        root.add(components);
+        
+        // OTHER
+        DefaultMutableTreeNode other = new DefaultMutableTreeNode("OTHER");
+        other.add(new DefaultMutableTreeNode(VIEW_SETTINGS));
+        other.add(new DefaultMutableTreeNode(VIEW_HELP));
+        other.add(new DefaultMutableTreeNode("Exit"));
+        root.add(other);
+        
+        JTree tree = new JTree(new DefaultTreeModel(root));
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        tree.setBackground(SIDEBAR_COLOR);
+        tree.setForeground(TEXT_COLOR);
+        tree.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tree.setBorder(new EmptyBorder(5, 15, 10, 10));
+        tree.setRowHeight(28); // Increased row height for better readability
+        
+        // Custom cell renderer for better appearance
+        tree.setCellRenderer(new CustomTreeCellRenderer());
+        
+        // Expand all nodes
+        for (int i = 0; i < tree.getRowCount(); i++) {
+            tree.expandRow(i);
+        }
+        
+        // Add selection listener
+        tree.addTreeSelectionListener(e -> {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+            if (node == null || node.isRoot() || !node.isLeaf()) return;
+            
+            String selectedView = node.getUserObject().toString();
+            
+            if ("Exit".equals(selectedView)) {
+                int result = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to exit?",
+                    "Confirm Exit",
+                    JOptionPane.YES_NO_OPTION
+                );
+                if (result == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            } else {
+                switchView(selectedView);
             }
         });
-        progressPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        progressPanel.add(streakLabel);
-        progressPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        progressPanel.add(badgesTitle);
-        progressPanel.add(badgesPanel);
+        
+        JScrollPane scrollPane = new JScrollPane(tree);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(SIDEBAR_COLOR);
+        
+        sidebarPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        return sidebarPanel;
+    }
+    
+    /**
+     * Creates the center container with CardLayout for switching views
+     */
+    private JPanel createCenterContainer() {
+        JPanel container = new JPanel(new BorderLayout());
+        container.setBackground(BG_COLOR);
+        
+        // Center panel with CardLayout
+        centerLayout = new CardLayout();
+        centerPanel = new JPanel(centerLayout);
+        centerPanel.setBackground(BG_COLOR);
+        
+        // Add all views
+        centerPanel.add(createViewPanel(VIEW_DASHBOARD), VIEW_DASHBOARD);
+        centerPanel.add(createViewPanel(VIEW_ASSIGNED), VIEW_ASSIGNED);
+        centerPanel.add(createViewPanel(VIEW_COMPLETED), VIEW_COMPLETED);
+        centerPanel.add(createViewPanel(VIEW_SKIPPED), VIEW_SKIPPED);
+        centerPanel.add(createViewPanel(VIEW_GOATED), VIEW_GOATED);
+        centerPanel.add(createViewPanel(VIEW_PROFILE), VIEW_PROFILE);
+        centerPanel.add(createViewPanel(VIEW_ACHIEVEMENTS), VIEW_ACHIEVEMENTS);
+        centerPanel.add(createViewPanel(VIEW_PROGRESS), VIEW_PROGRESS);
+        centerPanel.add(createViewPanel(VIEW_DEADLINE), VIEW_DEADLINE);
+        centerPanel.add(createViewPanel(VIEW_SAVE_LOAD), VIEW_SAVE_LOAD);
+        centerPanel.add(createViewPanel(VIEW_SETTINGS), VIEW_SETTINGS);
+        centerPanel.add(createViewPanel(VIEW_HELP), VIEW_HELP);
+        
+        container.add(centerPanel, BorderLayout.CENTER);
+        
+        return container;
+    }
+    
+    /**
+     * Creates a placeholder view panel
+     */
+    private JPanel createViewPanel(String viewName) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BG_COLOR);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        
+        // Title using shared GradientTextLabel for consistency
+        GradientTextLabel titleLabel = new GradientTextLabel(viewName);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setGradient(new Color(255, 215, 0), ACCENT_COLOR);
+        
+        // Content area wrapped in reusable CardContainerPanel
+        JPanel contentArea = new CardContainerPanel();
+        contentArea.setOpaque(false);
+        contentArea.setLayout(new BoxLayout(contentArea, BoxLayout.Y_AXIS));
+        
+        if (VIEW_HELP.equals(viewName)) {
+            // Help view: wire to open local markdown docs in the system viewer
+            JLabel intro = new JLabel("Open documentation:");
+            intro.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            intro.setForeground(TEXT_SECONDARY);
+            intro.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        center.add(Box.createRigidArea(new Dimension(0, 12)));
-        center.add(progressPanel);
+            JButton userManualBtn = new JButton("Open User Manual (USER_MANUAL.md)");
+            userManualBtn.addActionListener(e -> openDoc("USER_MANUAL.md"));
+            styleLinkishButton(userManualBtn);
 
-        card.add(left, BorderLayout.WEST);
-        card.add(center, BorderLayout.CENTER);
+            JButton techSetupBtn = new JButton("Open Technical Setup (TECHNICAL_SETUP.md)");
+            techSetupBtn.addActionListener(e -> openDoc("TECHNICAL_SETUP.md"));
+            styleLinkishButton(techSetupBtn);
 
-        // Main content area uses its own CardLayout (prevents overlapping)
-        mainContentLayout = new CardLayout();
-        mainContent = new JPanel(mainContentLayout);
-        mainContent.setOpaque(false);
+            contentArea.add(intro);
+            contentArea.add(Box.createVerticalStrut(10));
+            contentArea.add(userManualBtn);
+            contentArea.add(Box.createVerticalStrut(8));
+            contentArea.add(techSetupBtn);
+        } else {
+            JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
+            placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            placeholderLabel.setForeground(TEXT_SECONDARY);
+            placeholderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel homeView = new JPanel(new BorderLayout(16, 16));
-        homeView.setOpaque(false);
+            JLabel infoLabel = new JLabel("Content and functionality will be added here.");
+            infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            infoLabel.setForeground(TEXT_SECONDARY);
+            infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+<<<<<<< HEAD
         // Top metrics row with 16px spacing between cards
         JPanel metricsRow = new JPanel();
         metricsRow.setOpaque(false);
@@ -616,387 +493,332 @@ public class Dashboard extends JFrame {
 
         panel.add(sidebar, BorderLayout.WEST);
         panel.add(content, BorderLayout.CENTER);
+=======
+            contentArea.add(placeholderLabel);
+            contentArea.add(Box.createVerticalStrut(10));
+            contentArea.add(infoLabel);
+        }
+        
+        panel.add(titleLabel, BorderLayout.NORTH);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(contentArea, BorderLayout.CENTER);
+        
+>>>>>>> 900e92a45150a61f3e48121550a458a6ff8a9990
         return panel;
     }
 
-    private JLabel createNavLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setForeground(new Color(160, 180, 220)); // Light blue-grey (inactive)
-        label.setFont(new Font("Inter", Font.PLAIN, 14)); // Inter font, medium weight (using PLAIN as closest)
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        label.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16)); // 12px vertical, 16px horizontal padding
-        // add modern outline icon
-        label.setIcon(new SidebarIcon(text));
-        label.setIconTextGap(12); // 12px gap between icon and text
-        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        label.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                setActiveNav((JLabel) e.getSource());
-                String t = ((JLabel) e.getSource()).getText();
-                switch (t) {
-                    case "Dashboard" -> mainContentLayout.show(mainContent, VIEW_HOME);
-                    case "Account" -> mainContentLayout.show(mainContent, VIEW_ACCOUNT);
-                    case "Progress" -> mainContentLayout.show(mainContent, VIEW_PROGRESS);
-                    case "Settings" -> mainContentLayout.show(mainContent, VIEW_SETTINGS);
-                }
+    private void openDoc(String filename) {
+        try {
+            java.io.File f = new java.io.File(filename).getAbsoluteFile();
+            if (!f.exists()) {
+                JOptionPane.showMessageDialog(this, "File not found: " + f.getPath(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                JLabel l = (JLabel) e.getSource();
-                if (l.getClientProperty("active") != Boolean.TRUE) {
-                    l.setForeground(new Color(100, 180, 255)); // Bright blue hover
-                l.setOpaque(true);
-                    l.setBackground(new Color(60, 120, 200, 30)); // Blue hover background
-                }
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(f);
+            } else {
+                JOptionPane.showMessageDialog(this, "Desktop open is not supported on this system.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                JLabel l = (JLabel) e.getSource();
-                if (l.getClientProperty("active") != Boolean.TRUE) {
-                    l.setForeground(new Color(160, 180, 220)); // Light blue-grey
-                    l.setOpaque(false);
-                    l.setBackground(new Color(0, 0, 0, 0));
-                }
-            }
-        });
-        return label;
-    }
-
-    private JLabel findSidebarLabel(String text) {
-        // Sidebar is the WEST component; search for the label by text
-        Container content = getContentPane();
-        if (content.getComponentCount() == 0) return null;
-        Component west = ((JPanel) content.getComponent(1)).getComponent(0); // fragile, but ok for this app
-        if (west instanceof JPanel sidebar) {
-            for (Component c : sidebar.getComponents()) {
-                if (c instanceof JPanel nav) {
-                    for (Component cc : nav.getComponents()) {
-                        if (cc instanceof JLabel l && text.equals(l.getText())) return l;
-                    }
-                }
-            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Unable to open document: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-        return null;
     }
 
-    private void setActiveNav(JLabel active) {
-        java.awt.Component parent = active.getParent();
-        for (java.awt.Component c : ((JPanel) parent).getComponents()) {
-            if (c instanceof JLabel l) {
-                l.setForeground(new Color(160, 180, 220)); // Light blue-grey
-                l.setOpaque(false);
-                l.setBackground(new Color(0, 0, 0, 0));
-                l.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
-                l.putClientProperty("active", Boolean.FALSE);
-            }
+    private void styleLinkishButton(AbstractButton b) {
+        b.setFocusPainted(false);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setOpaque(false);
+        b.setForeground(ACCENT_COLOR);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+    
+    
+    /**
+     * Switches to a different view
+     */
+    private void switchView(String viewName) {
+        centerLayout.show(centerPanel, viewName);
+    }
+    
+    /**
+     * Applies onboarding selections to the dashboard (for compatibility with AuthUI)
+     * This is a placeholder method - full implementation will be added later
+     */
+    public void applyOnboardingSelections(String goal, String language, String skill, String practice) {
+        // Placeholder for onboarding data integration
+        // This will be implemented when we add database functionality
+        // For now, just store the values if needed
+        System.out.println("Onboarding applied - Goal: " + goal + ", Language: " + language + ", Skill: " + skill);
+    }
+    
+    /**
+     * Custom tree cell renderer for enhanced appearance
+     */
+    private class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
+        
+        public CustomTreeCellRenderer() {
+            setOpaque(false);
+            setBackgroundNonSelectionColor(SIDEBAR_COLOR);
+            setBackgroundSelectionColor(ACCENT_COLOR);
+            setBorderSelectionColor(null);
         }
-        active.setForeground(new Color(255, 255, 255)); // White for active
-        active.setOpaque(true);
-        active.setBackground(new Color(60, 120, 200, 50)); // Blue with transparency
-        active.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
-        active.putClientProperty("active", Boolean.TRUE);
-        // In a larger app, we would switch content cards here
-    }
-
-    // Modern outline icons for sidebar - Feather/Lucide style
-    private static class SidebarIcon implements Icon {
-        private final String name;
-        private final int size = 20; // 20px as specified
-        SidebarIcon(String name) { this.name = name; }
-        @Override public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree, Object value,
+                boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
             
-            // Icons inherit the label's color (Medium Grey or Off-White when active)
-            Color iconColor = c.getForeground();
-            g2.setColor(iconColor);
+            super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
             
-            switch (name) {
-                case "Dashboard" -> {
-                    // Modern grid outline icon (3x3 grid)
-                    int gridSize = size - 4;
-                    int cellSize = gridSize / 3;
-                    for (int i = 0; i < 3; i++) {
-                        for (int j = 0; j < 3; j++) {
-                            int rectX = x + 2 + j * cellSize;
-                            int rectY = y + 2 + i * cellSize;
-                            g2.drawRoundRect(rectX, rectY, cellSize - 2, cellSize - 2, 2, 2);
-                        }
-                    }
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+            String text = node.getUserObject().toString();
+            
+            // Style category nodes (non-leaf) with bold font
+            if (!leaf) {
+                setFont(new Font("Segoe UI", Font.BOLD, 13));
+                setForeground(TEXT_SECONDARY);
+                setIcon(createFolderIcon());
+            } else {
+                // Style leaf nodes with regular font
+                setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                if (selected) {
+                    setForeground(Color.WHITE);
+                    setBackground(ACCENT_COLOR);
+                } else {
+                    setForeground(TEXT_COLOR);
+                    setBackground(SIDEBAR_COLOR);
                 }
-                case "Account" -> {
-                    // User outline icon
-                    int centerX = x + size/2;
-                    int centerY = y + size/2;
-                    // Head circle
-                    g2.drawOval(centerX - 3, y + 3, 6, 6);
-                    // Body outline
-                    g2.drawArc(centerX - 6, centerY + 1, 12, 10, 0, 180);
+                // Set custom icons based on item type
+                setIcon(getIconForItem(text));
+            }
+            
+            setOpaque(selected);
+            setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+            
+            return this;
+        }
+        
+        /**
+         * Returns appropriate icon for menu items
+         */
+        private Icon getIconForItem(String itemName) {
+            return switch (itemName) {
+                case VIEW_DASHBOARD -> createDashboardIcon();
+                case VIEW_ASSIGNED, VIEW_COMPLETED, VIEW_SKIPPED, VIEW_GOATED -> createTaskIcon();
+                case VIEW_PROFILE -> createProfileIcon();
+                case VIEW_ACHIEVEMENTS -> createAchievementIcon();
+                case VIEW_PROGRESS -> createProgressIcon();
+                case VIEW_DEADLINE -> createDeadlineIcon();
+                case VIEW_SAVE_LOAD -> createSaveIcon();
+                case VIEW_SETTINGS -> createSettingsIcon();
+                case VIEW_HELP -> createHelpIcon();
+                case "Exit" -> createExitIcon();
+                default -> createDefaultIcon();
+            };
+        }
+        
+        // Simple icon creation methods using shapes
+        private Icon createFolderIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(255, 200, 100));
+                    g2.fillRect(x + 2, y + 4, 12, 10);
+                    g2.dispose();
                 }
-                case "Progress" -> {
-                    // Trending up outline icon
-                    int[] pointsX = {x + 3, x + 7, x + 11, x + size - 3};
-                    int[] pointsY = {y + size - 3, y + 8, y + 6, y + 3};
-                    for (int i = 0; i < pointsX.length - 1; i++) {
-                        g2.drawLine(pointsX[i], pointsY[i], pointsX[i + 1], pointsY[i + 1]);
-                    }
-                    // Arrow head
-                    g2.drawLine(pointsX[pointsX.length - 1] - 3, pointsY[pointsY.length - 1] + 2, 
-                               pointsX[pointsX.length - 1], pointsY[pointsY.length - 1]);
-                    g2.drawLine(pointsX[pointsX.length - 1], pointsY[pointsY.length - 1], 
-                               pointsX[pointsX.length - 1] - 2, pointsY[pointsY.length - 1] + 3);
+                public int getIconWidth() { return 16; }
+                public int getIconHeight() { return 16; }
+            };
+        }
+        
+        private Icon createDashboardIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(ACCENT_COLOR);
+                    g2.fillRect(x + 2, y + 2, 6, 6);
+                    g2.fillRect(x + 10, y + 2, 6, 6);
+                    g2.fillRect(x + 2, y + 10, 6, 6);
+                    g2.fillRect(x + 10, y + 10, 6, 6);
+                    g2.dispose();
                 }
-                case "Settings" -> {
-                    // Settings/gear outline icon
-                    int centerX = x + size/2;
-                    int centerY = y + size/2;
-                    // Center circle
-                    g2.drawOval(centerX - 3, centerY - 3, 6, 6);
-                    // Gear teeth as lines
-                    for (int i = 0; i < 8; i++) {
-                        double angle = i * Math.PI / 4;
-                        int x1 = (int)(centerX + Math.cos(angle) * 6);
-                        int y1 = (int)(centerY + Math.sin(angle) * 6);
-                        int x2 = (int)(centerX + Math.cos(angle) * 8);
-                        int y2 = (int)(centerY + Math.sin(angle) * 8);
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createTaskIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(100, 180, 100));
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawRect(x + 3, y + 3, 12, 12);
+                    g2.drawLine(x + 6, y + 9, x + 8, y + 11);
+                    g2.drawLine(x + 8, y + 11, x + 12, y + 7);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createProfileIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(88, 166, 255));
+                    g2.fillOval(x + 5, y + 3, 8, 8);
+                    g2.fillArc(x + 3, y + 10, 12, 8, 0, 180);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createAchievementIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(255, 200, 50));
+                    int[] xPoints = {x + 9, x + 11, x + 16, x + 12, x + 14, x + 9, x + 4, x + 6, x + 2, x + 7};
+                    int[] yPoints = {y + 2, y + 7, y + 7, y + 11, y + 16, y + 13, y + 16, y + 11, y + 7, y + 7};
+                    g2.fillPolygon(xPoints, yPoints, 10);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createProgressIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(ACCENT_COLOR);
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawLine(x + 3, y + 14, x + 6, y + 10);
+                    g2.drawLine(x + 6, y + 10, x + 9, y + 7);
+                    g2.drawLine(x + 9, y + 7, x + 15, y + 3);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createDeadlineIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(220, 90, 90));
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawOval(x + 3, y + 3, 12, 12);
+                    g2.drawLine(x + 9, y + 6, x + 9, y + 9);
+                    g2.drawLine(x + 9, y + 9, x + 12, y + 9);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createSaveIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(160, 130, 210));
+                    g2.fillRect(x + 3, y + 3, 12, 12);
+                    g2.setColor(Color.WHITE);
+                    g2.fillRect(x + 5, y + 11, 8, 4);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createSettingsIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(TEXT_SECONDARY);
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawOval(x + 6, y + 6, 6, 6);
+                    for (int i = 0; i < 4; i++) {
+                        double angle = i * Math.PI / 2;
+                        int x1 = (int)(x + 9 + Math.cos(angle) * 3);
+                        int y1 = (int)(y + 9 + Math.sin(angle) * 3);
+                        int x2 = (int)(x + 9 + Math.cos(angle) * 6);
+                        int y2 = (int)(y + 9 + Math.sin(angle) * 6);
                         g2.drawLine(x1, y1, x2, y2);
                     }
+                    g2.dispose();
                 }
-            }
-            g2.dispose();
-        }
-        @Override public int getIconWidth() { return size; }
-        @Override public int getIconHeight() { return size; }
-    }
-
-    private String computeSkill(int level) {
-        if (level <= 5) return "Beginner";
-        if (level <= 10) return "Intermediate";
-        if (level <= 20) return "Skilled";
-        return "Expert";
-    }
-
-    private String getInitials() {
-        String name = profile != null ? profile.getUsername() : null;
-        if (name == null || name.isBlank()) return "FG";
-        String[] parts = name.trim().split("[\\s_]+");
-        if (parts.length == 1) {
-            String p = parts[0];
-            return p.length() >= 2 ? ("" + Character.toUpperCase(p.charAt(0)) + Character.toUpperCase(p.charAt(1))) : ("" + Character.toUpperCase(p.charAt(0)));
-        }
-        return ("" + Character.toUpperCase(parts[0].charAt(0)) + Character.toUpperCase(parts[1].charAt(0)));
-    }
-
-    private JPanel buildStatCard(String title, String value) {
-        JPanel p = new JPanel() {
-            private boolean isHovered = false;
-            private float glowIntensity = 0.0f;
-            private Timer glowTimer;
-            
-            {
-                // Initialize glow animation timer
-                glowTimer = new Timer(50, e -> {
-                    if (isHovered && glowIntensity < 1.0f) {
-                        glowIntensity = Math.min(1.0f, glowIntensity + 0.1f);
-                        repaint();
-                    } else if (!isHovered && glowIntensity > 0.0f) {
-                        glowIntensity = Math.max(0.0f, glowIntensity - 0.1f);
-                        repaint();
-                    }
-                });
-                glowTimer.start();
-            }
-            
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Check hover state from client property
-                isHovered = getClientProperty("isHovered") == Boolean.TRUE;
-                Float scaleValue = (Float) getClientProperty("scale");
-                float scale = scaleValue != null ? scaleValue : 1.0f;
-                
-                // Apply scaling transform
-                if (scale != 1.0f) {
-                    g2.scale(scale, scale);
-                }
-                
-                // Dynamic shadow based on hover state
-                int shadowOffset = isHovered ? 12 : 8;
-                int shadowAlpha = (int)(35 + glowIntensity * 15);
-                g2.setColor(new Color(0, 0, 0, shadowAlpha));
-                g2.fillRoundRect(4, shadowOffset, (int)(getWidth() / scale) - 8, (int)(getHeight() / scale) - shadowOffset, 16, 16);
-                
-                // Dark blue gradient background with hover enhancement
-                Color color1 = new Color(25 + (int)(glowIntensity * 10), 40 + (int)(glowIntensity * 15), 70 + (int)(glowIntensity * 20));
-                Color color2 = new Color(20 + (int)(glowIntensity * 8), 30 + (int)(glowIntensity * 12), 55 + (int)(glowIntensity * 15));
-                GradientPaint cardGradient = new GradientPaint(0, 0, color1, 0, (int)(getHeight() / scale), color2);
-                g2.setPaint(cardGradient);
-                g2.fillRoundRect(0, 0, (int)(getWidth() / scale) - 8, (int)(getHeight() / scale) - 8, 16, 16);
-                
-                // Animated blue accent border with glow
-                g2.setStroke(new BasicStroke(1f + glowIntensity));
-                int borderAlpha = (int)(60 + glowIntensity * 120);
-                g2.setColor(new Color(60, 120, 200, borderAlpha));
-                g2.drawRoundRect(0, 0, (int)(getWidth() / scale) - 9, (int)(getHeight() / scale) - 9, 16, 16);
-                
-                // Add subtle glow effect when hovered
-                if (glowIntensity > 0) {
-                    g2.setStroke(new BasicStroke(3f));
-                    g2.setColor(new Color(100, 180, 255, (int)(glowIntensity * 50)));
-                    g2.drawRoundRect(-2, -2, (int)(getWidth() / scale) - 5, (int)(getHeight() / scale) - 5, 20, 20);
-                }
-                
-                g2.dispose();
-            }
-        };
-        p.setOpaque(false);
-        p.setLayout(new BorderLayout());
-        p.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24)); // 24px padding (3 * 8px base unit)
-        
-        // Card Titles with blue theme
-        JLabel t = new JLabel(title);
-        t.setForeground(new Color(160, 190, 230)); // Medium blue-grey
-        t.setFont(new Font("Inter", Font.PLAIN, 16)); // Font Size: 16px, Font Weight: 500 (Medium - using PLAIN as closest)
-        t.setHorizontalAlignment(SwingConstants.LEFT);
-        
-        // Large Metrics with blue theme
-        JLabel v = new JLabel(value);
-        v.setForeground(new Color(240, 250, 255)); // Very light blue-white
-        v.setFont(new Font("Inter", Font.BOLD, 48)); // Font Size: 48px, Font Weight: 700 (Bold)
-        v.setHorizontalAlignment(SwingConstants.LEFT);
-        
-        // Special color for "Solved" card (bright green to stand out)
-        if ("Solved".equals(title)) {
-            v.setForeground(new Color(100, 255, 150)); // Bright green for solved
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
         }
         
-        p.add(t, BorderLayout.NORTH);
-        p.add(v, BorderLayout.CENTER);
-        p.setPreferredSize(new Dimension(180, 120)); // Larger cards for better proportions
-        
-        // Add mouse listeners for hover animations
-        p.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                p.putClientProperty("isHovered", true);
-                // Trigger bounce animation
-                Timer bounceTimer = new Timer(30, null);
-                final float[] scale = {1.0f};
-                bounceTimer.addActionListener(bounceEvent -> {
-                    scale[0] += 0.02f;
-                    if (scale[0] >= 1.05f) {
-                        scale[0] = 1.05f;
-                        bounceTimer.stop();
-                    }
-                    p.putClientProperty("scale", scale[0]);
-                    p.repaint();
-                });
-                bounceTimer.start();
-            }
-            
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                p.putClientProperty("isHovered", false);
-                // Smooth return to normal size
-                Timer returnTimer = new Timer(30, null);
-                final float[] scale = {1.05f};
-                returnTimer.addActionListener(returnEvent -> {
-                    scale[0] -= 0.01f;
-                    if (scale[0] <= 1.0f) {
-                        scale[0] = 1.0f;
-                        returnTimer.stop();
-                    }
-                    p.putClientProperty("scale", scale[0]);
-                    p.repaint();
-                });
-                returnTimer.start();
-            }
-        });
-        
-        p.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return p;
-    }
-
-    private JPanel buildBarChartPlaceholder() {
-        return buildChartCard("Activity by Week", true);
-    }
-
-    private JPanel buildLineChartPlaceholder() {
-        return buildChartCard("Progress Over Time", false);
-    }
-
-    private JPanel buildChartCard(String title, boolean bars) {
-        JPanel p = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0, 0, 0, 12));
-                g2.fillRoundRect(6, 8, getWidth() - 12, getHeight() - 12, 16, 16);
-                g2.setColor(new Color(19, 38, 77)); // Lighter navy #13264D
-                g2.fillRoundRect(0, 0, getWidth() - 12, getHeight() - 12, 16, 16);
-                g2.setColor(new Color(220, 225, 235));
-                int margin = 36;
-                int w = getWidth() - 12 - margin * 2;
-                int h = getHeight() - 12 - margin * 2;
-                int x = margin;
-                int y = margin + h;
-                g2.drawLine(x, y, x + w, y);
-                g2.drawLine(x, y, x, y - h);
-                if (bars) {
-                    int columns = 6;
-                    int gap = 12;
-                    int barW = Math.max(12, (w - (columns - 1) * gap) / columns);
-                    int[] vals = {40, 70, 55, 90, 65, 80};
-                    for (int i = 0; i < columns; i++) {
-                        int bx = x + i * (barW + gap);
-                        int bh = (int) (h * (vals[i] / 100.0));
-                        g2.setColor(new Color(56, 120, 220, 180));
-                        g2.fillRoundRect(bx, y - bh, barW, bh, 6, 6);
-                    }
-                } else {
-                    g2.setColor(new Color(46, 196, 182));
-                    int points = 7;
-                    int step = w / (points - 1);
-                    int[] vals = {20, 30, 25, 45, 40, 60, 55};
-                    int px = x;
-                    int py = y - (int) (h * (vals[0] / 100.0));
-                    for (int i = 1; i < points; i++) {
-                        int cx = x + i * step;
-                        int cy = y - (int) (h * (vals[i] / 100.0));
-                        g2.drawLine(px, py, cx, cy);
-                        px = cx; py = cy;
-                    }
-                    for (int i = 0; i < points; i++) {
-                        int cx = x + i * step;
-                        int cy = y - (int) (h * (vals[i] / 100.0));
-                        g2.fillOval(cx - 3, cy - 3, 6, 6);
-                    }
+        private Icon createHelpIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(ACCENT_COLOR);
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawOval(x + 3, y + 3, 12, 12);
+                    g2.setFont(new Font("Arial", Font.BOLD, 10));
+                    g2.drawString("?", x + 7, y + 13);
+                    g2.dispose();
                 }
-                g2.dispose();
-            }
-        };
-        p.setOpaque(false);
-        p.setLayout(new BorderLayout());
-        p.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
-        JLabel t = new JLabel(title);
-        t.setForeground(Color.WHITE);
-        t.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        p.add(t, BorderLayout.NORTH);
-        return p;
-    }
-
-    private void updateProblemsLabel() {
-        if (problemsLabel != null) {
-            problemsLabel.setText("Problems solved : " + problemsSolved + "/" + problemsGoal);
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createExitIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(220, 90, 90));
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawLine(x + 4, y + 4, x + 14, y + 14);
+                    g2.drawLine(x + 14, y + 4, x + 4, y + 14);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
+        }
+        
+        private Icon createDefaultIcon() {
+            return new Icon() {
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(TEXT_SECONDARY);
+                    g2.fillOval(x + 6, y + 6, 6, 6);
+                    g2.dispose();
+                }
+                public int getIconWidth() { return 18; }
+                public int getIconHeight() { return 18; }
+            };
         }
     }
+<<<<<<< HEAD
 
     private void updateStreakLabel() {
         if (streakLabel != null) {
@@ -1589,6 +1411,6 @@ public class Dashboard extends JFrame {
 
         return wizardRoot;
     }
+=======
+>>>>>>> 900e92a45150a61f3e48121550a458a6ff8a9990
 }
-
-
