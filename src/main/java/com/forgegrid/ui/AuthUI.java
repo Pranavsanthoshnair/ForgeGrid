@@ -1,11 +1,7 @@
 package com.forgegrid.ui;
 
-import com.forgegrid.config.AppConfig;
-import com.forgegrid.managers.HybridAuthManager;
-import com.forgegrid.managers.UserManager;
+import com.forgegrid.auth.AuthService;
 import com.forgegrid.model.PlayerProfile;
-import com.forgegrid.model.User;
-import com.forgegrid.services.GoogleOAuthService;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -27,18 +23,13 @@ public class AuthUI extends JFrame {
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private final Map<String, FadeInPanel> cardFades = new HashMap<>();
-    private UserManager userManager;
-    private HybridAuthManager hybridAuthManager;
+    private AuthService authService;
     private JLabel statusLabel;
     private LoadingScreen loadingScreen;
-    private boolean isOnlineMode;
-    private AppConfig config;
     private PlayerProfile currentProfile;
     
     public AuthUI() {
-        this.userManager = UserManager.getInstance();
-        this.config = AppConfig.getInstance();
-        this.isOnlineMode = false;
+        this.authService = new AuthService();
         initializeUI();
     }
     
@@ -417,7 +408,6 @@ public class AuthUI extends JFrame {
         
         loginButton = createGradientButton("Login", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
-        JButton googleSignInButton = createGoogleSignInButton();
         
         // Add arrow key navigation to login button
         loginButton.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -526,8 +516,6 @@ public class AuthUI extends JFrame {
         card.add(loginButton);
         card.add(Box.createRigidArea(new Dimension(0, 15)));
         card.add(switchToSignupButton);
-        card.add(Box.createRigidArea(new Dimension(0, 15)));
-        card.add(googleSignInButton);
 
         // Layout with better spacing: center the card vertically (shifted upward via reduced top padding)
         panel.add(card);
@@ -1193,129 +1181,8 @@ public class AuthUI extends JFrame {
         return button;
     }
 
-    private JButton createGoogleSignInButton() {
-        JButton button = createSolidButton("Sign in with Google", Color.WHITE, new Color(60, 64, 67));
-        // Attach Google G icon (drawn vector) to the left of text (larger for visibility)
-        button.putClientProperty("leftIcon", createGoogleGIcon(24));
-        button.putClientProperty("leftIconGap", Integer.valueOf(10));
-        // White button styling with subtle gray border and proper hover
-        button.putClientProperty("googleStyleBorder", Boolean.TRUE);
-        button.putClientProperty("isWhiteButton", Boolean.TRUE);
-        button.addActionListener(e -> {
-            // Perform a fresh, asynchronous connectivity check to avoid stale state
-            button.setEnabled(false);
-            button.setText("Checking connection...");
+    // Google OAuth methods removed - using SQLite authentication only
 
-            // Ensure auth manager exists (user may click before initialization completes)
-            if (hybridAuthManager == null) {
-                try {
-                    hybridAuthManager = new HybridAuthManager(
-                        config.getSupabaseUrl(),
-                        config.getSupabaseAnonKey()
-                    );
-                } catch (Exception initErr) {
-                    button.setEnabled(true);
-                    button.setText("Sign in with Google");
-                    JOptionPane.showMessageDialog(this, "Auth not ready: " + initErr.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-
-            java.util.concurrent.CompletableFuture.supplyAsync(() -> hybridAuthManager.isOnlineAvailable())
-                .thenAccept(online -> SwingUtilities.invokeLater(() -> {
-                    if (!online) {
-                        button.setEnabled(true);
-                        button.setText("Sign in with Google");
-                        JOptionPane.showMessageDialog(this, "Google Sign-In requires internet connection.", "Offline", JOptionPane.WARNING_MESSAGE);
-                        return;
-                    }
-
-                    // Proceed with Google OAuth flow now that we're confirmed online
-                    button.setText("Opening Google...");
-                    GoogleOAuthService googleOAuthService = new GoogleOAuthService();
-                    googleOAuthService.authenticateWithGoogle()
-                        .thenCompose(idToken -> hybridAuthManager.authenticateWithGoogle(idToken))
-                        .thenAccept(result -> SwingUtilities.invokeLater(() -> {
-                            if (result.isSuccess()) {
-                                // Hold the button in a concluding state a bit longer to avoid abrupt return
-                                button.setEnabled(false);
-                                button.setText("Finalizing sign-in...");
-
-                                PlayerProfile profile = result.getProfile();
-                                this.currentProfile = profile;
-                                showCard("LOADING");
-
-                                // Slightly longer freeze just for Google sign-in UX (2.5s)
-                                new javax.swing.Timer(2500, e2 -> {
-                                    ((javax.swing.Timer) e2.getSource()).stop();
-                                    button.setEnabled(true);
-                                    button.setText("Sign in with Google");
-                                    showCard("ONBOARDING");
-                                }).start();
-                            } else {
-                                button.setEnabled(true);
-                                button.setText("Sign in with Google");
-                                JOptionPane.showMessageDialog(this, result.getMessage(), "Google Sign-In Failed", JOptionPane.ERROR_MESSAGE);
-                            }
-                        }))
-                        .exceptionally(err -> {
-                            SwingUtilities.invokeLater(() -> {
-                                button.setEnabled(true);
-                                button.setText("Sign in with Google");
-                                JOptionPane.showMessageDialog(this, "Google Sign-In error: " + err.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                            });
-                            return null;
-                        });
-                }))
-                .exceptionally(err -> {
-                    SwingUtilities.invokeLater(() -> {
-                        button.setEnabled(true);
-                        button.setText("Sign in with Google");
-                        JOptionPane.showMessageDialog(this, "Error checking connection: " + err.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    });
-                    return null;
-                });
-        });
-        return button;
-    }
-
-    private Icon createGoogleGIcon(int size) {
-        int iconSize = Math.max(12, size);
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int s = iconSize;
-                int cx = x + s / 2;
-                int cy = y + s / 2;
-                int r = s / 2;
-                int stroke = Math.max(2, s / 6);
-                g2.setStroke(new BasicStroke(stroke, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                // Draw multicolor G segments (approximate Google G)
-                // Blue
-                g2.setColor(new Color(66, 133, 244));
-                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 40, 110);
-                // Red
-                g2.setColor(new Color(234, 67, 53));
-                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 150, 70);
-                // Yellow
-                g2.setColor(new Color(251, 188, 5));
-                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 215, 70);
-                // Green
-                g2.setColor(new Color(52, 168, 83));
-                g2.drawArc(cx - r, cy - r, 2 * r, 2 * r, 285, 70);
-                // G crossbar (blue)
-                g2.setColor(new Color(66, 133, 244));
-                g2.drawLine(cx + r / 4, cy, cx + r - stroke, cy);
-                g2.dispose();
-            }
-            @Override
-            public int getIconWidth() { return iconSize; }
-            @Override
-            public int getIconHeight() { return iconSize; }
-        };
-    }
 
     private JButton createSolidButton(String text, Color backgroundColor, Color foregroundColor) {
         JButton button = new JButton(text) {
@@ -1384,12 +1251,6 @@ public class AuthUI extends JFrame {
                 }
                 g2d.drawString(getText(), textX, y);
 
-                // Optional subtle border for white Google button
-                if (Boolean.TRUE.equals(getClientProperty("googleStyleBorder"))) {
-                    g2d.setColor(new Color(0xDA, 0xDC, 0xE0)); // #DADCE0
-                    g2d.setStroke(new BasicStroke(1f));
-                    g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-                }
                 g2d.dispose();
             }
         };
@@ -1548,14 +1409,6 @@ public class AuthUI extends JFrame {
     }
 
     private void handleLogin() {
-        // Initialize hybridAuthManager if not already done
-        if (hybridAuthManager == null) {
-            hybridAuthManager = new HybridAuthManager(
-                config.getSupabaseUrl(),
-                config.getSupabaseAnonKey()
-            );
-        }
-        
         // Normalize placeholders just in case flags are stale
         Object emailPA = emailField.getClientProperty("placeholderActive");
         if (Boolean.TRUE.equals(emailPA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
@@ -1572,13 +1425,13 @@ public class AuthUI extends JFrame {
             passwordField.setEchoChar('•');
         }
 
-        String email = emailField.getText().trim();
+        String username = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
 
         // Consider placeholders only if active AND the text equals the placeholder label
         boolean emailPlaceholderActive = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
         boolean passPlaceholderActive = Boolean.TRUE.equals(passwordField.getClientProperty("placeholderActive"));
-        boolean emailEffectivelyEmpty = email.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(email));
+        boolean emailEffectivelyEmpty = username.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(username));
         boolean passEffectivelyEmpty = password.isEmpty() || (passPlaceholderActive && "Password".equalsIgnoreCase(password));
         if (emailEffectivelyEmpty || passEffectivelyEmpty) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -1590,18 +1443,16 @@ public class AuthUI extends JFrame {
         loginButton.setText("Authenticating...");
         showCard("LOADING");
         
-        // Use hybrid authentication
-        CompletableFuture<HybridAuthManager.AuthenticationResult> future = 
-            hybridAuthManager.authenticateUser(email, password);
-        
-        future.thenAccept(result -> {
-            SwingUtilities.invokeLater(() -> {
+        // Use SQLite authentication
+        SwingUtilities.invokeLater(() -> {
+            try {
+                PlayerProfile profile = authService.login(username, password);
+                
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
                 
-                if (result.isSuccess()) {
+                if (profile != null) {
                     // Navigate to in-app onboarding within same window
-                    PlayerProfile profile = result.getProfile();
                     this.currentProfile = profile;
                     // brief delay to let loading animate, then move to onboarding
                     new javax.swing.Timer(600, e2 -> {
@@ -1609,30 +1460,19 @@ public class AuthUI extends JFrame {
                         showCard("ONBOARDING");
                     }).start();
                 } else {
-                    JOptionPane.showMessageDialog(this, result.getMessage(), "Login Failed", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     showCard("LOGIN");
                 }
-            });
-        }).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
+            } catch (Exception e) {
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
-                JOptionPane.showMessageDialog(this, "Authentication error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Authentication error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 showCard("LOGIN");
-            });
-            return null;
+            }
         });
     }
     
     private void handleSignup(JTextField nameFieldParam, JTextField emailField, JPasswordField passwordField) {
-        // Initialize hybridAuthManager if not already done
-        if (hybridAuthManager == null) {
-            hybridAuthManager = new HybridAuthManager(
-                config.getSupabaseUrl(),
-                config.getSupabaseAnonKey()
-            );
-        }
-
         // Normalize placeholders just before reading values
         Object nPA2 = nameFieldParam.getClientProperty("placeholderActive");
         if (Boolean.TRUE.equals(nPA2) && "Full Name".equalsIgnoreCase(nameFieldParam.getText().trim())) {
@@ -1699,19 +1539,18 @@ public class AuthUI extends JFrame {
         signupButton.setEnabled(false);
         signupButton.setText("Creating Account...");
         
-        // Generate username from email (part before @)
-        String username = email.split("@")[0];
+        // Use email as username for simplicity
+        String username = email;
         
-        // Use hybrid authentication for registration
-        CompletableFuture<HybridAuthManager.RegistrationResult> future = 
-            hybridAuthManager.registerUser(username, email, password, name);
-        
-        future.thenAccept(result -> {
-            SwingUtilities.invokeLater(() -> {
+        // Use SQLite authentication for registration
+        SwingUtilities.invokeLater(() -> {
+            try {
+                boolean success = authService.register(username, password);
+                
                 signupButton.setEnabled(true);
                 signupButton.setText("Sign Up");
                 
-                if (result.isSuccess()) {
+                if (success) {
                     JOptionPane.showMessageDialog(this, 
                         "Account created successfully!\nWelcome to ForgeGrid, " + name + "!\nPlease login with your credentials.", 
                         "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -1734,16 +1573,13 @@ public class AuthUI extends JFrame {
                     passwordField.setEchoChar((char) 0);
                     
                 } else {
-                    JOptionPane.showMessageDialog(this, result.getMessage(), "Registration Failed", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Username already exists. Please choose a different email.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
                 }
-            });
-        }).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
+            } catch (Exception e) {
                 signupButton.setEnabled(true);
                 signupButton.setText("Sign Up");
-                JOptionPane.showMessageDialog(this, "Registration error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            });
-            return null;
+                JOptionPane.showMessageDialog(this, "Registration error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
     }
     
@@ -1896,10 +1732,6 @@ public class AuthUI extends JFrame {
                 
                 // Determine button type and apply appropriate sizing
             if (text.contains("Sign Up") || text.contains("Login")) {
-                    button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-                    button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-                    button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
-                } else if (text.contains("Google")) {
                     button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
                     button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
                     button.setFont(new Font("Trebuchet MS", Font.BOLD, buttonFontSize));
@@ -2392,71 +2224,30 @@ public class AuthUI extends JFrame {
      * Initialize authentication system and determine online/offline mode
      */
     private void initializeAuthentication() {
-        // Initialize hybrid auth manager
-        hybridAuthManager = new HybridAuthManager(
-            config.getSupabaseUrl(), 
-            config.getSupabaseAnonKey()
-        );
-        
-        // Check online status asynchronously
-        CompletableFuture.supplyAsync(() -> {
-            return hybridAuthManager.isOnlineAvailable();
-        }).thenAccept(online -> {
-            SwingUtilities.invokeLater(() -> {
-                this.isOnlineMode = online;
-                
-                // Keep splash visible for ~5s then fade out and show auth screen
-                Timer showAuthTimer = new Timer(5000, e -> {
-                    if (loadingScreen != null) {
-                        loadingScreen.startFadeOut(() -> {
-                            showLogin();
-                            updateStatusIndicator();
-                        });
-                    } else {
-                        showLogin();
-                        updateStatusIndicator();
-                    }
+        // SQLite authentication is ready immediately - no need for online checks
+        // Keep splash visible for ~5s then fade out and show auth screen
+        Timer showAuthTimer = new Timer(5000, e -> {
+            if (loadingScreen != null) {
+                loadingScreen.startFadeOut(() -> {
+                    showLogin();
+                    updateStatusIndicator();
                 });
-                showAuthTimer.setRepeats(false);
-                showAuthTimer.start();
-            });
-        }).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                this.isOnlineMode = false;
-                
-                // Keep splash visible for ~5s then fade out and show auth screen
-                Timer showAuthTimer = new Timer(5000, e -> {
-                    if (loadingScreen != null) {
-                        loadingScreen.startFadeOut(() -> {
-                            showLogin();
-                            updateStatusIndicator();
-                        });
-                    } else {
-                        showLogin();
-                        updateStatusIndicator();
-                    }
-                });
-                showAuthTimer.setRepeats(false);
-                showAuthTimer.start();
-            });
-            return null;
+            } else {
+                showLogin();
+                updateStatusIndicator();
+            }
         });
+        showAuthTimer.setRepeats(false);
+        showAuthTimer.start();
     }
     
     /**
      * Update the status indicator based on current mode
      */
     private void updateStatusIndicator() {
+        // SQLite authentication - no status indicator needed
         if (statusLabel != null) {
-            if (isOnlineMode) {
-                // Hide status indicator when online
-                statusLabel.setVisible(false);
-            } else {
-                // Show subtle offline indicator
-                statusLabel.setText("💾 Working Offline");
-                statusLabel.setForeground(new Color(255, 152, 0)); // Orange
-                statusLabel.setVisible(true);
-            }
+            statusLabel.setVisible(false);
         }
     }
     

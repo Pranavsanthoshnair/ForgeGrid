@@ -55,32 +55,9 @@ public class AppConfig {
      * Create default configuration if file doesn't exist
      */
     private void createDefaultConfig() {
-        properties.setProperty("supabase.url", "https://your-project.supabase.co");
-        properties.setProperty("supabase.anon.key", "your-anon-key-here");
         properties.setProperty("app.name", "ForgeGrid");
         properties.setProperty("app.version", "1.0.0");
         properties.setProperty("app.debug", "false");
-        properties.setProperty("auth.offline.enabled", "true");
-        properties.setProperty("auth.online.enabled", "true");
-        properties.setProperty("auth.token.refresh.interval", "3600000");
-        properties.setProperty("google.oauth.client.id", "your-google-client-id.apps.googleusercontent.com");
-        properties.setProperty("google.oauth.client.secret", "your-google-client-secret");
-        properties.setProperty("google.oauth.redirect.uri", "http://localhost:8080/callback");
-        properties.setProperty("google.oauth.scope", "openid email profile");
-    }
-    
-    /**
-     * Get Supabase URL
-     */
-    public String getSupabaseUrl() {
-        return properties.getProperty("supabase.url", "https://your-project.supabase.co");
-    }
-    
-    /**
-     * Get Supabase anonymous key
-     */
-    public String getSupabaseAnonKey() {
-        return properties.getProperty("supabase.anon.key", "your-anon-key-here");
     }
     
     /**
@@ -105,68 +82,7 @@ public class AppConfig {
     }
     
     /**
-     * Check if offline authentication is enabled
-     */
-    public boolean isOfflineAuthEnabled() {
-        return Boolean.parseBoolean(properties.getProperty("auth.offline.enabled", "true"));
-    }
-    
-    /**
-     * Check if online authentication is enabled
-     */
-    public boolean isOnlineAuthEnabled() {
-        return Boolean.parseBoolean(properties.getProperty("auth.online.enabled", "true"));
-    }
-    
-    /**
-     * Get token refresh interval in milliseconds
-     */
-    public long getTokenRefreshInterval() {
-        return Long.parseLong(properties.getProperty("auth.token.refresh.interval", "3600000"));
-    }
-    
-    /**
-     * Get Google OAuth client ID
-     */
-    public String getGoogleOAuthClientId() {
-        return properties.getProperty("google.oauth.client.id", "your-google-client-id.apps.googleusercontent.com");
-    }
-    
-    /**
-     * Get Google OAuth client secret
-     */
-    public String getGoogleOAuthClientSecret() {
-        return properties.getProperty("google.oauth.client.secret", "your-google-client-secret");
-    }
-    
-    /**
-     * Get Google OAuth redirect URI
-     */
-    public String getGoogleOAuthRedirectUri() {
-        return properties.getProperty("google.oauth.redirect.uri", "http://localhost:8080/callback");
-    }
-    
-    /**
-     * Get Google OAuth scope
-     */
-    public String getGoogleOAuthScope() {
-        return properties.getProperty("google.oauth.scope", "openid email profile");
-    }
-    
-    /**
-     * Check if Supabase is properly configured
-     */
-    public boolean isSupabaseConfigured() {
-        String url = getSupabaseUrl();
-        String key = getSupabaseAnonKey();
-        
-        return !url.equals("https://your-project.supabase.co") && 
-               !key.equals("your-anon-key-here") &&
-               !url.isEmpty() && !key.isEmpty();
-    }
-    
-    /**
-     * Print current configuration (without sensitive data)
+     * Print current configuration
      */
     public void printConfig() {
         System.out.println("🔧 Current Configuration:");
@@ -174,10 +90,7 @@ public class AppConfig {
         System.out.println("App Name: " + getAppName());
         System.out.println("App Version: " + getAppVersion());
         System.out.println("Debug Mode: " + isDebugEnabled());
-        System.out.println("Offline Auth: " + isOfflineAuthEnabled());
-        System.out.println("Online Auth: " + isOnlineAuthEnabled());
-        System.out.println("Supabase URL: " + getSupabaseUrl());
-        System.out.println("Supabase Key: " + (isSupabaseConfigured() ? "✅ Configured" : "❌ Not Configured"));
+        System.out.println("Authentication: SQLite Database");
         System.out.println("========================\n");
     }
 }

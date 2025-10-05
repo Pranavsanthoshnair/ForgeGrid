@@ -6,7 +6,7 @@ echo "Building ForgeGrid..."
 mkdir -p bin
 
 # Compile Java source files with Java 17 compatibility
-javac -cp "lib/*" -d bin --release 17 src/main/java/com/forgegrid/app/*.java src/main/java/com/forgegrid/config/*.java src/main/java/com/forgegrid/managers/*.java src/main/java/com/forgegrid/model/*.java src/main/java/com/forgegrid/services/*.java src/main/java/com/forgegrid/ui/*.java src/main/java/com/forgegrid/ui/components/*.java src/main/java/com/forgegrid/utils/*.java
+javac -cp "lib/*" -d bin --release 17 src/main/java/com/forgegrid/app/*.java src/main/java/com/forgegrid/auth/*.java src/main/java/com/forgegrid/config/*.java src/main/java/com/forgegrid/db/*.java src/main/java/com/forgegrid/model/*.java src/main/java/com/forgegrid/ui/*.java src/main/java/com/forgegrid/ui/components/*.java
 
 # Copy resources to bin directory
 cp -r src/main/resources/* bin/
