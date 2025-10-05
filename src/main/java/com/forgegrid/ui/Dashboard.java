@@ -326,25 +326,74 @@ public class Dashboard extends JFrame {
         contentArea.setOpaque(false);
         contentArea.setLayout(new BoxLayout(contentArea, BoxLayout.Y_AXIS));
         
-        JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
-        placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        placeholderLabel.setForeground(TEXT_SECONDARY);
-        placeholderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JLabel infoLabel = new JLabel("Content and functionality will be added here.");
-        infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        infoLabel.setForeground(TEXT_SECONDARY);
-        infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        contentArea.add(placeholderLabel);
-        contentArea.add(Box.createVerticalStrut(10));
-        contentArea.add(infoLabel);
+        if (VIEW_HELP.equals(viewName)) {
+            // Help view: wire to open local markdown docs in the system viewer
+            JLabel intro = new JLabel("Open documentation:");
+            intro.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            intro.setForeground(TEXT_SECONDARY);
+            intro.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JButton userManualBtn = new JButton("Open User Manual (USER_MANUAL.md)");
+            userManualBtn.addActionListener(e -> openDoc("USER_MANUAL.md"));
+            styleLinkishButton(userManualBtn);
+
+            JButton techSetupBtn = new JButton("Open Technical Setup (TECHNICAL_SETUP.md)");
+            techSetupBtn.addActionListener(e -> openDoc("TECHNICAL_SETUP.md"));
+            styleLinkishButton(techSetupBtn);
+
+            contentArea.add(intro);
+            contentArea.add(Box.createVerticalStrut(10));
+            contentArea.add(userManualBtn);
+            contentArea.add(Box.createVerticalStrut(8));
+            contentArea.add(techSetupBtn);
+        } else {
+            JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
+            placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            placeholderLabel.setForeground(TEXT_SECONDARY);
+            placeholderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JLabel infoLabel = new JLabel("Content and functionality will be added here.");
+            infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            infoLabel.setForeground(TEXT_SECONDARY);
+            infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            contentArea.add(placeholderLabel);
+            contentArea.add(Box.createVerticalStrut(10));
+            contentArea.add(infoLabel);
+        }
         
         panel.add(titleLabel, BorderLayout.NORTH);
         panel.add(Box.createVerticalStrut(20));
         panel.add(contentArea, BorderLayout.CENTER);
         
         return panel;
+    }
+
+    private void openDoc(String filename) {
+        try {
+            java.io.File f = new java.io.File(filename).getAbsoluteFile();
+            if (!f.exists()) {
+                JOptionPane.showMessageDialog(this, "File not found: " + f.getPath(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(f);
+            } else {
+                JOptionPane.showMessageDialog(this, "Desktop open is not supported on this system.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Unable to open document: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void styleLinkishButton(AbstractButton b) {
+        b.setFocusPainted(false);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setOpaque(false);
+        b.setForeground(ACCENT_COLOR);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
     
     
