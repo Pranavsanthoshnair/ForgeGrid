@@ -2,6 +2,7 @@ package com.forgegrid.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -80,6 +81,7 @@ public class DatabaseHelper {
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
                 onboarding_completed INTEGER DEFAULT 0,
                 onboarding_goal TEXT,
@@ -94,8 +96,35 @@ public class DatabaseHelper {
             statement.execute(createTableSQL);
             System.out.println("Users table created/verified successfully");
             
-            // Add onboarding columns to existing tables (migration)
+            // Add onboarding and email columns to existing tables (migration)
             migrateOnboardingColumns();
+            migrateEmailColumn();
+        }
+    }
+    
+    /**
+     * Migrate existing users table to add email column if it doesn't exist
+     */
+    private void migrateEmailColumn() {
+        try (Statement statement = connection.createStatement()) {
+            // Check if email column exists
+            ResultSet rs = statement.executeQuery("PRAGMA table_info(users)");
+            boolean emailExists = false;
+            while (rs.next()) {
+                if ("email".equals(rs.getString("name"))) {
+                    emailExists = true;
+                    break;
+                }
+            }
+            rs.close();
+            
+            // Add email column if it doesn't exist
+            if (!emailExists) {
+                statement.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
+                System.out.println("Email column added to users table");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error migrating email column: " + e.getMessage());
         }
     }
     

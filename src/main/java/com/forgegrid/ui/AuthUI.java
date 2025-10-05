@@ -251,7 +251,7 @@ public class AuthUI extends JFrame {
         
         
         // Form fields
-        emailField = createModernTextField("Email");
+        emailField = createModernTextField("Username or Email");
         passwordField = createModernPasswordField("Password");
         
         // Add keyboard navigation
@@ -539,7 +539,7 @@ public class AuthUI extends JFrame {
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Form fields
-        nameField = createModernTextField("Full Name");
+        nameField = createModernTextField("Username");
         JTextField signupEmailField = createModernTextField("Email");
         JPasswordField signupPasswordField = createModernPasswordField("Password");
         
@@ -1471,7 +1471,7 @@ public class AuthUI extends JFrame {
     private void handleSignup(JTextField nameFieldParam, JTextField emailField, JPasswordField passwordField) {
         // Normalize placeholders just before reading values
         Object nPA2 = nameFieldParam.getClientProperty("placeholderActive");
-        if (Boolean.TRUE.equals(nPA2) && "Full Name".equalsIgnoreCase(nameFieldParam.getText().trim())) {
+        if (Boolean.TRUE.equals(nPA2) && "Username".equalsIgnoreCase(nameFieldParam.getText().trim())) {
             nameFieldParam.setText("");
             nameFieldParam.putClientProperty("placeholderActive", Boolean.FALSE);
             nameFieldParam.setForeground(Color.WHITE);
@@ -1496,7 +1496,7 @@ public class AuthUI extends JFrame {
         String password = new String(passwordField.getPassword());
 
         // Force-deactivate placeholders if user has typed real input
-        if (!name.isEmpty() && !"Full Name".equalsIgnoreCase(name)) {
+        if (!name.isEmpty() && !"Username".equalsIgnoreCase(name)) {
             nameFieldParam.putClientProperty("placeholderActive", Boolean.FALSE);
         }
         if (!email.isEmpty() && !"Email".equalsIgnoreCase(email)) {
@@ -1512,13 +1512,13 @@ public class AuthUI extends JFrame {
         boolean emailPlaceholderActive = Boolean.TRUE.equals(emailField.getClientProperty("placeholderActive"));
         boolean passPlaceholderActive = Boolean.TRUE.equals(passwordField.getClientProperty("placeholderActive"));
         
-        boolean emptyName = name.isEmpty() || (namePlaceholderActive && "Full Name".equalsIgnoreCase(name));
+        boolean emptyName = name.isEmpty() || (namePlaceholderActive && "Username".equalsIgnoreCase(name));
         boolean emptyEmail = email.isEmpty() || (emailPlaceholderActive && "Email".equalsIgnoreCase(email));
         boolean emptyPass = password.isEmpty() || (passPlaceholderActive && "Password".equalsIgnoreCase(password));
 
         if (emptyName || emptyEmail || emptyPass) {
             StringBuilder sb = new StringBuilder();
-            if (emptyName) sb.append("Name");
+            if (emptyName) sb.append("Username");
             if (emptyEmail) {
                 if (sb.length() > 0) sb.append(", ");
                 sb.append("Email");
@@ -1530,18 +1530,24 @@ public class AuthUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Please fill in all fields: " + sb.toString() + ".", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        // Check if username and email are the same
+        if (name.equalsIgnoreCase(email)) {
+            JOptionPane.showMessageDialog(this, 
+                "Username and Email cannot be the same.\nPlease use different values.", 
+                "Invalid Input", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         // Show loading state
         signupButton.setEnabled(false);
         signupButton.setText("Creating Account...");
         
-        // Use email as username for simplicity
-        String username = email;
-        
-        // Use SQLite authentication for registration
+        // Use SQLite authentication for registration with username, email, and password
         SwingUtilities.invokeLater(() -> {
             try {
-                boolean success = authService.register(username, password);
+                boolean success = authService.register(name, email, password);
                 
                 signupButton.setEnabled(true);
                 signupButton.setText("Sign Up");
@@ -1555,7 +1561,7 @@ public class AuthUI extends JFrame {
                     showLogin();
                     
                     // Reset signup fields to their placeholder state
-                    nameFieldParam.setText("Full Name");
+                    nameFieldParam.setText("Username");
                     nameFieldParam.putClientProperty("placeholderActive", Boolean.TRUE);
                     nameFieldParam.setForeground(new Color(200, 200, 220));
                     
