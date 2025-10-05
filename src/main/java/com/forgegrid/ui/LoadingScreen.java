@@ -158,48 +158,28 @@ public class LoadingScreen extends JPanel {
      * Start the spinner animation
      */
     private void startSpinner() {
-        spinnerTimer = new Timer(100, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Drive prize wheel physics and repaint
-                if (wheelSpinning) {
-                    // Update angle by velocity
-                    wheelAngle = (wheelAngle + wheelVelocity) % 360f;
-                    // Decelerate with friction
-                    wheelVelocity *= 0.965f;
-                    // Ticking when passing slice boundaries
-                    int idx = currentSliceIndex();
-                    if (idx != lastTickIndex) {
-                        java.awt.Toolkit.getDefaultToolkit().beep();
-                        lastTickIndex = idx;
-                    }
-                    // Stop condition
-                    if (wheelVelocity < 0.5f) {
-                        wheelVelocity = 0f;
-                        wheelSpinning = false;
-                        triggerWinEffects(idx);
-                    }
-                    if (spinnerContainer != null) spinnerContainer.repaint();
-                } else {
-                    // idle subtle wobble via pulse
-                    if (spinnerContainer != null) spinnerContainer.repaint();
+        spinnerTimer = new Timer(100, e -> {
+            if (wheelSpinning) {
+                wheelAngle = (wheelAngle + wheelVelocity) % 360f;
+                wheelVelocity *= 0.965f;
+                int idx = currentSliceIndex();
+                if (idx != lastTickIndex) {
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+                    lastTickIndex = idx;
+                }
+                if (wheelVelocity < 0.5f) {
+                    wheelVelocity = 0f;
+                    wheelSpinning = false;
+                    triggerWinEffects(idx);
                 }
             }
+            if (spinnerContainer != null) spinnerContainer.repaint();
         });
         spinnerTimer.start();
     }
     
-    /**
-     * Start the pulse animation
-     */
     private void startPulseAnimation() {
-        pulseTimer = new Timer(50, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pulseFrame++;
-                repaint();
-            }
-        });
+        pulseTimer = new Timer(50, e -> { pulseFrame++; repaint(); });
         pulseTimer.start();
     }
     
@@ -249,73 +229,41 @@ public class LoadingScreen extends JPanel {
     }
     
     
-    /**
-     * Fade-in effect when showing the loading screen
-     */
     private void startFadeIn() {
-        isFadingIn = true;
-        overlayAlpha = 255;
-        if (fadeTimer != null) fadeTimer.stop();
-        fadeTimer = new Timer(16, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                overlayAlpha -= 20; // ~200ms total
-                if (overlayAlpha <= 0) {
-                    overlayAlpha = 0;
-                    fadeTimer.stop();
-                }
-                repaint();
-            }
-        });
-        fadeTimer.start();
+        startFade(true, 255, -20, null);
     }
     
-    /**
-     * Fade-out effect before switching away
-     */
     public void startFadeOut(Runnable onComplete) {
-        isFadingIn = false;
-        overlayAlpha = 0;
+        startFade(false, 0, 15, onComplete);
+    }
+    
+    private void startFade(boolean fadeIn, int startAlpha, int delta, Runnable onComplete) {
+        isFadingIn = fadeIn;
+        overlayAlpha = startAlpha;
         if (fadeTimer != null) fadeTimer.stop();
-        fadeTimer = new Timer(16, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                overlayAlpha += 15; // ~270ms total
-                if (overlayAlpha >= 255) {
-                    overlayAlpha = 255;
-                    fadeTimer.stop();
-                    if (onComplete != null) onComplete.run();
-                }
-                repaint();
+        fadeTimer = new Timer(16, e -> {
+            overlayAlpha += delta;
+            boolean done = delta < 0 ? overlayAlpha <= 0 : overlayAlpha >= 255;
+            if (done) {
+                overlayAlpha = delta < 0 ? 0 : 255;
+                fadeTimer.stop();
+                if (onComplete != null) onComplete.run();
             }
+            repaint();
         });
         fadeTimer.start();
     }
     
-    /**
-     * Start the message animation
-     */
     private void startMessageAnimation() {
-        Timer messageTimer = new Timer(2000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                messageIndex = (messageIndex + 1) % loadingMessages.length;
-                statusLabel.setText(loadingMessages[messageIndex]);
-            }
-        });
-        messageTimer.start();
+        new Timer(2000, e -> {
+            messageIndex = (messageIndex + 1) % loadingMessages.length;
+            statusLabel.setText(loadingMessages[messageIndex]);
+        }).start();
     }
     
-    /**
-     * Stop all animations
-     */
     public void stopSpinner() {
-        if (spinnerTimer != null) {
-            spinnerTimer.stop();
-        }
-        if (pulseTimer != null) {
-            pulseTimer.stop();
-        }
+        if (spinnerTimer != null) spinnerTimer.stop();
+        if (pulseTimer != null) pulseTimer.stop();
     }
     
 
@@ -325,13 +273,8 @@ public class LoadingScreen extends JPanel {
         int life;
     }
 
-    // Linear color interpolation helper for animated gradient
     private static Color lerpColor(Color a, Color b, float t) {
-        t = Math.max(0f, Math.min(1f, t));
-        int r = (int) (a.getRed() + (b.getRed() - a.getRed()) * t);
-        int g = (int) (a.getGreen() + (b.getGreen() - a.getGreen()) * t);
-        int bl = (int) (a.getBlue() + (b.getBlue() - a.getBlue()) * t);
-        return new Color(r, g, bl);
+        return AnimationUtils.lerpColor(a, b, t);
     }
 
     private class PrizeWheelPanel extends JPanel {
