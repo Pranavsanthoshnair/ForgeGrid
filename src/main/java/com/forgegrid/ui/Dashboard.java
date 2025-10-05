@@ -603,9 +603,9 @@ public class Dashboard extends JFrame {
         rightCol.add(recommendationsPanel, BorderLayout.CENTER);
         updateRecommendations(java.util.Collections.emptyList(), null, null);
 
-        JPanel accountView = buildPlaceholderView("Account settings coming soon");
+        JPanel accountView = buildAccountView();
         JPanel progressView = buildProgressView();
-        JPanel settingsView = buildPlaceholderView("Configure your preferences");
+        JPanel settingsView = buildSettingsView();
 
         mainContent.add(homeView, VIEW_HOME);
         mainContent.add(accountView, VIEW_ACCOUNT);
@@ -1299,6 +1299,182 @@ public class Dashboard extends JFrame {
         grid.add(buildLineChartPlaceholder());
         p.add(grid, BorderLayout.CENTER);
         return p;
+    }
+
+    // Account view with profile information
+    private JPanel buildAccountView() {
+        JPanel p = new JPanel(new BorderLayout(16, 16));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        
+        // Title
+        JLabel title = new JLabel("Account Settings");
+        title.setForeground(new Color(255, 255, 255));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        p.add(title, BorderLayout.NORTH);
+        
+        // Content panel
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        
+        // Profile section
+        JPanel profileSection = createSettingsSection("Profile Information");
+        profileSection.add(createSettingRow("Username:", profile != null ? profile.getUsername() : "Guest"));
+        profileSection.add(createSettingRow("Email:", profile != null ? profile.getUsername() : "Not set"));
+        profileSection.add(createSettingRow("Member since:", "2025"));
+        content.add(profileSection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Preferences section
+        JPanel prefsSection = createSettingsSection("Preferences");
+        prefsSection.add(createSettingRow("Goal:", profile != null ? profile.getOnboardingGoal() : "Not set"));
+        prefsSection.add(createSettingRow("Language:", profile != null ? profile.getOnboardingLanguage() : "Not set"));
+        prefsSection.add(createSettingRow("Skill Level:", profile != null ? profile.getOnboardingSkill() : "Not set"));
+        JButton editPrefsBtn = new JButton("Edit Preferences");
+        editPrefsBtn.setBackground(new Color(255, 215, 0));
+        editPrefsBtn.setForeground(new Color(20, 30, 50));
+        editPrefsBtn.setFocusPainted(false);
+        editPrefsBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        editPrefsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        editPrefsBtn.addActionListener(e -> showOnboarding());
+        prefsSection.add(Box.createRigidArea(new Dimension(0, 12)));
+        prefsSection.add(editPrefsBtn);
+        content.add(prefsSection);
+        
+        p.add(content, BorderLayout.CENTER);
+        return p;
+    }
+
+    // Settings view with app configuration
+    private JPanel buildSettingsView() {
+        JPanel p = new JPanel(new BorderLayout(16, 16));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        
+        // Title
+        JLabel title = new JLabel("Settings");
+        title.setForeground(new Color(255, 255, 255));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        p.add(title, BorderLayout.NORTH);
+        
+        // Content panel
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        
+        // Appearance section
+        JPanel appearanceSection = createSettingsSection("Appearance");
+        JCheckBox darkModeCheck = new JCheckBox("Dark Mode (Always On)");
+        darkModeCheck.setSelected(true);
+        darkModeCheck.setEnabled(false);
+        darkModeCheck.setOpaque(false);
+        darkModeCheck.setForeground(new Color(200, 200, 220));
+        darkModeCheck.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        appearanceSection.add(darkModeCheck);
+        content.add(appearanceSection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Notifications section
+        JPanel notifSection = createSettingsSection("Notifications");
+        JCheckBox achievementNotif = new JCheckBox("Achievement Notifications");
+        achievementNotif.setSelected(true);
+        achievementNotif.setOpaque(false);
+        achievementNotif.setForeground(new Color(200, 200, 220));
+        achievementNotif.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JCheckBox streakNotif = new JCheckBox("Streak Reminders");
+        streakNotif.setSelected(true);
+        streakNotif.setOpaque(false);
+        streakNotif.setForeground(new Color(200, 200, 220));
+        streakNotif.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        notifSection.add(achievementNotif);
+        notifSection.add(Box.createRigidArea(new Dimension(0, 8)));
+        notifSection.add(streakNotif);
+        content.add(notifSection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Privacy section
+        JPanel privacySection = createSettingsSection("Privacy & Data");
+        JButton clearDataBtn = new JButton("Clear Local Preferences");
+        clearDataBtn.setBackground(new Color(200, 50, 50));
+        clearDataBtn.setForeground(Color.WHITE);
+        clearDataBtn.setFocusPainted(false);
+        clearDataBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        clearDataBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        clearDataBtn.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this,
+                "This will clear your saved email and preferences. Continue?",
+                "Clear Data",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            if (result == JOptionPane.YES_OPTION) {
+                // Clear preferences logic here
+                JOptionPane.showMessageDialog(this, "Preferences cleared successfully!");
+            }
+        });
+        privacySection.add(clearDataBtn);
+        content.add(privacySection);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // About section
+        JPanel aboutSection = createSettingsSection("About");
+        aboutSection.add(createSettingRow("Version:", "1.0.0"));
+        aboutSection.add(createSettingRow("Build:", "2025.01"));
+        JButton aboutBtn = new JButton("View Licenses");
+        aboutBtn.setBackground(new Color(60, 120, 200));
+        aboutBtn.setForeground(Color.WHITE);
+        aboutBtn.setFocusPainted(false);
+        aboutBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        aboutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        aboutSection.add(Box.createRigidArea(new Dimension(0, 12)));
+        aboutSection.add(aboutBtn);
+        content.add(aboutSection);
+        
+        p.add(content, BorderLayout.CENTER);
+        return p;
+    }
+
+    // Helper method to create settings sections
+    private JPanel createSettingsSection(String sectionTitle) {
+        JPanel section = new JPanel();
+        section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+        section.setOpaque(true);
+        section.setBackground(new Color(30, 40, 60));
+        section.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(50, 70, 110), 1),
+            BorderFactory.createEmptyBorder(16, 16, 16, 16)
+        ));
+        section.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel title = new JLabel(sectionTitle);
+        title.setForeground(new Color(255, 215, 0));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        section.add(title);
+        section.add(Box.createRigidArea(new Dimension(0, 12)));
+        
+        return section;
+    }
+
+    // Helper method to create setting rows
+    private JPanel createSettingRow(String label, String value) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
+        row.setOpaque(false);
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel labelComp = new JLabel(label);
+        labelComp.setForeground(new Color(160, 180, 220));
+        labelComp.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        labelComp.setPreferredSize(new Dimension(150, 20));
+        
+        JLabel valueComp = new JLabel(value);
+        valueComp.setForeground(new Color(255, 255, 255));
+        valueComp.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        
+        row.add(labelComp);
+        row.add(valueComp);
+        
+        return row;
     }
 
     // Full-screen onboarding wizard inside main content

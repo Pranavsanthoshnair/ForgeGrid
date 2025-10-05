@@ -14,10 +14,7 @@ public class LoadingScreen extends JPanel {
     private JLabel brandLabel;
     private JLabel taglineLabel;
     private PrizeWheelPanel spinnerContainer; // now a prize wheel
-    private Timer spinnerTimer;
-    private Timer pulseTimer;
-    private Timer symbolTimer;
-    private Timer fadeTimer;
+    private Timer spinnerTimer, pulseTimer, fadeTimer;
     private int pulseFrame = 0;
     private final String[] loadingMessages = {
         "Initializing ForgeGrid...",
@@ -93,38 +90,7 @@ public class LoadingScreen extends JPanel {
                         g2d.fillRect(0, 0, w, h);
                     }
                 } else {
-                    // Animated gradient background (navy -> purple -> dark teal)
-                    int H = Math.max(1, getHeight());
-                    int W = Math.max(1, getWidth());
-                    float phase = (pulseFrame % 900) / 900f; // ~36s cycle at 40ms ticks
-                    Color navy = new Color(10, 22, 50);
-                    Color purple = new Color(16, 46, 92);
-                    Color teal = new Color(22, 60, 110);
-                    Color top;
-                    Color bottom;
-                    float seg = 1f / 3f;
-                    if (phase < seg) {
-                        float t = phase / seg;
-                        top = LoadingScreen.lerpColor(navy, purple, t);
-                        bottom = LoadingScreen.lerpColor(LoadingScreen.lerpColor(navy, teal, t * 0.6f), purple, t * 0.3f);
-                    } else if (phase < 2 * seg) {
-                        float t = (phase - seg) / seg;
-                        top = LoadingScreen.lerpColor(purple, teal, t);
-                        bottom = LoadingScreen.lerpColor(LoadingScreen.lerpColor(purple, navy, t * 0.6f), teal, t * 0.3f);
-                    } else {
-                        float t = (phase - 2 * seg) / seg;
-                        top = LoadingScreen.lerpColor(teal, navy, t);
-                        bottom = LoadingScreen.lerpColor(LoadingScreen.lerpColor(teal, purple, t * 0.6f), navy, t * 0.3f);
-                    }
-                    int offsetY = (int) (Math.sin(pulseFrame * 0.01) * H * 0.05);
-                    int y1 = -offsetY;
-                    int y2 = H + offsetY;
-                    GradientPaint gradient = new GradientPaint(
-                        0, y1, top,
-                        0, y2, bottom
-                    );
-                    g2d.setPaint(gradient);
-                    g2d.fillRect(0, 0, W, H);
+                    paintAnimatedGradient(g2d, getWidth(), getHeight());
                 }
                 
                 // Background animations removed for cleaner look
@@ -206,14 +172,10 @@ public class LoadingScreen extends JPanel {
         startFadeIn();
     }
     
-    /**
-     * Start all animations
-     */
     private void startAnimations() {
         startSpinner();
         startPulseAnimation();
         startMessageAnimation();
-        // Symbols animation removed
     }
     
     /**
