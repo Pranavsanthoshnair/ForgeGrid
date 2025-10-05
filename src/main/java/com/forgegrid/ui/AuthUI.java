@@ -167,10 +167,13 @@ public class AuthUI extends JFrame {
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
+        // Check if user has completed onboarding to determine if we should skip the dashboard welcome screen
+        boolean skipWelcome = currentProfile != null && currentProfile.isOnboardingCompleted();
+        
         JPanel dashboardHost = new JPanel(new BorderLayout());
         dashboardHost.setOpaque(false);
         // Reuse existing Dashboard panel building by instantiating and extracting its content pane
-        Dashboard dashFrame = new Dashboard(currentProfile);
+        Dashboard dashFrame = new Dashboard(currentProfile, skipWelcome);
         // Apply onboarding selections to dashboard UI
         dashFrame.applyOnboardingSelections(goal, language, skill, null);
         Component content = dashFrame.getContentPane();
@@ -656,18 +659,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int fieldWidth = (int) (520 * scale);
-        int fieldHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        fieldWidth = Math.max(250, fieldWidth);
-        fieldHeight = Math.max(50, fieldHeight);
+        // Use fixed dimensions for consistent sizing
+        int fieldWidth = 520;
+        int fieldHeight = 70;
         
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         field.setBackground(new Color(25, 35, 55));
         field.setForeground(new Color(220, 220, 240));
@@ -865,18 +863,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int fieldWidth = (int) (520 * scale);
-        int fieldHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        fieldWidth = Math.max(250, fieldWidth);
-        fieldHeight = Math.max(50, fieldHeight);
+        // Use fixed dimensions for consistent sizing
+        int fieldWidth = 520;
+        int fieldHeight = 70;
         
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         field.setBackground(new Color(25, 35, 55));
         field.setForeground(new Color(220, 220, 240));
@@ -1069,18 +1062,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(50, buttonHeight);
+        // Use fixed dimensions for consistent button sizing
+        int buttonWidth = 520;
+        int buttonHeight = 70;
         
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(16, (int) (22 * scale))));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
         button.setForeground(Color.WHITE);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -1128,18 +1116,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (65 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(45, buttonHeight);
+        // Use fixed dimensions for consistent button sizing
+        int buttonWidth = 520;
+        int buttonHeight = 70;
         
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
+        button.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));
         button.setForeground(new Color(200, 200, 220));
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -1229,18 +1212,13 @@ public class AuthUI extends JFrame {
             }
         };
 
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(50, buttonHeight);
+        // Use fixed dimensions for consistent button sizing
+        int buttonWidth = 520;
+        int buttonHeight = 70;
         
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(16, (int) (22 * scale))));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
         button.setForeground(foregroundColor);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -1412,10 +1390,9 @@ public class AuthUI extends JFrame {
             return;
         }
         
-        // Show loading state and switch to loading card before authentication
+        // Show loading state on button
         loginButton.setEnabled(false);
         loginButton.setText("Authenticating...");
-        showCard("LOADING");
         
         // Use SQLite authentication
         SwingUtilities.invokeLater(() -> {
@@ -1442,19 +1419,20 @@ public class AuthUI extends JFrame {
                     
                     // Check if user has completed onboarding
                     if (profile.isOnboardingCompleted()) {
-                        System.out.println("→ Skipping onboarding, going to dashboard");
-                        // Skip onboarding, go directly to dashboard
+                        System.out.println("→ Showing loading screen, then going to dashboard");
+                        // Show loading screen, then go to dashboard
+                        showCard("LOADING");
                         new javax.swing.Timer(600, e2 -> {
                             ((javax.swing.Timer) e2.getSource()).stop();
-                            // Load onboarding data and go to dashboard
                             String goal = profile.getOnboardingGoal();
                             String language = profile.getOnboardingLanguage();
                             String skill = profile.getOnboardingSkill();
                             openDashboardInCard(goal, language, skill);
                         }).start();
                     } else {
-                        System.out.println("→ Showing onboarding questions");
-                        // Navigate to in-app onboarding within same window
+                        System.out.println("→ Showing loading screen then onboarding questions");
+                        // Show loading screen for new users, then navigate to onboarding
+                        showCard("LOADING");
                         new javax.swing.Timer(600, e2 -> {
                             ((javax.swing.Timer) e2.getSource()).stop();
                             showCard("ONBOARDING");
@@ -1652,25 +1630,16 @@ public class AuthUI extends JFrame {
     }
     
     private void refreshComponentSizes() {
-        // Calculate proportional scaling factor based on current frame size
-        double scale = calculateProportionalScale();
+        // Use fixed sizes for consistent button dimensions
+        int fieldWidth = 520;
+        int fieldHeight = 70;
+        int buttonHeight = 70;
+        int glassButtonHeight = 70;
         
-        // Calculate proportional sizes
-        int fieldWidth = (int) (520 * scale);
-        int fieldHeight = (int) (70 * scale);
-        int buttonHeight = (int) (168 * scale);
-        int glassButtonHeight = (int) (156 * scale);
-        
-        // Ensure minimum sizes
-        fieldWidth = Math.max(250, fieldWidth);
-        fieldHeight = Math.max(50, fieldHeight);
-        buttonHeight = Math.max(112, buttonHeight);
-        glassButtonHeight = Math.max(104, glassButtonHeight);
-        
-        // Calculate proportional font sizes
-        int fieldFontSize = Math.max(14, (int) (20 * scale));
-        int buttonFontSize = Math.max(18, (int) (26 * scale));
-        int glassButtonFontSize = Math.max(16, (int) (22 * scale));
+        // Use fixed font sizes
+        int fieldFontSize = 20;
+        int buttonFontSize = 22;
+        int glassButtonFontSize = 20;
         
         // Update field sizes and fonts
         if (emailField != null) {

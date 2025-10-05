@@ -11,8 +11,6 @@ import java.util.Random;
 public class Dashboard extends JFrame {
 
     private final PlayerProfile profile;
-    private CardLayout cardLayout;
-    private JPanel root;
     // Simple state for demo - all set to 0 for fresh start
     private int problemsSolved = 0;
     private int problemsGoal = 100;
@@ -40,15 +38,11 @@ public class Dashboard extends JFrame {
     private static final String VIEW_SETTINGS = "settings";
     private static final String VIEW_ONBOARDING = "onboarding";
 
-    private static final List<String> QUOTES = java.util.Arrays.asList(
-            "Every day is a chance to get better.",
-            "Small steps add up to big results.",
-            "Stay focused. Keep grinding. Forge your path.",
-            "Your future is created by what you do today.",
-            "Great things take time. Keep going."
-    );
-
     public Dashboard(PlayerProfile profile) {
+        this(profile, false); // Default: show welcome screen
+    }
+    
+    public Dashboard(PlayerProfile profile, boolean skipWelcome) {
         this.profile = profile;
         setTitle("ForgeGrid - Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -56,105 +50,14 @@ public class Dashboard extends JFrame {
         setLocationRelativeTo(null);
         setMinimumSize(new Dimension(720, 480));
 
-        initUI();
+        initUI(skipWelcome);
     }
 
-    private void initUI() {
-        cardLayout = new CardLayout();
-        root = new JPanel(cardLayout);
-        root.setBackground(new Color(11, 23, 54)); // Dark navy #0B1736
-        setContentPane(root);
-
-        JPanel welcomePanel = buildWelcomePanel();
+    private void initUI(boolean skipWelcome) {
+        // Directly show dashboard without any welcome screen
         JPanel dashboardPanel = buildDashboardPanel();
-
-        root.add(welcomePanel, "welcome");
-        root.add(dashboardPanel, "dashboard");
-
-        // Auto-switch to dashboard after ~5 seconds
-        Timer timer = new Timer(5000, e -> cardLayout.show(root, "dashboard"));
-        timer.setRepeats(false);
-        timer.start();
-    }
-
-    private String getRandomQuote() {
-        Random r = new Random();
-        return QUOTES.get(r.nextInt(QUOTES.size()));
-    }
-
-    private JPanel buildWelcomePanel() {
-        NeonBackgroundPanel bg = new NeonBackgroundPanel();
-        bg.setLayout(new BorderLayout());
-
-        JPanel center = new JPanel();
-        center.setOpaque(false);
-        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-        center.setBorder(BorderFactory.createEmptyBorder(80, 40, 60, 40));
-
-        JLabel heading = new JLabel("Welcome to ForgeGrid");
-        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        heading.setForeground(Color.WHITE);
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 36));
-
-        String username = profile != null && profile.getUsername() != null ? profile.getUsername() : "Player";
-        JLabel user = new JLabel(username);
-        user.setAlignmentX(Component.CENTER_ALIGNMENT);
-        user.setForeground(new Color(120, 200, 255));
-        user.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-
-        JLabel quote = new JLabel(getRandomQuote());
-        quote.setAlignmentX(Component.CENTER_ALIGNMENT);
-        quote.setForeground(new Color(210, 220, 235));
-        quote.setFont(new Font("Segoe UI", Font.ITALIC, 16));
-
-        center.add(heading);
-        center.add(Box.createRigidArea(new Dimension(0, 12)));
-        center.add(user);
-        center.add(Box.createRigidArea(new Dimension(0, 18)));
-        center.add(quote);
-        center.add(Box.createRigidArea(new Dimension(0, 28)));
-
-        JProgressBar loading = new JProgressBar();
-        loading.setIndeterminate(false);
-        loading.setMinimum(0);
-        loading.setMaximum(100);
-        loading.setValue(0);
-        loading.setStringPainted(false);
-        loading.setBackground(new Color(40, 45, 60));
-        loading.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
-        loading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loading.setPreferredSize(new Dimension(420, 22));
-        loading.setUI(new BasicProgressBarUI() {
-            @Override
-            protected void paintDeterminate(Graphics g, JComponent c) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int w = progressBar.getWidth();
-                int h = progressBar.getHeight();
-                g2.setColor(new Color(30, 35, 50));
-                g2.fillRoundRect(0, 0, w, h, h, h);
-                int fill = (int) Math.round(((double) progressBar.getValue() / progressBar.getMaximum()) * w);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(250, 210, 80), w, 0, new Color(60, 190, 255));
-                g2.setPaint(gp);
-                g2.fillRoundRect(0, 0, fill, h, h, h);
-                g2.dispose();
-            }
-        });
-        center.add(loading);
-
-        // Animate loading to complete in ~5 seconds
-        Timer loadAnim = new Timer(50, e -> {
-            int v = loading.getValue();
-            if (v >= 100) {
-                ((Timer) e.getSource()).stop();
-            } else {
-                loading.setValue(v + 2); // 50ms * 50 steps = ~2.5s; doubled timer is 5s with 2 increment
-            }
-        });
-        loadAnim.start();
-
-        bg.add(center, BorderLayout.CENTER);
-        return bg;
+        dashboardPanel.setBackground(new Color(11, 23, 54)); // Dark navy #0B1736
+        setContentPane(dashboardPanel);
     }
 
     private JPanel buildDashboardPanel() {
