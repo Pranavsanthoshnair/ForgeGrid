@@ -54,12 +54,12 @@ public class Dashboard extends JFrame {
     private void initUI(boolean skipWelcome) {
         // Directly show dashboard without any welcome screen
         JPanel dashboardPanel = buildDashboardPanel();
-        dashboardPanel.setBackground(new Color(11, 23, 54)); // Dark navy #0B1736
+        dashboardPanel.setBackground(new Color(25, 35, 55)); // Match AuthUI background
         setContentPane(dashboardPanel);
     }
 
     private JPanel buildDashboardPanel() {
-        // Static gradient background without animations
+        // Static solid background matching AuthUI
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -67,12 +67,8 @@ public class Dashboard extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Dark blue gradient background
-                GradientPaint bgGradient = new GradientPaint(
-                    0, 0, new Color(11, 23, 54),
-                    getWidth(), getHeight(), new Color(19, 38, 77)
-                );
-                g2.setPaint(bgGradient);
+                // Solid dark blue background matching AuthUI (25, 35, 55)
+                g2.setColor(new Color(25, 35, 55));
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 
                 g2.dispose();
