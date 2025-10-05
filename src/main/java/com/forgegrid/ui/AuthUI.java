@@ -147,6 +147,10 @@ public class AuthUI extends JFrame {
             openDashboardInCard(goal, language, skill);
         });
         addWithFade(onboarding, "ONBOARDING");
+
+        // Inline onboarding prompt card (asks Yes/No inside app UI)
+        JPanel onboardingPrompt = createOnboardingPromptPanel();
+        addWithFade(onboardingPrompt, "ONBOARDING_PROMPT");
         
         add(cardPanel);
         
@@ -1222,26 +1226,12 @@ public class AuthUI extends JFrame {
                     System.out.println("Onboarding Language: " + profile.getOnboardingLanguage());
                     System.out.println("Onboarding Skill: " + profile.getOnboardingSkill());
                     
-                    // Always show loading, then ask whether to do onboarding now
-                    System.out.println("→ Showing loading screen then asking onboarding preference");
+                    // Always show loading, then show inline onboarding prompt card
+                    System.out.println("→ Showing loading screen then inline onboarding prompt");
                     showCard("LOADING");
-                    new javax.swing.Timer(600, e2 -> {
+                    new javax.swing.Timer(3500, e2 -> {
                         ((javax.swing.Timer) e2.getSource()).stop();
-                        int choice = JOptionPane.showConfirmDialog(
-                            this,
-                            "Would you like to answer quick onboarding questions now?",
-                            "Onboarding",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE
-                        );
-                        if (choice == JOptionPane.YES_OPTION) {
-                            showCard("ONBOARDING");
-                        } else {
-                            String goal = profile.getOnboardingGoal();
-                            String language = profile.getOnboardingLanguage();
-                            String skill = profile.getOnboardingSkill();
-                            openDashboardInCard(goal, language, skill);
-                        }
+                        showCard("ONBOARDING_PROMPT");
                     }).start();
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
@@ -1708,6 +1698,50 @@ public class AuthUI extends JFrame {
             cardPanel.repaint();
             if (emailField != null) emailField.requestFocusInWindow();
         });
+    }
+
+    private JPanel createOnboardingPromptPanel() {
+        JPanel panel = new NeonBackgroundPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        CardContainerPanel card = new CardContainerPanel();
+        card.setAlignmentX(Component.CENTER_ALIGNMENT);
+        int cardMaxW = Math.max(600, (int)(600 * calculateProportionalScale()));
+        card.setMaximumSize(new Dimension(cardMaxW, Integer.MAX_VALUE));
+
+        JLabel title = new JLabel("Do onboarding now?");
+        title.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
+        title.setForeground(new Color(240, 240, 240));
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel subtitle = new JLabel("Answer a few quick questions to personalize your dashboard.");
+        subtitle.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
+        subtitle.setForeground(new Color(200, 200, 220));
+        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton yesBtn = createSolidButton("Yes, start onboarding", PRIMARY_COLOR, Color.BLACK);
+        JButton skipBtn = createGlassButton("Skip for now – go to dashboard");
+
+        yesBtn.addActionListener(e -> showCard("ONBOARDING"));
+        skipBtn.addActionListener(e -> {
+            String goal = currentProfile != null ? currentProfile.getOnboardingGoal() : null;
+            String language = currentProfile != null ? currentProfile.getOnboardingLanguage() : null;
+            String skill = currentProfile != null ? currentProfile.getOnboardingSkill() : null;
+            openDashboardInCard(goal, language, skill);
+        });
+
+        card.add(Box.createRigidArea(new Dimension(0, 30)));
+        card.add(title);
+        card.add(Box.createRigidArea(new Dimension(0, 10)));
+        card.add(subtitle);
+        card.add(Box.createRigidArea(new Dimension(0, 30)));
+        card.add(yesBtn);
+        card.add(Box.createRigidArea(new Dimension(0, 15)));
+        card.add(skipBtn);
+
+        panel.add(card);
+        panel.add(Box.createVerticalGlue());
+        return panel;
     }
 
 }
