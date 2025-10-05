@@ -119,7 +119,7 @@ public class OnboardingInAppPanel extends JPanel {
 		center.add(optionsWrap);
 		center.add(Box.createRigidArea(new Dimension(0, 20)));
 
-		JButton continueBtn = createContinueButton();
+        JButton continueBtn = createContinueButton();
 		continueBtn.setEnabled(false);
 		for (Component c : optionsWrap.getComponents()) {
 			if (c instanceof JToggleButton tb) {
@@ -151,10 +151,8 @@ public class OnboardingInAppPanel extends JPanel {
         continueBtn.setPreferredSize(new Dimension(240, 34));
         continueBtn.setMaximumSize(new Dimension(240, 34));
 		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
-		// Darker gradient colors
-        Color darkBlue = new Color(30, 50, 80);
-        Color darkPink = new Color(100, 30, 80);
-        JComponent gradientButton = Theme.asGradientButton(continueBtn, darkBlue, darkPink, 18);
+        // Use standardized theme gradient colors for consistency
+        JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 18);
         Dimension contSize = new Dimension(240, 34);
         gradientButton.setPreferredSize(contSize);
         gradientButton.setMinimumSize(contSize);
@@ -182,9 +180,7 @@ public class OnboardingInAppPanel extends JPanel {
             Dimension backSize = new Dimension(240, 34);
             backBtn.setPreferredSize(backSize);
             backBtn.setMaximumSize(backSize);
-            Color backBlue = new Color(60, 70, 90);
-            Color backGray = new Color(80, 90, 110);
-            JComponent backGradientButton = Theme.asGradientButton(backBtn, backBlue, backGray, 18);
+            JComponent backGradientButton = Theme.asGradientButton(backBtn, Theme.BRAND_BLUE.darker(), new Color(80, 90, 110), 18);
             backGradientButton.setPreferredSize(backSize);
             backGradientButton.setMinimumSize(backSize);
             backGradientButton.setMaximumSize(backSize);

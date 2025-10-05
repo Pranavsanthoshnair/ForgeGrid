@@ -142,35 +142,11 @@ public class LoadingScreen extends JPanel {
         centerPanel.setOpaque(false);
         centerPanel.setBorder(BorderFactory.createEmptyBorder(80, 50, 80, 50));
         
-        // Brand label with subtle glow
-        brandLabel = new JLabel("ForgeGrid", JLabel.CENTER) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                String text = getText();
-                Font font = getFont();
-                g2d.setFont(font);
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(text);
-                int textHeight = fm.getAscent();
-                int x = (getWidth() - textWidth) / 2;
-                int y = (getHeight() + textHeight) / 2 - 6;
-                // Glow layers
-                for (int i = 8; i >= 1; i--) {
-                    g2d.setColor(new Color(255, 215, 0, 12));
-                    g2d.setStroke(new BasicStroke(i));
-                    g2d.drawString(text, x, y);
-                }
-                // Main text
-                g2d.setColor(new Color(255, 215, 0));
-                g2d.drawString(text, x, y);
-                g2d.dispose();
-            }
-        };
-        brandLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 48));
-        brandLabel.setForeground(new Color(255, 215, 0));
-        brandLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Brand label using shared GradientTextLabel for consistency
+        GradientTextLabel brand = new GradientTextLabel("ForgeGrid");
+        brand.setFont(new Font("Trebuchet MS", Font.BOLD, 48));
+        brand.setGradient(Theme.BRAND_YELLOW, Theme.BRAND_GOLD);
+        brand.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Tagline label
         taglineLabel = new JLabel("where coding challenges become milestones", JLabel.CENTER);
@@ -194,7 +170,7 @@ public class LoadingScreen extends JPanel {
         
         // Add components
         centerPanel.add(Box.createVerticalGlue());
-        centerPanel.add(brandLabel);
+        centerPanel.add(brand);
         centerPanel.add(taglineLabel);
         centerPanel.add(spinnerContainer);
         centerPanel.add(statusLabel);

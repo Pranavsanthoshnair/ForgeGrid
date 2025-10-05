@@ -316,16 +316,15 @@ public class Dashboard extends JFrame {
         panel.setBackground(BG_COLOR);
         panel.setBorder(new EmptyBorder(30, 40, 30, 40));
         
-        // Title
-        JLabel titleLabel = new JLabel(viewName);
+        // Title using shared GradientTextLabel for consistency
+        GradientTextLabel titleLabel = new GradientTextLabel(viewName);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setGradient(new Color(255, 215, 0), ACCENT_COLOR);
         
-        // Content area
-        JPanel contentArea = new JPanel();
+        // Content area wrapped in reusable CardContainerPanel
+        JPanel contentArea = new CardContainerPanel();
+        contentArea.setOpaque(false);
         contentArea.setLayout(new BoxLayout(contentArea, BoxLayout.Y_AXIS));
-        contentArea.setBackground(PANEL_COLOR);
-        contentArea.setBorder(new EmptyBorder(40, 40, 40, 40));
         
         JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
         placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));

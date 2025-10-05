@@ -233,12 +233,9 @@ public class AuthUI extends JFrame {
         welcomePart.setFont(new Font("Segoe UI", Font.BOLD, 32));
         welcomePart.setForeground(new Color(240, 240, 240));
         
-        GradientTextLabel brandPart = new GradientTextLabel(
-            "ForgeGrid",
-            new Font("Segoe UI", Font.BOLD, 34),
-            PRIMARY_COLOR, // primary golden yellow
-            SECONDARY_COLOR  // secondary blue
-        );
+        GradientTextLabel brandPart = new GradientTextLabel("ForgeGrid");
+        brandPart.setFont(new Font("Segoe UI", Font.BOLD, 34));
+        brandPart.setGradient(PRIMARY_COLOR, SECONDARY_COLOR);
         
         // Create a container panel to hold both labels
         JPanel titleContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -279,7 +276,16 @@ public class AuthUI extends JFrame {
             }
         });
         
-        loginButton = createGradientButton("Login", PRIMARY_COLOR, new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20));
+        loginButton = new JButton("Login");
+        Theme.stylePrimaryButton(loginButton);
+        loginButton.setMaximumSize(new Dimension(520, 70));
+        loginButton.setPreferredSize(new Dimension(520, 70));
+        JComponent loginGradientWrap = Theme.asGradientButton(
+            loginButton,
+            PRIMARY_COLOR,
+            new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20),
+            20
+        );
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
         
         // Add arrow key navigation to login button
@@ -507,7 +513,7 @@ public class AuthUI extends JFrame {
         card.add(Box.createRigidArea(new Dimension(0, 10)));
         card.add(forgotPasswordLink);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
-        card.add(loginButton);
+        card.add(loginGradientWrap);
         card.add(Box.createRigidArea(new Dimension(0, 15)));
         card.add(switchToSignupButton);
 
@@ -581,7 +587,16 @@ public class AuthUI extends JFrame {
             }
         });
         
-        signupButton = createGradientButton("Sign Up", SECONDARY_COLOR, new Color(SECONDARY_COLOR.getRed() - 20, SECONDARY_COLOR.getGreen() - 20, SECONDARY_COLOR.getBlue() - 20));
+        signupButton = new JButton("Sign Up");
+        Theme.stylePrimaryButton(signupButton);
+        signupButton.setMaximumSize(new Dimension(520, 70));
+        signupButton.setPreferredSize(new Dimension(520, 70));
+        JComponent signupGradientWrap = Theme.asGradientButton(
+            signupButton,
+            SECONDARY_COLOR,
+            new Color(SECONDARY_COLOR.getRed() - 20, SECONDARY_COLOR.getGreen() - 20, SECONDARY_COLOR.getBlue() - 20),
+            20
+        );
         JButton switchToLoginButton = createGlassButton("Already have an account? Login");
         
         // Add arrow key navigation to signup button
@@ -616,7 +631,7 @@ public class AuthUI extends JFrame {
         signupCard.add(Box.createRigidArea(new Dimension(0, 18)));
         signupCard.add(signupPasswordField);
         signupCard.add(Box.createRigidArea(new Dimension(0, 30)));
-        signupCard.add(signupButton);
+        signupCard.add(signupGradientWrap);
         signupCard.add(Box.createRigidArea(new Dimension(0, 15)));
         signupCard.add(switchToLoginButton);
 
@@ -730,7 +745,6 @@ public class AuthUI extends JFrame {
     private JPasswordField createModernPasswordField(String placeholder) {
         JPasswordField field = new JPasswordField() {
             private boolean isFocused = false;
-            private boolean isHoveringEye = false;
             
             @Override
             protected void paintComponent(Graphics g) {
@@ -993,111 +1007,7 @@ public class AuthUI extends JFrame {
         return field;
     }
     
-    private JButton createGradientButton(String text, Color color1, Color color2) {
-        JButton button = new JButton(text) {
-            private boolean isHovered = false;
-            private boolean isPressed = false;
-            
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                
-                // Enhanced colors based on state
-                Color hoverColor1 = isHovered ? 
-                    new Color(Math.min(255, color1.getRed() + 40), Math.min(255, color1.getGreen() + 40), Math.min(255, color1.getBlue() + 40)) : 
-                    color1;
-                Color hoverColor2 = isHovered ? 
-                    new Color(Math.min(255, color2.getRed() + 40), Math.min(255, color2.getGreen() + 40), Math.min(255, color2.getBlue() + 40)) : 
-                    color2;
-                
-                // Scale effect when hovered
-                float scale = isHovered ? 1.02f : 1.0f; // Reduced scale effect
-                int offsetX = (int)((getWidth() * (scale - 1)) / 2);
-                int offsetY = (int)((getHeight() * (scale - 1)) / 2);
-                
-                // Diagonal gradient for login button
-                GradientPaint gradient = new GradientPaint(0, 0, hoverColor1, getWidth(), getHeight(), hoverColor2);
-                g2d.setPaint(gradient);
-                g2d.fillRoundRect(offsetX, offsetY, (int)(getWidth() * scale), (int)(getHeight() * scale), 20, 20);
-                
-                // Enhanced inner glow when hovered
-                int glowAlpha = isHovered ? 40 : 20;
-                g2d.setColor(new Color(255, 255, 255, glowAlpha));
-                g2d.fillRoundRect(offsetX + 2, offsetY + 2, (int)((getWidth() - 4) * scale), (int)((getHeight() / 2) * scale), 18, 18);
-                
-                
-                // Text with enhanced shadow when hovered
-                g2d.setColor(new Color(0, 0, 0, isHovered ? 50 : 30));
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2 + 1;
-                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2 + 1;
-                g2d.drawString(getText(), x, y);
-                
-                g2d.setColor(getForeground());
-                g2d.drawString(getText(), x - 1, y - 1);
-                
-                g2d.dispose();
-            }
-            
-            public void setHovered(boolean hovered) {
-                this.isHovered = hovered;
-                repaint();
-            }
-            
-            public void setPressed(boolean pressed) {
-                this.isPressed = pressed;
-                repaint();
-            }
-            
-            // Ensure button is focusable and can receive key events
-            @Override
-            public boolean isFocusable() {
-                return true;
-            }
-            
-            @Override
-            public void processMouseEvent(java.awt.event.MouseEvent e) {
-                super.processMouseEvent(e);
-                if (e.getID() == java.awt.event.MouseEvent.MOUSE_PRESSED) {
-                    setPressed(true);
-                } else if (e.getID() == java.awt.event.MouseEvent.MOUSE_RELEASED) {
-                    setPressed(false);
-                }
-            }
-            
-            @Override
-            protected void processMouseMotionEvent(java.awt.event.MouseEvent e) {
-                super.processMouseMotionEvent(e);
-                if (e.getID() == java.awt.event.MouseEvent.MOUSE_ENTERED) {
-                    setHovered(true);
-                } else if (e.getID() == java.awt.event.MouseEvent.MOUSE_EXITED) {
-                    setHovered(false);
-                }
-            }
-        };
-        
-        // Use fixed dimensions for consistent button sizing
-        int buttonWidth = 520;
-        int buttonHeight = 70;
-        
-        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
-        button.setForeground(Color.WHITE);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        // Add subtle hover effect
-        addButtonHoverEffect(button);
-        
-        return button;
-    }
+    
     
     private JButton createGlassButton(String text) {
         JButton button = new JButton(text) {
@@ -1251,131 +1161,9 @@ public class AuthUI extends JFrame {
         return button;
     }
 
-    private class GradientPanel extends JPanel {
-        private Timer animationTimer;
-        private float animationPhase = 0.0f;
-        
-        public GradientPanel() {
-            // Start animation timer
-            animationTimer = new Timer(50, e -> {
-                animationPhase += 0.02f;
-                if (animationPhase > 2 * Math.PI) {
-                    animationPhase = 0.0f;
-                }
-                repaint();
-            });
-            animationTimer.start();
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    // Removed custom GradientPanel in favor of shared components
 
-            // Enhanced dark gradient with smoother transitions (primary background)
-            GradientPaint gradient = new GradientPaint(
-                0, 0, new Color(6, 15, 35), // deeper dark navy
-                getWidth(), getHeight(), new Color(12, 25, 50) // slightly lighter with more blue
-            );
-            g2d.setPaint(gradient);
-            g2d.fillRect(0, 0, getWidth(), getHeight());
-
-            // Animated radial gradient with subtle color hints
-            float centerX = getWidth() / 2.0f + (float)(Math.sin(animationPhase) * 30);
-            float centerY = getHeight() / 2.0f + (float)(Math.cos(animationPhase * 0.7) * 20);
-            
-            RadialGradientPaint radialGradient = new RadialGradientPaint(
-                centerX, centerY, Math.max(getWidth(), getHeight()) / 1.5f,
-                new float[]{0.0f, 0.4f, 0.8f, 1.0f},
-                new Color[]{
-                    new Color(255, 255, 255, 8), // brighter center
-                    new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 15), // subtle primary color
-                    new Color(SECONDARY_COLOR.getRed(), SECONDARY_COLOR.getGreen(), SECONDARY_COLOR.getBlue(), 10), // subtle secondary color
-                    new Color(0, 0, 0, 0)
-                }
-            );
-            g2d.setPaint(radialGradient);
-            g2d.fillRect(0, 0, getWidth(), getHeight());
-
-            // Add subtle geometric pattern overlay
-            drawAnimatedGeometricPattern(g2d);
-
-            g2d.dispose();
-        }
-        
-        private void drawAnimatedGeometricPattern(Graphics2D g2d) {
-            // Animated opacity based on animation phase - very subtle
-            int alpha = (int)(2 + 1 * Math.sin(animationPhase * 2));
-            g2d.setColor(new Color(255, 255, 255, alpha)); // Use white for subtle pattern
-            g2d.setStroke(new BasicStroke(1));
-            
-            int spacing = 60;
-            int patternSize = 20;
-            
-            // Animate pattern position
-            float offsetX = (float)(Math.sin(animationPhase * 0.3) * 10);
-            float offsetY = (float)(Math.cos(animationPhase * 0.4) * 8);
-            
-            for (int x = 0; x < getWidth(); x += spacing) {
-                for (int y = 0; y < getHeight(); y += spacing) {
-                    // Draw subtle coding-themed patterns with animation
-                    if ((x + y) % (spacing * 2) == 0) {
-                        // Draw small squares (like code blocks) with animated position
-                        g2d.drawRect((int)(x + offsetX), (int)(y + offsetY), patternSize, patternSize);
-                    } else {
-                        // Draw small circles (like code elements) with animated position
-                        g2d.drawOval((int)(x + offsetX), (int)(y + offsetY), patternSize, patternSize);
-                    }
-                }
-            }
-        }
-    }
-
-    private static class GradientTextLabel extends JComponent {
-        private final String text;
-        private final Font font;
-        private final Color startColor;
-        private final Color endColor;
-
-        GradientTextLabel(String text, Font font, Color startColor, Color endColor) {
-            this.text = text;
-            this.font = font;
-            this.startColor = startColor;
-            this.endColor = endColor;
-            setOpaque(false);
-        }
-
-        @Override
-        public Dimension getPreferredSize() {
-            Graphics g = getGraphics();
-            if (g == null) {
-                return new Dimension(100, 30);
-            }
-            g.setFont(font);
-            FontMetrics fm = g.getFontMetrics();
-            int w = fm.stringWidth(text);
-            int h = fm.getAscent() + fm.getDescent();
-            return new Dimension(w, h);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setFont(font);
-            FontMetrics fm = g2d.getFontMetrics();
-            int textWidth = fm.stringWidth(text);
-            int x = 0;
-            int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-            GradientPaint paint = new GradientPaint(0, 0, startColor, Math.max(textWidth, 1), 0, endColor);
-            g2d.setPaint(paint);
-            g2d.drawString(text, x, y);
-            g2d.dispose();
-        }
-    }
+    // Removed inner GradientTextLabel; using shared com.forgegrid.ui.GradientTextLabel
 
     private void handleLogin() {
         // Normalize placeholders just in case flags are stale
@@ -1783,26 +1571,7 @@ public class AuthUI extends JFrame {
     /**
      * Simplified link hover animation
      */
-    private void addLinkHoverAnimation(JLabel link) {
-        link.addMouseListener(new java.awt.event.MouseAdapter() {
-            private Color originalColor = link.getForeground();
-            
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                link.setForeground(new Color(255, 165, 0)); // Orange
-            }
-            
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                link.setForeground(originalColor);
-            }
-            
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                link.setForeground(new Color(PRIMARY_COLOR.getRed() - 40, PRIMARY_COLOR.getGreen() - 40, PRIMARY_COLOR.getBlue() - 40));
-            }
-        });
-    }
+    // Removed unused addLinkHoverAnimation helper
     
     /**
      * Simplified eye icon animation
@@ -1909,18 +1678,7 @@ public class AuthUI extends JFrame {
     /**
      * Initialize authentication system
      */
-    private void initializeAuthentication() {
-        // SQLite authentication is ready immediately
-        Timer showAuthTimer = new Timer(5000, e -> {
-            if (loadingScreen != null) {
-                loadingScreen.startFadeOut(() -> showLogin());
-            } else {
-                showLogin();
-            }
-        });
-        showAuthTimer.setRepeats(false);
-        showAuthTimer.start();
-    }
+    // Removed unused initializeAuthentication helper
     
     
     /**
