@@ -1,7 +1,9 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.auth.AuthService;
+import com.forgegrid.config.UserPreferences;
 import com.forgegrid.model.PlayerProfile;
+import com.forgegrid.service.UserService;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -23,11 +25,15 @@ public class AuthUI extends JFrame {
     private CardLayout cardLayout;
     private final Map<String, FadeInPanel> cardFades = new HashMap<>();
     private AuthService authService;
+    private UserService userService;
+    private UserPreferences userPreferences;
     private LoadingScreen loadingScreen;
     private PlayerProfile currentProfile;
     
     public AuthUI() {
         this.authService = new AuthService();
+        this.userService = new UserService();
+        this.userPreferences = new UserPreferences();
         initializeUI();
     }
     
@@ -91,6 +97,35 @@ public class AuthUI extends JFrame {
 
         // In-app Onboarding panel (same window)
         OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
+            // Save onboarding data to database
+            System.out.println("=== ONBOARDING COMPLETION CALLBACK ===");
+            System.out.println("Current Profile: " + (currentProfile != null ? currentProfile.getUsername() : "NULL"));
+            System.out.println("Goal: " + goal);
+            System.out.println("Language: " + language);
+            System.out.println("Skill: " + skill);
+            
+            if (currentProfile != null && currentProfile.getUsername() != null) {
+                boolean saved = userService.saveOnboardingDataByUsername(
+                    currentProfile.getUsername(), 
+                    goal, 
+                    language, 
+                    skill
+                );
+                
+                if (saved) {
+                    System.out.println("✓ Onboarding data saved successfully to database!");
+                    // Update the current profile with onboarding data
+                    currentProfile.setOnboardingCompleted(true);
+                    currentProfile.setOnboardingGoal(goal);
+                    currentProfile.setOnboardingLanguage(language);
+                    currentProfile.setOnboardingSkill(skill);
+                } else {
+                    System.err.println("✗ Failed to save onboarding data to database");
+                }
+            } else {
+                System.err.println("✗ Cannot save onboarding: currentProfile is null or has no username");
+            }
+            
             // After onboarding, open Dashboard within the same window
             openDashboardInCard(goal, language, skill);
         });
@@ -132,10 +167,13 @@ public class AuthUI extends JFrame {
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
+        // Check if user has completed onboarding to determine if we should skip the dashboard welcome screen
+        boolean skipWelcome = currentProfile != null && currentProfile.isOnboardingCompleted();
+        
         JPanel dashboardHost = new JPanel(new BorderLayout());
         dashboardHost.setOpaque(false);
         // Reuse existing Dashboard panel building by instantiating and extracting its content pane
-        Dashboard dashFrame = new Dashboard(currentProfile);
+        Dashboard dashFrame = new Dashboard(currentProfile, skipWelcome);
         // Apply onboarding selections to dashboard UI
         dashFrame.applyOnboardingSelections(goal, language, skill, null);
         Component content = dashFrame.getContentPane();
@@ -254,7 +292,128 @@ public class AuthUI extends JFrame {
         card.add(Box.createRigidArea(new Dimension(0, 8))); // tighter spacing before tagline
         card.add(mainTagline);
         card.add(Box.createRigidArea(new Dimension(0, 25)));
-        card.add(emailField);
+        
+        // Create container for email field and dropdown
+        JPanel emailContainer = new JPanel();
+        emailContainer.setOpaque(false);
+        emailContainer.setLayout(new BoxLayout(emailContainer, BoxLayout.Y_AXIS));
+        emailContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        emailContainer.add(emailField);
+        
+        // Add dropdown suggestion for last username if available
+        String lastUsername = userPreferences.getLastUsername();
+        if (lastUsername != null && !lastUsername.isEmpty()) {
+            // Create dropdown panel
+            JPanel dropdownPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    // Dropdown background
+                    g2d.setColor(new Color(30, 40, 60));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    
+                    // Border
+                    g2d.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 100));
+                    g2d.setStroke(new BasicStroke(1.5f));
+                    g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 10, 10);
+                    
+                    g2d.dispose();
+                }
+            };
+            dropdownPanel.setOpaque(false);
+            dropdownPanel.setLayout(new BorderLayout());
+            dropdownPanel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+            dropdownPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            dropdownPanel.setVisible(false); // Hidden by default
+            
+            // Suggestion label inside dropdown
+            JLabel suggestionLabel = new JLabel(lastUsername);
+            suggestionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            suggestionLabel.setForeground(new Color(220, 220, 240));
+            suggestionLabel.setIcon(new javax.swing.ImageIcon() {
+                @Override
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 150));
+                    g2.fillOval(x, y + 2, 8, 8);
+                    g2.dispose();
+                }
+                @Override
+                public int getIconWidth() { return 8; }
+                @Override
+                public int getIconHeight() { return 12; }
+            });
+            suggestionLabel.setIconTextGap(8);
+            
+            dropdownPanel.add(suggestionLabel, BorderLayout.CENTER);
+            
+            // Calculate dropdown size to match email field
+            double dropdownScale = calculateProportionalScale();
+            int fieldWidth = (int) (520 * dropdownScale);
+            fieldWidth = Math.max(250, fieldWidth);
+            dropdownPanel.setMaximumSize(new Dimension(fieldWidth, 40));
+            dropdownPanel.setPreferredSize(new Dimension(fieldWidth, 40));
+            dropdownPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Add hover effect to dropdown
+            dropdownPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    suggestionLabel.setForeground(PRIMARY_COLOR);
+                }
+                
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    suggestionLabel.setForeground(new Color(220, 220, 240));
+                }
+                
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    // Fill the email field with the suggested username
+                    emailField.setText(lastUsername);
+                    emailField.setForeground(Color.WHITE);
+                    emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+                    // Hide the dropdown after clicking
+                    dropdownPanel.setVisible(false);
+                    // Focus on password field
+                    passwordField.requestFocus();
+                }
+            });
+            
+            // Show dropdown when email field is focused or clicked
+            emailField.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent e) {
+                    Object placeholderActive = emailField.getClientProperty("placeholderActive");
+                    if (Boolean.TRUE.equals(placeholderActive) || emailField.getText().trim().isEmpty()) {
+                        dropdownPanel.setVisible(true);
+                    }
+                }
+                
+                @Override
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    // Hide dropdown when focus is lost (with delay to allow clicking)
+                    Timer hideTimer = new Timer(150, evt -> {
+                        if (!dropdownPanel.isAncestorOf(e.getOppositeComponent())) {
+                            dropdownPanel.setVisible(false);
+                        }
+                    });
+                    hideTimer.setRepeats(false);
+                    hideTimer.start();
+                }
+            });
+            
+            emailContainer.add(Box.createRigidArea(new Dimension(0, 4)));
+            emailContainer.add(dropdownPanel);
+        }
+        
+        card.add(emailContainer);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
         card.add(passwordField);
 
@@ -500,18 +659,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int fieldWidth = (int) (520 * scale);
-        int fieldHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        fieldWidth = Math.max(250, fieldWidth);
-        fieldHeight = Math.max(50, fieldHeight);
+        // Use fixed dimensions for consistent sizing
+        int fieldWidth = 520;
+        int fieldHeight = 70;
         
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         field.setBackground(new Color(25, 35, 55));
         field.setForeground(new Color(220, 220, 240));
@@ -709,18 +863,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int fieldWidth = (int) (520 * scale);
-        int fieldHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        fieldWidth = Math.max(250, fieldWidth);
-        fieldHeight = Math.max(50, fieldHeight);
+        // Use fixed dimensions for consistent sizing
+        int fieldWidth = 520;
+        int fieldHeight = 70;
         
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, Math.max(16, (int) (20 * scale))));
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         field.setBackground(new Color(25, 35, 55));
         field.setForeground(new Color(220, 220, 240));
@@ -913,18 +1062,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(50, buttonHeight);
+        // Use fixed dimensions for consistent button sizing
+        int buttonWidth = 520;
+        int buttonHeight = 70;
         
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(16, (int) (22 * scale))));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
         button.setForeground(Color.WHITE);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -972,18 +1116,13 @@ public class AuthUI extends JFrame {
             }
         };
         
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (65 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(45, buttonHeight);
+        // Use fixed dimensions for consistent button sizing
+        int buttonWidth = 520;
+        int buttonHeight = 70;
         
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.PLAIN, Math.max(14, (int) (20 * scale))));
+        button.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));
         button.setForeground(new Color(200, 200, 220));
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -1073,18 +1212,13 @@ public class AuthUI extends JFrame {
             }
         };
 
-        // Calculate proportional scaling based on current frame size
-        double scale = calculateProportionalScale();
-        int buttonWidth = (int) (520 * scale);
-        int buttonHeight = (int) (70 * scale);
-        
-        // Ensure minimum sizes
-        buttonWidth = Math.max(250, buttonWidth);
-        buttonHeight = Math.max(50, buttonHeight);
+        // Use fixed dimensions for consistent button sizing
+        int buttonWidth = 520;
+        int buttonHeight = 70;
         
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, Math.max(16, (int) (22 * scale))));
+        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
         button.setForeground(foregroundColor);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -1256,10 +1390,9 @@ public class AuthUI extends JFrame {
             return;
         }
         
-        // Show loading state and switch to loading card before authentication
+        // Show loading state on button
         loginButton.setEnabled(false);
         loginButton.setText("Authenticating...");
-        showCard("LOADING");
         
         // Use SQLite authentication
         SwingUtilities.invokeLater(() -> {
@@ -1270,13 +1403,41 @@ public class AuthUI extends JFrame {
                 loginButton.setText("Login");
                 
                 if (profile != null) {
-                    // Navigate to in-app onboarding within same window
+                    // Store current profile
                     this.currentProfile = profile;
-                    // brief delay to let loading animate, then move to onboarding
-                    new javax.swing.Timer(600, e2 -> {
-                        ((javax.swing.Timer) e2.getSource()).stop();
-                        showCard("ONBOARDING");
-                    }).start();
+                    
+                    // Save username for auto-fill on next login
+                    userPreferences.setLastUsername(username);
+                    
+                    // Debug logging
+                    System.out.println("=== LOGIN SUCCESS ===");
+                    System.out.println("Username: " + profile.getUsername());
+                    System.out.println("Onboarding Completed: " + profile.isOnboardingCompleted());
+                    System.out.println("Onboarding Goal: " + profile.getOnboardingGoal());
+                    System.out.println("Onboarding Language: " + profile.getOnboardingLanguage());
+                    System.out.println("Onboarding Skill: " + profile.getOnboardingSkill());
+                    
+                    // Check if user has completed onboarding
+                    if (profile.isOnboardingCompleted()) {
+                        System.out.println("→ Showing loading screen, then going to dashboard");
+                        // Show loading screen, then go to dashboard
+                        showCard("LOADING");
+                        new javax.swing.Timer(600, e2 -> {
+                            ((javax.swing.Timer) e2.getSource()).stop();
+                            String goal = profile.getOnboardingGoal();
+                            String language = profile.getOnboardingLanguage();
+                            String skill = profile.getOnboardingSkill();
+                            openDashboardInCard(goal, language, skill);
+                        }).start();
+                    } else {
+                        System.out.println("→ Showing loading screen then onboarding questions");
+                        // Show loading screen for new users, then navigate to onboarding
+                        showCard("LOADING");
+                        new javax.swing.Timer(600, e2 -> {
+                            ((javax.swing.Timer) e2.getSource()).stop();
+                            showCard("ONBOARDING");
+                        }).start();
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     showCard("LOGIN");
@@ -1469,25 +1630,16 @@ public class AuthUI extends JFrame {
     }
     
     private void refreshComponentSizes() {
-        // Calculate proportional scaling factor based on current frame size
-        double scale = calculateProportionalScale();
+        // Use fixed sizes for consistent button dimensions
+        int fieldWidth = 520;
+        int fieldHeight = 70;
+        int buttonHeight = 70;
+        int glassButtonHeight = 70;
         
-        // Calculate proportional sizes
-        int fieldWidth = (int) (520 * scale);
-        int fieldHeight = (int) (70 * scale);
-        int buttonHeight = (int) (168 * scale);
-        int glassButtonHeight = (int) (156 * scale);
-        
-        // Ensure minimum sizes
-        fieldWidth = Math.max(250, fieldWidth);
-        fieldHeight = Math.max(50, fieldHeight);
-        buttonHeight = Math.max(112, buttonHeight);
-        glassButtonHeight = Math.max(104, glassButtonHeight);
-        
-        // Calculate proportional font sizes
-        int fieldFontSize = Math.max(14, (int) (20 * scale));
-        int buttonFontSize = Math.max(18, (int) (26 * scale));
-        int glassButtonFontSize = Math.max(16, (int) (22 * scale));
+        // Use fixed font sizes
+        int fieldFontSize = 20;
+        int buttonFontSize = 22;
+        int glassButtonFontSize = 20;
         
         // Update field sizes and fonts
         if (emailField != null) {

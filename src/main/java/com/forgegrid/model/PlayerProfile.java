@@ -27,6 +27,12 @@ public class PlayerProfile implements Serializable {
     private String createdAt;
     private String updatedAt;
     
+    // Onboarding fields
+    private boolean onboardingCompleted;
+    private String onboardingGoal;
+    private String onboardingLanguage;
+    private String onboardingSkill;
+    
     // Local-only fields
     private String localPasswordHash; // Stored locally for offline auth
     private transient boolean isOnline; // Whether this profile is from online sync
@@ -159,6 +165,38 @@ public class PlayerProfile implements Serializable {
     
     public void setLastSyncTime(LocalDateTime lastSyncTime) {
         this.lastSyncTime = lastSyncTime;
+    }
+    
+    public boolean isOnboardingCompleted() {
+        return onboardingCompleted;
+    }
+    
+    public void setOnboardingCompleted(boolean onboardingCompleted) {
+        this.onboardingCompleted = onboardingCompleted;
+    }
+    
+    public String getOnboardingGoal() {
+        return onboardingGoal;
+    }
+    
+    public void setOnboardingGoal(String onboardingGoal) {
+        this.onboardingGoal = onboardingGoal;
+    }
+    
+    public String getOnboardingLanguage() {
+        return onboardingLanguage;
+    }
+    
+    public void setOnboardingLanguage(String onboardingLanguage) {
+        this.onboardingLanguage = onboardingLanguage;
+    }
+    
+    public String getOnboardingSkill() {
+        return onboardingSkill;
+    }
+    
+    public void setOnboardingSkill(String onboardingSkill) {
+        this.onboardingSkill = onboardingSkill;
     }
     
     /**
