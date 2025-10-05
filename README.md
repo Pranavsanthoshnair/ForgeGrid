@@ -95,11 +95,13 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 ---
 
 ## Installation & Setup
-1. Install **Java JDK 8 or higher**
+1. Install **Java JDK 17 or higher** (recommended: Java 17 LTS for best compatibility)
 2. Clone or download the project repository
 3. Open in an IDE (**VS Code / IntelliJ / Eclipse**)
-4. If using **Maven**, let IDE download dependencies automatically
-5. Compile & run `Main.java`
+4. **Build the project**: Run `build.bat` (Windows) or `build.sh` (Linux/Mac)
+5. **Run the application**: Run `run.bat` (Windows) or `run.sh` (Linux/Mac)
+
+**Note:** The project is compiled with `--release 17` to ensure compatibility with Java 17+ runtimes. If you encounter `UnsupportedClassVersionError`, make sure you're using Java 17 or higher.
 6. Progress is automatically saved and loaded on launch
 
 ---
