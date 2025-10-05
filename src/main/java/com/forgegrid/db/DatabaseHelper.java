@@ -73,20 +73,62 @@ public class DatabaseHelper {
     }
     
     /**
-     * Create the users table with required columns
+     * Create the users table with required columns including onboarding fields
      */
     private void createUsersTable() throws SQLException {
         String createTableSQL = """
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                onboarding_completed INTEGER DEFAULT 0,
+                onboarding_goal TEXT,
+                onboarding_language TEXT,
+                onboarding_skill TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
             """;
         
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
             System.out.println("Users table created/verified successfully");
+            
+            // Add onboarding columns to existing tables (migration)
+            migrateOnboardingColumns();
+        }
+    }
+    
+    /**
+     * Migrate existing users table to add onboarding columns if they don't exist
+     */
+    private void migrateOnboardingColumns() {
+        try (Statement statement = connection.createStatement()) {
+            // Check if onboarding_completed column exists
+            try {
+                statement.execute("SELECT onboarding_completed FROM users LIMIT 1");
+            } catch (SQLException e) {
+                // Column doesn't exist, add it
+                System.out.println("Adding onboarding columns to existing users table...");
+                statement.execute("ALTER TABLE users ADD COLUMN onboarding_completed INTEGER DEFAULT 0");
+                statement.execute("ALTER TABLE users ADD COLUMN onboarding_goal TEXT");
+                statement.execute("ALTER TABLE users ADD COLUMN onboarding_language TEXT");
+                statement.execute("ALTER TABLE users ADD COLUMN onboarding_skill TEXT");
+                System.out.println("Onboarding columns added successfully");
+            }
+            
+            // Check if created_at column exists (separate check for timestamp columns)
+            try {
+                statement.execute("SELECT created_at FROM users LIMIT 1");
+            } catch (SQLException e) {
+                // Column doesn't exist, add timestamp columns
+                System.out.println("Adding timestamp columns to existing users table...");
+                statement.execute("ALTER TABLE users ADD COLUMN created_at TEXT");
+                statement.execute("ALTER TABLE users ADD COLUMN updated_at TEXT");
+                System.out.println("Timestamp columns added successfully");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error during migration: " + e.getMessage());
         }
     }
     

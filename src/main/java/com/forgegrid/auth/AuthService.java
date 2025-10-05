@@ -86,7 +86,12 @@ public class AuthService {
             return null;
         }
         
-        String selectSQL = "SELECT id, username FROM users WHERE username = ? AND password = ?";
+        String selectSQL = """
+            SELECT id, username, onboarding_completed, onboarding_goal, 
+                   onboarding_language, onboarding_skill 
+            FROM users 
+            WHERE username = ? AND password = ?
+            """;
         
         try (Connection conn = dbHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
@@ -98,9 +103,19 @@ public class AuthService {
                 if (rs.next()) {
                     int userId = rs.getInt("id");
                     String dbUsername = rs.getString("username");
+                    boolean onboardingCompleted = rs.getInt("onboarding_completed") == 1;
+                    String onboardingGoal = rs.getString("onboarding_goal");
+                    String onboardingLanguage = rs.getString("onboarding_language");
+                    String onboardingSkill = rs.getString("onboarding_skill");
                     
                     // Create and return a PlayerProfile for the authenticated user
-                    return createPlayerProfile(userId, dbUsername);
+                    PlayerProfile profile = createPlayerProfile(userId, dbUsername);
+                    profile.setOnboardingCompleted(onboardingCompleted);
+                    profile.setOnboardingGoal(onboardingGoal);
+                    profile.setOnboardingLanguage(onboardingLanguage);
+                    profile.setOnboardingSkill(onboardingSkill);
+                    
+                    return profile;
                 }
             }
             

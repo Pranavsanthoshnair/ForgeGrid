@@ -1,7 +1,9 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.auth.AuthService;
+import com.forgegrid.config.UserPreferences;
 import com.forgegrid.model.PlayerProfile;
+import com.forgegrid.service.UserService;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -23,11 +25,15 @@ public class AuthUI extends JFrame {
     private CardLayout cardLayout;
     private final Map<String, FadeInPanel> cardFades = new HashMap<>();
     private AuthService authService;
+    private UserService userService;
+    private UserPreferences userPreferences;
     private LoadingScreen loadingScreen;
     private PlayerProfile currentProfile;
     
     public AuthUI() {
         this.authService = new AuthService();
+        this.userService = new UserService();
+        this.userPreferences = new UserPreferences();
         initializeUI();
     }
     
@@ -91,6 +97,35 @@ public class AuthUI extends JFrame {
 
         // In-app Onboarding panel (same window)
         OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
+            // Save onboarding data to database
+            System.out.println("=== ONBOARDING COMPLETION CALLBACK ===");
+            System.out.println("Current Profile: " + (currentProfile != null ? currentProfile.getUsername() : "NULL"));
+            System.out.println("Goal: " + goal);
+            System.out.println("Language: " + language);
+            System.out.println("Skill: " + skill);
+            
+            if (currentProfile != null && currentProfile.getUsername() != null) {
+                boolean saved = userService.saveOnboardingDataByUsername(
+                    currentProfile.getUsername(), 
+                    goal, 
+                    language, 
+                    skill
+                );
+                
+                if (saved) {
+                    System.out.println("✓ Onboarding data saved successfully to database!");
+                    // Update the current profile with onboarding data
+                    currentProfile.setOnboardingCompleted(true);
+                    currentProfile.setOnboardingGoal(goal);
+                    currentProfile.setOnboardingLanguage(language);
+                    currentProfile.setOnboardingSkill(skill);
+                } else {
+                    System.err.println("✗ Failed to save onboarding data to database");
+                }
+            } else {
+                System.err.println("✗ Cannot save onboarding: currentProfile is null or has no username");
+            }
+            
             // After onboarding, open Dashboard within the same window
             openDashboardInCard(goal, language, skill);
         });
@@ -254,7 +289,128 @@ public class AuthUI extends JFrame {
         card.add(Box.createRigidArea(new Dimension(0, 8))); // tighter spacing before tagline
         card.add(mainTagline);
         card.add(Box.createRigidArea(new Dimension(0, 25)));
-        card.add(emailField);
+        
+        // Create container for email field and dropdown
+        JPanel emailContainer = new JPanel();
+        emailContainer.setOpaque(false);
+        emailContainer.setLayout(new BoxLayout(emailContainer, BoxLayout.Y_AXIS));
+        emailContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        emailContainer.add(emailField);
+        
+        // Add dropdown suggestion for last username if available
+        String lastUsername = userPreferences.getLastUsername();
+        if (lastUsername != null && !lastUsername.isEmpty()) {
+            // Create dropdown panel
+            JPanel dropdownPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    // Dropdown background
+                    g2d.setColor(new Color(30, 40, 60));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    
+                    // Border
+                    g2d.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 100));
+                    g2d.setStroke(new BasicStroke(1.5f));
+                    g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 10, 10);
+                    
+                    g2d.dispose();
+                }
+            };
+            dropdownPanel.setOpaque(false);
+            dropdownPanel.setLayout(new BorderLayout());
+            dropdownPanel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+            dropdownPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            dropdownPanel.setVisible(false); // Hidden by default
+            
+            // Suggestion label inside dropdown
+            JLabel suggestionLabel = new JLabel(lastUsername);
+            suggestionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            suggestionLabel.setForeground(new Color(220, 220, 240));
+            suggestionLabel.setIcon(new javax.swing.ImageIcon() {
+                @Override
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 150));
+                    g2.fillOval(x, y + 2, 8, 8);
+                    g2.dispose();
+                }
+                @Override
+                public int getIconWidth() { return 8; }
+                @Override
+                public int getIconHeight() { return 12; }
+            });
+            suggestionLabel.setIconTextGap(8);
+            
+            dropdownPanel.add(suggestionLabel, BorderLayout.CENTER);
+            
+            // Calculate dropdown size to match email field
+            double dropdownScale = calculateProportionalScale();
+            int fieldWidth = (int) (520 * dropdownScale);
+            fieldWidth = Math.max(250, fieldWidth);
+            dropdownPanel.setMaximumSize(new Dimension(fieldWidth, 40));
+            dropdownPanel.setPreferredSize(new Dimension(fieldWidth, 40));
+            dropdownPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Add hover effect to dropdown
+            dropdownPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    suggestionLabel.setForeground(PRIMARY_COLOR);
+                }
+                
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    suggestionLabel.setForeground(new Color(220, 220, 240));
+                }
+                
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    // Fill the email field with the suggested username
+                    emailField.setText(lastUsername);
+                    emailField.setForeground(Color.WHITE);
+                    emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+                    // Hide the dropdown after clicking
+                    dropdownPanel.setVisible(false);
+                    // Focus on password field
+                    passwordField.requestFocus();
+                }
+            });
+            
+            // Show dropdown when email field is focused or clicked
+            emailField.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent e) {
+                    Object placeholderActive = emailField.getClientProperty("placeholderActive");
+                    if (Boolean.TRUE.equals(placeholderActive) || emailField.getText().trim().isEmpty()) {
+                        dropdownPanel.setVisible(true);
+                    }
+                }
+                
+                @Override
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    // Hide dropdown when focus is lost (with delay to allow clicking)
+                    Timer hideTimer = new Timer(150, evt -> {
+                        if (!dropdownPanel.isAncestorOf(e.getOppositeComponent())) {
+                            dropdownPanel.setVisible(false);
+                        }
+                    });
+                    hideTimer.setRepeats(false);
+                    hideTimer.start();
+                }
+            });
+            
+            emailContainer.add(Box.createRigidArea(new Dimension(0, 4)));
+            emailContainer.add(dropdownPanel);
+        }
+        
+        card.add(emailContainer);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
         card.add(passwordField);
 
@@ -1270,13 +1426,40 @@ public class AuthUI extends JFrame {
                 loginButton.setText("Login");
                 
                 if (profile != null) {
-                    // Navigate to in-app onboarding within same window
+                    // Store current profile
                     this.currentProfile = profile;
-                    // brief delay to let loading animate, then move to onboarding
-                    new javax.swing.Timer(600, e2 -> {
-                        ((javax.swing.Timer) e2.getSource()).stop();
-                        showCard("ONBOARDING");
-                    }).start();
+                    
+                    // Save username for auto-fill on next login
+                    userPreferences.setLastUsername(username);
+                    
+                    // Debug logging
+                    System.out.println("=== LOGIN SUCCESS ===");
+                    System.out.println("Username: " + profile.getUsername());
+                    System.out.println("Onboarding Completed: " + profile.isOnboardingCompleted());
+                    System.out.println("Onboarding Goal: " + profile.getOnboardingGoal());
+                    System.out.println("Onboarding Language: " + profile.getOnboardingLanguage());
+                    System.out.println("Onboarding Skill: " + profile.getOnboardingSkill());
+                    
+                    // Check if user has completed onboarding
+                    if (profile.isOnboardingCompleted()) {
+                        System.out.println("→ Skipping onboarding, going to dashboard");
+                        // Skip onboarding, go directly to dashboard
+                        new javax.swing.Timer(600, e2 -> {
+                            ((javax.swing.Timer) e2.getSource()).stop();
+                            // Load onboarding data and go to dashboard
+                            String goal = profile.getOnboardingGoal();
+                            String language = profile.getOnboardingLanguage();
+                            String skill = profile.getOnboardingSkill();
+                            openDashboardInCard(goal, language, skill);
+                        }).start();
+                    } else {
+                        System.out.println("→ Showing onboarding questions");
+                        // Navigate to in-app onboarding within same window
+                        new javax.swing.Timer(600, e2 -> {
+                            ((javax.swing.Timer) e2.getSource()).stop();
+                            showCard("ONBOARDING");
+                        }).start();
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     showCard("LOGIN");
