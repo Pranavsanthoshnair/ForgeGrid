@@ -90,7 +90,11 @@ public class LoadingScreen extends JPanel {
                         g2d.fillRect(0, 0, w, h);
                     }
                 } else {
-                    paintAnimatedGradient(g2d, getWidth(), getHeight());
+                    int w = getWidth();
+                    int h = getHeight();
+                    GradientPaint gradient = new GradientPaint(0, 0, new Color(20, 28, 48), 0, Math.max(1, h), new Color(10, 14, 24));
+                    g2d.setPaint(gradient);
+                    g2d.fillRect(0, 0, Math.max(1, w), Math.max(1, h));
                 }
                 
                 // Background animations removed for cleaner look
@@ -241,16 +245,14 @@ public class LoadingScreen extends JPanel {
         isFadingIn = fadeIn;
         overlayAlpha = startAlpha;
         if (fadeTimer != null) fadeTimer.stop();
-        fadeTimer = new Timer(16, e -> {
-            overlayAlpha += delta;
-            boolean done = delta < 0 ? overlayAlpha <= 0 : overlayAlpha >= 255;
-            if (done) {
-                overlayAlpha = delta < 0 ? 0 : 255;
-                fadeTimer.stop();
-                if (onComplete != null) onComplete.run();
-            }
-            repaint();
-        });
+        int endAlpha = (delta < 0) ? 0 : 255;
+        fadeTimer = AnimationUtils.createFadeTimer(
+            startAlpha,
+            endAlpha,
+            Math.abs(delta),
+            alpha -> { overlayAlpha = alpha; repaint(); },
+            onComplete
+        );
         fadeTimer.start();
     }
     
