@@ -215,10 +215,7 @@ public class OnboardingInAppPanel extends JPanel {
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				int w = getWidth();
 				int h = getHeight();
-				Color fill;
-				if (isSelected()) fill = new Color(46, 196, 182, 170);
-				else if (getModel().isRollover()) fill = new Color(255, 255, 255, 28);
-				else fill = new Color(255, 255, 255, 10);
+				Color fill = isSelected() ? new Color(46, 196, 182, 170) : new Color(255, 255, 255, 10);
 				g2.setColor(fill);
 				g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
 				g2.setColor(isSelected() ? new Color(46, 196, 182) : new Color(255,255,255,200));
@@ -233,7 +230,8 @@ public class OnboardingInAppPanel extends JPanel {
 		btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btn.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
-		btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		btn.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		btn.setRolloverEnabled(false);
 		return btn;
 	}
 
