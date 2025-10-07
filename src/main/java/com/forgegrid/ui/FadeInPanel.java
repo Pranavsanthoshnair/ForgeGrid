@@ -14,30 +14,23 @@ public class FadeInPanel extends JPanel {
 	public FadeInPanel(LayoutManager layout) {
 		super(layout);
 		setOpaque(false);
-		timer = new Timer(16, e -> {
-			alpha += 0.08f;
-			if (alpha >= 1f) {
-				alpha = 1f;
-				((Timer) e.getSource()).stop();
-			}
-			repaint();
-		});
+        timer = new Timer(16, e -> {
+            alpha = Math.min(1f, alpha + 0.08f);
+            if (alpha >= 1f) ((Timer) e.getSource()).stop();
+            repaint();
+        });
 	}
 
 	public void play() {
 		alpha = 0f;
-		if (!timer.isRunning()) timer.start();
-		else repaint();
+        if (!timer.isRunning()) timer.start();
 	}
 
 	@Override
 	protected void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g.create();
-        if (alpha < 1f && !timer.isRunning()) {
-            // Auto-play on first render when not yet animated
-            timer.start();
-        }
-        g2.setComposite(AlphaComposite.SrcOver.derive(Math.max(0f, Math.min(1f, alpha))));
+        if (alpha < 1f && !timer.isRunning()) timer.start();
+        g2.setComposite(AlphaComposite.SrcOver.derive(alpha));
 		super.paintComponent(g2);
 		g2.dispose();
 	}

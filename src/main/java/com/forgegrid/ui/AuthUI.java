@@ -6,8 +6,6 @@ import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
