@@ -15,6 +15,6 @@ if not exist "bin" (
 )
 
 REM Run the application
-java -cp "bin;lib/*" com.forgegrid.app.Main
+java -cp "bin;lib\*" com.forgegrid.app.Main
 
 endlocal

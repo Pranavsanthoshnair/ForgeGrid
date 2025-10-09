@@ -11,8 +11,11 @@ if not exist "bin" mkdir bin
 
 REM Find all Java files and compile them
 echo Compiling Java source files...
-dir /s /b src\main\java\*.java > sources.txt
-javac -cp "lib/*" -d bin --release 17 @sources.txt
+set JAVA_FILES=
+for /r src\main\java %%f in (*.java) do (
+    set JAVA_FILES=!JAVA_FILES! "%%f"
+)
+javac -cp "lib\*" -d bin --release 17 %JAVA_FILES%
 
 REM Check compilation result
 if %ERRORLEVEL% EQU 0 (
@@ -37,7 +40,6 @@ if %ERRORLEVEL% EQU 0 (
     echo Build failed!
 )
 
-REM Clean up temporary file
-if exist sources.txt del sources.txt
+REM Clean up completed
 
 endlocal
