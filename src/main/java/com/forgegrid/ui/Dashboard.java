@@ -24,7 +24,9 @@ public class Dashboard extends JFrame {
     private int maxXP = 100;
     private int currentStreak = 0;
     private boolean onboardingCompleted = false;
+    private boolean quizAttempted = false;
     private static final String ONBOARDING_FILE = "onboarding.json";
+    private static final String QUIZ_FILE = "quiz_responses.json";
     private int currentLevel = 1;
     private String playerRank = "Novice";
     
@@ -114,7 +116,10 @@ public class Dashboard extends JFrame {
         SwingUtilities.invokeLater(() -> {
             loadOnboardingStatus();
             if (!onboardingCompleted) {
-                showOnboardingModal();
+                showOnboardingLandingPage();
+            } else if (quizAttempted) {
+                // Show quiz completion status in dashboard
+                showQuizStatusInDashboard();
             }
         });
     }
@@ -2214,12 +2219,95 @@ public class Dashboard extends JFrame {
         return infoBar;
     }
     
-    private void showOnboardingModal() {
-        JDialog onboardingDialog = new JDialog(this, "Welcome to ForgeGrid!", true);
-        onboardingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        onboardingDialog.setSize(600, 500);
-        onboardingDialog.setLocationRelativeTo(this);
-        onboardingDialog.setResizable(false);
+    private void showOnboardingLandingPage() {
+        JDialog landingDialog = new JDialog(this, "Welcome to ForgeGrid!", true);
+        landingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        landingDialog.setSize(500, 400);
+        landingDialog.setLocationRelativeTo(this);
+        landingDialog.setResizable(false);
+        
+        JPanel mainPanel = new JPanel();
+        mainPanel.setOpaque(true);
+        mainPanel.setBackground(new Color(30, 35, 45));
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
+        
+        // Welcome header
+        JLabel welcomeLabel = new JLabel("🎉 Welcome to ForgeGrid!");
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        welcomeLabel.setForeground(new Color(100, 180, 220));
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        welcomeLabel.setBorder(new EmptyBorder(0, 0, 15, 0));
+        
+        JLabel subtitleLabel = new JLabel("Let's personalize your experience!");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setForeground(new Color(180, 190, 200));
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subtitleLabel.setBorder(new EmptyBorder(0, 0, 30, 0));
+        
+        // Description
+        JLabel descLabel = new JLabel("<html><div style='text-align: center; width: 350px;'>" +
+            "We'd love to learn about your productivity preferences through a quick quiz. " +
+            "This helps us customize your dashboard and provide better recommendations.<br><br>" +
+            "The quiz takes about 2-3 minutes and can only be taken once.</div></html>");
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        descLabel.setForeground(new Color(200, 210, 220));
+        descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        descLabel.setBorder(new EmptyBorder(0, 0, 40, 0));
+        
+        // Buttons panel
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setOpaque(false);
+        buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+        buttonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JButton attemptBtn = new JButton("🎯 Attempt Quiz Now");
+        attemptBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        attemptBtn.setBackground(new Color(80, 200, 120));
+        attemptBtn.setForeground(Color.WHITE);
+        attemptBtn.setBorderPainted(false);
+        attemptBtn.setPreferredSize(new Dimension(200, 45));
+        attemptBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        attemptBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        attemptBtn.addActionListener(e -> {
+            landingDialog.dispose();
+            showOnboardingQuiz();
+        });
+        
+        JButton skipBtn = new JButton("Skip for now");
+        skipBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        skipBtn.setBackground(new Color(100, 110, 120));
+        skipBtn.setForeground(Color.WHITE);
+        skipBtn.setBorderPainted(false);
+        skipBtn.setPreferredSize(new Dimension(150, 35));
+        skipBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        skipBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        skipBtn.addActionListener(e -> {
+            onboardingCompleted = true;
+            saveOnboardingStatus();
+            showSkipConfirmation();
+            landingDialog.dispose();
+        });
+        
+        buttonsPanel.add(attemptBtn);
+        buttonsPanel.add(Box.createVerticalStrut(15));
+        buttonsPanel.add(skipBtn);
+        
+        mainPanel.add(welcomeLabel);
+        mainPanel.add(subtitleLabel);
+        mainPanel.add(descLabel);
+        mainPanel.add(buttonsPanel);
+        
+        landingDialog.add(mainPanel);
+        landingDialog.setVisible(true);
+    }
+    
+    private void showOnboardingQuiz() {
+        JDialog quizDialog = new JDialog(this, "Onboarding Quiz", true);
+        quizDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        quizDialog.setSize(700, 600);
+        quizDialog.setLocationRelativeTo(this);
+        quizDialog.setResizable(false);
         
         JPanel mainPanel = new JPanel();
         mainPanel.setOpaque(true);
@@ -2227,20 +2315,20 @@ public class Dashboard extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
         
-        // Welcome header
-        JLabel welcomeLabel = new JLabel("🎉 Welcome to ForgeGrid!");
-        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        welcomeLabel.setForeground(new Color(100, 180, 220));
-        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        welcomeLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        // Quiz header
+        JLabel quizTitle = new JLabel("📝 Onboarding Quiz");
+        quizTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        quizTitle.setForeground(new Color(100, 180, 220));
+        quizTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        quizTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
         
-        JLabel subtitleLabel = new JLabel("Let's get you set up for maximum productivity!");
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(180, 190, 200));
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        subtitleLabel.setBorder(new EmptyBorder(0, 0, 30, 0));
+        JLabel quizDesc = new JLabel("Answer these questions to personalize your experience");
+        quizDesc.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        quizDesc.setForeground(new Color(180, 190, 200));
+        quizDesc.setAlignmentX(Component.CENTER_ALIGNMENT);
+        quizDesc.setBorder(new EmptyBorder(0, 0, 30, 0));
         
-        // Onboarding questions
+        // Quiz questions
         JPanel questionsPanel = new JPanel();
         questionsPanel.setOpaque(false);
         questionsPanel.setLayout(new BoxLayout(questionsPanel, BoxLayout.Y_AXIS));
@@ -2285,43 +2373,123 @@ public class Dashboard extends JFrame {
         buttonsPanel.setOpaque(false);
         buttonsPanel.setBorder(new EmptyBorder(30, 0, 0, 0));
         
-        JButton skipBtn = new JButton("Skip for now");
-        skipBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        skipBtn.setBackground(new Color(100, 110, 120));
-        skipBtn.setForeground(Color.WHITE);
-        skipBtn.setBorderPainted(false);
-        skipBtn.setPreferredSize(new Dimension(120, 35));
-        skipBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        skipBtn.addActionListener(e -> {
+        JButton submitBtn = new JButton("✅ Complete Quiz");
+        submitBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        submitBtn.setBackground(new Color(80, 200, 120));
+        submitBtn.setForeground(Color.WHITE);
+        submitBtn.setBorderPainted(false);
+        submitBtn.setPreferredSize(new Dimension(150, 40));
+        submitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        submitBtn.addActionListener(e -> {
+            saveQuizResponses();
+            quizAttempted = true;
             onboardingCompleted = true;
             saveOnboardingStatus();
-            onboardingDialog.dispose();
+            quizDialog.dispose();
+            showQuizConfirmation();
         });
         
-        JButton completeBtn = new JButton("Complete Setup");
-        completeBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        completeBtn.setBackground(new Color(80, 200, 120));
-        completeBtn.setForeground(Color.WHITE);
-        completeBtn.setBorderPainted(false);
-        completeBtn.setPreferredSize(new Dimension(140, 35));
-        completeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        completeBtn.addActionListener(e -> {
-            saveOnboardingAnswers();
-            onboardingCompleted = true;
-            saveOnboardingStatus();
-            onboardingDialog.dispose();
-        });
+        buttonsPanel.add(submitBtn);
         
-        buttonsPanel.add(skipBtn);
-        buttonsPanel.add(completeBtn);
-        
-        mainPanel.add(welcomeLabel);
-        mainPanel.add(subtitleLabel);
+        mainPanel.add(quizTitle);
+        mainPanel.add(quizDesc);
         mainPanel.add(questionsPanel);
         mainPanel.add(buttonsPanel);
         
-        onboardingDialog.add(mainPanel);
-        onboardingDialog.setVisible(true);
+        quizDialog.add(mainPanel);
+        quizDialog.setVisible(true);
+    }
+    
+    private void showQuizConfirmation() {
+        JDialog confirmDialog = new JDialog(this, "Quiz Completed!", true);
+        confirmDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        confirmDialog.setSize(450, 300);
+        confirmDialog.setLocationRelativeTo(this);
+        confirmDialog.setResizable(false);
+        
+        JPanel mainPanel = new JPanel();
+        mainPanel.setOpaque(true);
+        mainPanel.setBackground(new Color(30, 35, 45));
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
+        
+        JLabel successIcon = new JLabel("🎉");
+        successIcon.setFont(new Font("Segoe UI", Font.PLAIN, 48));
+        successIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
+        successIcon.setBorder(new EmptyBorder(0, 0, 15, 0));
+        
+        JLabel successTitle = new JLabel("Quiz Completed!");
+        successTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        successTitle.setForeground(new Color(80, 200, 120));
+        successTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        successTitle.setBorder(new EmptyBorder(0, 0, 10, 0));
+        
+        JLabel successDesc = new JLabel("Thank you for completing the quiz! Your preferences have been saved and your dashboard has been personalized.");
+        successDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        successDesc.setForeground(new Color(180, 190, 200));
+        successDesc.setAlignmentX(Component.CENTER_ALIGNMENT);
+        successDesc.setBorder(new EmptyBorder(0, 0, 25, 0));
+        
+        JButton continueBtn = new JButton("Continue to Dashboard");
+        continueBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        continueBtn.setBackground(new Color(100, 180, 220));
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBorderPainted(false);
+        continueBtn.setPreferredSize(new Dimension(180, 35));
+        continueBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        continueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        continueBtn.addActionListener(e -> confirmDialog.dispose());
+        
+        mainPanel.add(successIcon);
+        mainPanel.add(successTitle);
+        mainPanel.add(successDesc);
+        mainPanel.add(continueBtn);
+        
+        confirmDialog.add(mainPanel);
+        confirmDialog.setVisible(true);
+    }
+    
+    private void showSkipConfirmation() {
+        JDialog skipDialog = new JDialog(this, "Skipped Quiz", true);
+        skipDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        skipDialog.setSize(400, 250);
+        skipDialog.setLocationRelativeTo(this);
+        skipDialog.setResizable(false);
+        
+        JPanel mainPanel = new JPanel();
+        mainPanel.setOpaque(true);
+        mainPanel.setBackground(new Color(30, 35, 45));
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+        
+        JLabel skipTitle = new JLabel("Quiz Skipped");
+        skipTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        skipTitle.setForeground(new Color(255, 200, 100));
+        skipTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        skipTitle.setBorder(new EmptyBorder(0, 0, 10, 0));
+        
+        JLabel skipDesc = new JLabel("You can always explore the dashboard and customize your settings later.");
+        skipDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        skipDesc.setForeground(new Color(180, 190, 200));
+        skipDesc.setAlignmentX(Component.CENTER_ALIGNMENT);
+        skipDesc.setBorder(new EmptyBorder(0, 0, 20, 0));
+        
+        JButton continueBtn = new JButton("Continue to Dashboard");
+        continueBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        continueBtn.setBackground(new Color(100, 180, 220));
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBorderPainted(false);
+        continueBtn.setPreferredSize(new Dimension(180, 35));
+        continueBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        continueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        continueBtn.addActionListener(e -> skipDialog.dispose());
+        
+        mainPanel.add(skipTitle);
+        mainPanel.add(skipDesc);
+        mainPanel.add(continueBtn);
+        
+        skipDialog.add(mainPanel);
+        skipDialog.setVisible(true);
     }
     
     private JPanel createQuestionPanel(String question, String[] options, String key) {
@@ -2364,10 +2532,13 @@ public class Dashboard extends JFrame {
             java.io.File file = new java.io.File(ONBOARDING_FILE);
             if (file.exists()) {
                 java.util.Scanner scanner = new java.util.Scanner(file);
-                if (scanner.hasNextLine()) {
+                while (scanner.hasNextLine()) {
                     String line = scanner.nextLine();
                     if (line.contains("completed=true")) {
                         onboardingCompleted = true;
+                    }
+                    if (line.contains("quiz_attempted=true")) {
+                        quizAttempted = true;
                     }
                 }
                 scanner.close();
@@ -2381,11 +2552,31 @@ public class Dashboard extends JFrame {
         try {
             java.io.FileWriter writer = new java.io.FileWriter(ONBOARDING_FILE);
             writer.write("completed=true\n");
+            writer.write("quiz_attempted=" + quizAttempted + "\n");
             writer.write("timestamp=" + System.currentTimeMillis() + "\n");
             writer.close();
             System.out.println("Onboarding status saved!");
         } catch (Exception e) {
             System.out.println("Error saving onboarding status: " + e.getMessage());
+        }
+    }
+    
+    private void saveQuizResponses() {
+        try {
+            java.io.FileWriter writer = new java.io.FileWriter(QUIZ_FILE);
+            writer.write("{\n");
+            writer.write("  \"quiz_completed\": true,\n");
+            writer.write("  \"experience_level\": \"Not specified\",\n");
+            writer.write("  \"work_style\": \"Not specified\",\n");
+            writer.write("  \"productivity_goals\": \"Not specified\",\n");
+            writer.write("  \"notification_preference\": \"Not specified\",\n");
+            writer.write("  \"completed_at\": " + System.currentTimeMillis() + ",\n");
+            writer.write("  \"user_id\": \"" + (profile != null ? profile.getUsername() : "unknown") + "\"\n");
+            writer.write("}\n");
+            writer.close();
+            System.out.println("Quiz responses saved to " + QUIZ_FILE + "!");
+        } catch (Exception e) {
+            System.out.println("Error saving quiz responses: " + e.getMessage());
         }
     }
     
@@ -2415,6 +2606,15 @@ public class Dashboard extends JFrame {
         } catch (Exception e) {
             System.out.println("Error saving onboarding answers: " + e.getMessage());
         }
+    }
+    
+    private void showQuizStatusInDashboard() {
+        // This method can be used to show quiz completion status in the dashboard
+        // For example, updating the player info bar or showing a badge
+        System.out.println("Quiz was previously completed by this user");
+        
+        // You could update the player info bar to show quiz completion status
+        // or add a small indicator in the dashboard
     }
 
     private void openDoc(String filename) {
