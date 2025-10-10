@@ -241,12 +241,35 @@ public class Dashboard extends JFrame {
         // Custom cell renderer for better appearance
         tree.setCellRenderer(new CustomTreeCellRenderer());
         
-        // Expand all nodes
+        // Collapse all nodes initially
         for (int i = 0; i < tree.getRowCount(); i++) {
-            tree.expandRow(i);
+            tree.collapseRow(i);
         }
         
-        // Add selection listener
+        // Add mouse listener for single-click expand/collapse on categories
+        tree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = tree.getRowForLocation(e.getX(), e.getY());
+                if (row != -1) {
+                    TreePath path = tree.getPathForRow(row);
+                    if (path != null) {
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        
+                        // Toggle expand/collapse for category nodes (non-leaf) on single click
+                        if (!node.isLeaf() && e.getClickCount() == 1) {
+                            if (tree.isExpanded(path)) {
+                                tree.collapsePath(path);
+                            } else {
+                                tree.expandPath(path);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Add selection listener for leaf nodes (actual menu items)
         tree.addTreeSelectionListener(e -> {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
             if (node == null || node.isRoot() || !node.isLeaf()) return;
