@@ -6,8 +6,6 @@ import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -199,7 +197,9 @@ public class AuthUI extends JFrame {
 
     private void showCard(String name) {
         cardLayout.show(cardPanel, name);
-        playFade(name);
+        if (!"LOGIN".equals(name)) {
+            playFade(name);
+        }
         updateBackButtonVisibility(name);
     }
 
@@ -298,6 +298,7 @@ public class AuthUI extends JFrame {
         
         loginButton = new JButton("Login");
         Theme.stylePrimaryButton(loginButton);
+        // Ensure identical dimensions to signup button
         loginButton.setMaximumSize(new Dimension(520, 70));
         loginButton.setPreferredSize(new Dimension(520, 70));
         JComponent loginGradientWrap = Theme.asGradientButton(
@@ -307,6 +308,11 @@ public class AuthUI extends JFrame {
             20
         );
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
+        // Disable hover effects on this button
+        switchToSignupButton.setRolloverEnabled(false);
+        for (java.awt.event.MouseListener ml : switchToSignupButton.getMouseListeners()) {
+            switchToSignupButton.removeMouseListener(ml);
+        }
         
         // Add arrow key navigation to login button
         loginButton.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -404,16 +410,16 @@ public class AuthUI extends JFrame {
             dropdownPanel.setPreferredSize(new Dimension(fieldWidth, 40));
             dropdownPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
-            // Add hover effect to dropdown
-            dropdownPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+        // Remove hover/animation effects
+        dropdownPanel.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent e) {
-                    suggestionLabel.setForeground(PRIMARY_COLOR);
+                    // no-op
                 }
                 
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent e) {
-                    suggestionLabel.setForeground(new Color(220, 220, 240));
+                    // no-op
                 }
                 
                 @Override
@@ -467,62 +473,15 @@ public class AuthUI extends JFrame {
         forgotPasswordLink.setAlignmentX(Component.CENTER_ALIGNMENT);
         forgotPasswordLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
         forgotPasswordLink.addMouseListener(new java.awt.event.MouseAdapter() {
-            private Timer colorTimer;
-            private Color startColor = new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 160);
-            private Color endColor = new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 255);
             
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                if (colorTimer != null) colorTimer.stop();
-                
-                colorTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200);
-                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                        
-                        int red = (int) (startColor.getRed() + (endColor.getRed() - startColor.getRed()) * easedProgress);
-                        int green = (int) (startColor.getGreen() + (endColor.getGreen() - startColor.getGreen()) * easedProgress);
-                        int blue = (int) (startColor.getBlue() + (endColor.getBlue() - startColor.getBlue()) * easedProgress);
-                        
-                        forgotPasswordLink.setForeground(new Color(red, green, blue));
-                        
-                        if (progress >= 1.0f) {
-                            colorTimer.stop();
-                        }
-                    }
-                });
-                colorTimer.start();
+                // no-op
             }
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (colorTimer != null) colorTimer.stop();
-                
-                colorTimer = new Timer(16, new ActionListener() {
-                    private int elapsed = 0;
-                    
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        elapsed += 16;
-                        float progress = Math.min(1.0f, (float) elapsed / 200);
-                        float easedProgress = 1.0f - (float) Math.pow(1.0f - progress, 2);
-                        
-                        int red = (int) (endColor.getRed() + (startColor.getRed() - endColor.getRed()) * easedProgress);
-                        int green = (int) (endColor.getGreen() + (startColor.getGreen() - endColor.getGreen()) * easedProgress);
-                        int blue = (int) (endColor.getBlue() + (startColor.getBlue() - endColor.getBlue()) * easedProgress);
-                        
-                        forgotPasswordLink.setForeground(new Color(red, green, blue));
-                        
-                        if (progress >= 1.0f) {
-                            colorTimer.stop();
-                        }
-                    }
-                });
-                colorTimer.start();
+                // no-op
             }
             
             @Override
@@ -609,6 +568,7 @@ public class AuthUI extends JFrame {
         
         signupButton = new JButton("Sign Up");
         Theme.stylePrimaryButton(signupButton);
+        // Ensure identical dimensions to login button
         signupButton.setMaximumSize(new Dimension(520, 70));
         signupButton.setPreferredSize(new Dimension(520, 70));
         JComponent signupGradientWrap = Theme.asGradientButton(
@@ -963,27 +923,7 @@ public class AuthUI extends JFrame {
             }
         });
         
-        // Add separate mouse motion listener for cursor changes
-        field.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(java.awt.event.MouseEvent e) {
-                int eyeX = field.getWidth() - 40;
-                int eyeY = (field.getHeight() - 16) / 2;
-                // Change cursor when hovering over eye icon
-                if (e.getX() >= eyeX - 5 && e.getX() <= eyeX + 25 && 
-                    e.getY() >= eyeY - 5 && e.getY() <= eyeY + 21) {
-                    field.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                    // Set hover state for visual feedback
-                    field.putClientProperty("isHoveringEye", Boolean.TRUE);
-                    field.repaint();
-                } else {
-                    field.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-                    // Clear hover state
-                    field.putClientProperty("isHoveringEye", Boolean.FALSE);
-                    field.repaint();
-                }
-            }
-        });
+        // Remove hover motion changes over eye icon
         
         // Add key listener for placeholder behavior
         field.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -1079,8 +1019,7 @@ public class AuthUI extends JFrame {
         
         // Enable rollover for hover visuals
         button.setRolloverEnabled(true);
-        // Add subtle hover effect
-        addButtonHoverEffect(button);
+        // Disable hover effect
         
         return button;
     }
@@ -1529,22 +1468,26 @@ public class AuthUI extends JFrame {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth();
                 int h = getHeight();
-                int size = Math.min(w, h) - 10;
-                int cx = 10;
-                int cy = h / 2;
-                g2d.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 g2d.setColor(Color.WHITE);
-                // Draw a simple left arrow 
-                int x1 = cx + size / 2;
-                int y1 = cy - size / 3;
-                int x2 = cx;
-                int y2 = cy;
-                int x3 = cx + size / 2;
-                int y3 = cy + size / 3;
-                g2d.drawLine(x1, y1, x2, y2);
-                g2d.drawLine(x2, y2, x3, y3);
-                // Tail
-                g2d.drawLine(x2, y2, x2 + size, y2);
+
+                // Compact left arrow (filled) to avoid looking like a separator line
+                int arrowHeight = Math.min(h - 8, 18);
+                int arrowWidth = Math.min(w - 12, 22);
+                int topY = (h - arrowHeight) / 2;
+                int centerY = h / 2;
+                int leftX = 8;
+                int rightX = leftX + arrowWidth;
+
+                // Arrow shaft
+                int shaftHeight = Math.max(2, arrowHeight / 4);
+                int shaftY = centerY - shaftHeight / 2;
+                int shaftRight = rightX - (arrowHeight / 2);
+                g2d.fillRoundRect(leftX + (arrowHeight / 2) - 1, shaftY, Math.max(4, shaftRight - (leftX + (arrowHeight / 2))), shaftHeight, shaftHeight, shaftHeight);
+
+                // Arrow head (triangle)
+                int[] xs = new int[] { leftX, leftX + (arrowHeight / 2), leftX + (arrowHeight / 2) };
+                int[] ys = new int[] { centerY, topY, topY + arrowHeight };
+                g2d.fillPolygon(xs, ys, 3);
                 g2d.dispose();
             }
         };

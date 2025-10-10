@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.forgegrid.app.Main",
+            "projectName": "ForgeGrid_b0e8f465"
+        },
+        {
+            "type": "java",
             "name": "Launch ForgeGrid",
             "request": "launch",
             "mainClass": "com.forgegrid.app.Main",

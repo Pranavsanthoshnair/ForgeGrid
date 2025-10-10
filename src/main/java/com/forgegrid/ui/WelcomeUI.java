@@ -102,10 +102,8 @@ public class WelcomeUI extends JPanel {
         background.add(quotesWrapper);
         background.add(Box.createVerticalGlue());
 
-        FadeInPanel fade = new FadeInPanel(new BorderLayout());
-        fade.add(background, BorderLayout.CENTER);
-        add(fade, BorderLayout.CENTER);
-        SwingUtilities.invokeLater(fade::play);
+        // Static landing page (no fade/animations)
+        add(background, BorderLayout.CENTER);
     }
 
     public void addStartActionListener(ActionListener l) {

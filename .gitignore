@@ -1,7 +1,8 @@
-# Build output directories (but keep bin/ for compiled classes)
+# Build output directories
 build/
 target/
 out/
+bin/
 
 # IDE specific files
 .idea/
