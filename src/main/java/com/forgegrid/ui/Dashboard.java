@@ -120,81 +120,190 @@ public class Dashboard extends JFrame {
     }
     
     /**
-     * Creates the top panel with player stats
+     * Creates the top panel with enhanced player stats
      */
     private JPanel createTopPanel() {
-        JPanel topPanel = new JPanel();
+        JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(PANEL_COLOR);
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
         topPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
         
-        // Player Name
+        // LEFT: User Info Section with Level Badge
+        JPanel leftPanel = createUserInfoSection();
+        
+        // CENTER: XP Section with Rank and Streak
+        JPanel centerPanel = createXPSection();
+        
+        // RIGHT: Customize Experience Button
+        JPanel rightPanel = createCustomizeSection();
+        
+        topPanel.add(leftPanel, BorderLayout.WEST);
+        topPanel.add(centerPanel, BorderLayout.CENTER);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+        
+        return topPanel;
+    }
+    
+    /**
+     * Create user info section with level badge
+     */
+    private JPanel createUserInfoSection() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        panel.setOpaque(false);
+        
         String playerName = (profile != null && profile.getUsername() != null) ? profile.getUsername() : "Player";
         JLabel nameLabel = new JLabel(playerName);
         nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         nameLabel.setForeground(TEXT_COLOR);
         
-        topPanel.add(nameLabel);
-        topPanel.add(Box.createHorizontalStrut(30));
+        // Level badge with color based on level
+        JPanel levelBadge = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Determine badge color based on level
+                Color badgeColor;
+                if (currentLevel <= 10) {
+                    badgeColor = new Color(80, 200, 120); // Green for beginner
+                } else if (currentLevel <= 25) {
+                    badgeColor = new Color(100, 180, 220); // Blue for intermediate
+                } else {
+                    badgeColor = new Color(255, 215, 0); // Gold for advanced
+                }
+                
+                g2.setColor(badgeColor);
+                g2.fillOval(2, 2, 24, 24);
+                
+                // Draw level number
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                String levelText = String.valueOf(currentLevel);
+                FontMetrics fm = g2.getFontMetrics();
+                int textX = (28 - fm.stringWidth(levelText)) / 2;
+                int textY = (28 + fm.getAscent()) / 2 - 2;
+                g2.drawString(levelText, textX, textY);
+                
+                g2.dispose();
+            }
+        };
+        levelBadge.setPreferredSize(new Dimension(28, 28));
+        levelBadge.setOpaque(false);
         
-        // Level
-        JLabel levelLabel = new JLabel("Level: " + currentLevel);
-        levelLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        levelLabel.setForeground(TEXT_SECONDARY);
+        panel.add(nameLabel);
+        panel.add(levelBadge);
         
-        topPanel.add(levelLabel);
-        topPanel.add(Box.createHorizontalStrut(30));
+        return panel;
+    }
+    
+    /**
+     * Create XP section with centered progress bar
+     */
+    private JPanel createXPSection() {
+        JPanel panel = new JPanel(new BorderLayout(15, 0));
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(0, 40, 0, 40));
         
-        // XP Progress Bar
-        JPanel xpPanel = new JPanel();
-        xpPanel.setLayout(new BoxLayout(xpPanel, BoxLayout.Y_AXIS));
-        xpPanel.setOpaque(false);
-        
-        JLabel xpLabel = new JLabel("XP: " + currentXP + " / " + maxXP);
-        xpLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        xpLabel.setForeground(TEXT_SECONDARY);
-        xpLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JProgressBar xpBar = new JProgressBar(0, maxXP);
-        xpBar.setValue(currentXP);
-        xpBar.setPreferredSize(new Dimension(200, 8));
-        xpBar.setMaximumSize(new Dimension(200, 8));
-        xpBar.setForeground(ACCENT_COLOR);
-        xpBar.setBackground(SIDEBAR_COLOR);
-        xpBar.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        xpPanel.add(xpLabel);
-        xpPanel.add(Box.createVerticalStrut(5));
-        xpPanel.add(xpBar);
-        
-        topPanel.add(xpPanel);
-        topPanel.add(Box.createHorizontalStrut(30));
-        
-        // Rank
+        // LEFT: Rank label
         JLabel rankLabel = new JLabel("Rank: " + playerRank);
-        rankLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        rankLabel.setForeground(TEXT_SECONDARY);
+        rankLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        rankLabel.setForeground(new Color(255, 215, 0));
         
-        topPanel.add(rankLabel);
-        topPanel.add(Box.createHorizontalStrut(30));
+        // CENTER: Enhanced XP Progress Bar
+        JPanel xpBarPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int width = getWidth();
+                int height = getHeight();
+                
+                // Background
+                g2.setColor(SIDEBAR_COLOR);
+                g2.fillRoundRect(0, 0, width, height, 10, 10);
+                
+                // Progress
+                if (maxXP > 0) {
+                    int progressWidth = (int) ((width * currentXP) / maxXP);
+                    g2.setColor(new Color(80, 200, 120));
+                    g2.fillRoundRect(0, 0, progressWidth, height, 10, 10);
+                }
+                
+                // XP Text inside bar
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                String xpText = "XP: " + currentXP + " / " + maxXP;
+                FontMetrics fm = g2.getFontMetrics();
+                int textX = (width - fm.stringWidth(xpText)) / 2;
+                int textY = (height + fm.getAscent()) / 2 - 2;
+                g2.drawString(xpText, textX, textY);
+                
+                g2.dispose();
+            }
+        };
+        xpBarPanel.setPreferredSize(new Dimension(300, 24));
+        xpBarPanel.setOpaque(false);
         
-        // Streak
+        // RIGHT: Streak with fire icon
         JLabel streakLabel = new JLabel("🔥 Streak: " + currentStreak);
-        streakLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        streakLabel.setForeground(TEXT_SECONDARY);
+        streakLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        streakLabel.setForeground(new Color(255, 150, 100));
         
-        topPanel.add(streakLabel);
-        topPanel.add(Box.createHorizontalGlue());
+        panel.add(rankLabel, BorderLayout.WEST);
+        panel.add(xpBarPanel, BorderLayout.CENTER);
+        panel.add(streakLabel, BorderLayout.EAST);
         
-        // Customization option
-        JLabel customizeLabel = new JLabel("⚙️ Customize your experience");
+        return panel;
+    }
+    
+    /**
+     * Create customize section with red dot indicator
+     */
+    private JPanel createCustomizeSection() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 0));
+        panel.setOpaque(false);
+        
+        // Check if customization is completed
+        final boolean[] showRedDot = {true};
+        if (profile != null && profile.getUsername() != null) {
+            showRedDot[0] = !userService.hasCompletedCustomization(profile.getUsername());
+        }
+        
+        // Customization label
+        JLabel customizeLabel = new JLabel("Customize your experience");
         customizeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         customizeLabel.setForeground(ACCENT_COLOR);
         customizeLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        customizeLabel.setOpaque(false);
+        
+        // Red dot indicator (only show if not completed) - using a custom painted component
+        JPanel redDotPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (showRedDot[0]) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(255, 60, 60));
+                    g2.fillOval(2, 5, 8, 8);
+                    g2.dispose();
+                }
+            }
+        };
+        redDotPanel.setPreferredSize(new Dimension(12, 18));
+        redDotPanel.setOpaque(false);
+        
+        // Add hover effect
         customizeLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 showCustomizationPanel();
+                // Hide red dot after clicking
+                showRedDot[0] = false;
+                redDotPanel.repaint();
             }
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -206,9 +315,10 @@ public class Dashboard extends JFrame {
             }
         });
         
-        topPanel.add(customizeLabel);
+        panel.add(redDotPanel);
+        panel.add(customizeLabel);
         
-        return topPanel;
+        return panel;
     }
     
     /**
@@ -251,9 +361,9 @@ public class Dashboard extends JFrame {
         // Custom cell renderer for better appearance
         tree.setCellRenderer(new CustomTreeCellRenderer());
         
-        // Collapse all nodes initially
+        // Expand all nodes by default
         for (int i = 0; i < tree.getRowCount(); i++) {
-            tree.collapseRow(i);
+            tree.expandRow(i);
         }
         
         // Add mouse listener for single-click expand/collapse on categories
@@ -403,7 +513,7 @@ public class Dashboard extends JFrame {
         
         return panel;
     }
-
+    
     
     // Simplified Views
     private JComponent buildSimpleDashboardView() {
@@ -2317,9 +2427,16 @@ public class Dashboard extends JFrame {
         buttonsPanel.add(saveBtn);
         buttonsPanel.add(cancelBtn);
         
+        // Wrap questions panel in a scroll pane for better UX
+        JScrollPane scrollPane = new JScrollPane(questionsPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBackground(BG_COLOR);
+        scrollPane.getViewport().setBackground(BG_COLOR);
+        
         // Add components to main panel
         customizationPanel.add(headerPanel, BorderLayout.NORTH);
-        customizationPanel.add(questionsPanel, BorderLayout.CENTER);
+        customizationPanel.add(scrollPane, BorderLayout.CENTER);
         customizationPanel.add(buttonsPanel, BorderLayout.SOUTH);
         
         // Add to center panel and show

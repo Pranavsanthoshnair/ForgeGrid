@@ -279,13 +279,14 @@ public class UserService {
     public boolean saveUserPreferences(String username, String experienceLevel, String workStyle, 
                                      String productivityGoals, String notificationPreference) {
         String insertOrUpdateSQL = """
-            INSERT INTO user_preferences (username, experience_level, work_style, productivity_goals, notification_preference, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO user_preferences (username, experience_level, work_style, productivity_goals, notification_preference, customize_completed, updated_at)
+            VALUES (?, ?, ?, ?, ?, TRUE, ?)
             ON DUPLICATE KEY UPDATE
                 experience_level = VALUES(experience_level),
                 work_style = VALUES(work_style),
                 productivity_goals = VALUES(productivity_goals),
                 notification_preference = VALUES(notification_preference),
+                customize_completed = TRUE,
                 updated_at = VALUES(updated_at)
             """;
         
@@ -300,14 +301,35 @@ public class UserService {
             pstmt.setString(6, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
             int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
             
-            if (rowsAffected > 0) {
-                System.out.println("User preferences saved successfully for username: " + username);
-                return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if user has completed customization
+     * 
+     * @param username Username to check
+     * @return true if customization completed, false otherwise
+     */
+    public boolean hasCompletedCustomization(String username) {
+        String query = "SELECT customize_completed FROM user_preferences WHERE username = ?";
+        
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getBoolean("customize_completed");
             }
             
         } catch (SQLException e) {
-            System.err.println("Error saving user preferences: " + e.getMessage());
             e.printStackTrace();
         }
         

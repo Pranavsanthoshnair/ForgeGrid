@@ -182,6 +182,7 @@ public class DatabaseHelper {
                 work_style VARCHAR(255) NULL,
                 productivity_goals VARCHAR(255) NULL,
                 notification_preference VARCHAR(255) NULL,
+                customize_completed BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
