@@ -22,6 +22,13 @@ if %ERRORLEVEL% EQU 0 (
     if exist "src\main\resources" (
         echo Copying resources...
         xcopy /E /I /Y "src\main\resources\*" "bin\" >nul 2>&1
+        
+        REM Ensure the icon directory structure is properly copied
+        if exist "src\main\resources\com\forgegrid\icon" (
+            echo Copying icon resources...
+            if not exist "bin\com\forgegrid\icon" mkdir "bin\com\forgegrid\icon"
+            xcopy /Y "src\main\resources\com\forgegrid\icon\*" "bin\com\forgegrid\icon\" >nul 2>&1
+        )
     )
     
     echo.

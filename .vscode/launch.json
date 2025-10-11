@@ -6,6 +6,13 @@
             "name": "Main",
             "request": "launch",
             "mainClass": "com.forgegrid.app.Main",
+            "projectName": "ForgeGrid_af805301"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.forgegrid.app.Main",
             "projectName": "ForgeGrid_b0e8f465"
         },
         {
