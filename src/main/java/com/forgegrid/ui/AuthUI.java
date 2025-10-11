@@ -4,7 +4,6 @@ import com.forgegrid.auth.AuthService;
 import com.forgegrid.config.UserPreferences;
 import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
-import com.forgegrid.ui.LandingPage;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -163,9 +162,9 @@ public class AuthUI extends JFrame {
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
-        // Show landing page first, then dashboard
-        LandingPage landingPage = new LandingPage(currentProfile, goal, language, skill);
-        landingPage.setVisible(true);
+        // Go directly to dashboard (skip landing page)
+        Dashboard dashboard = new Dashboard(currentProfile, true); // skipWelcome = true
+        dashboard.setVisible(true);
         
         // Hide the current AuthUI window
         setVisible(false);
