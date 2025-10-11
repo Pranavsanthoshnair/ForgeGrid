@@ -17,18 +17,185 @@ public class OnboardingInAppPanel extends JPanel {
 	private String selectedGoal;
 	private String selectedLanguage;
 	private String selectedSkill;
+	private final boolean isNewUser;
+	private final String username;
 
 	public OnboardingInAppPanel(CompletionListener listener) {
+		this(listener, true, null);
+	}
+
+	public OnboardingInAppPanel(CompletionListener listener, boolean isNewUser, String username) {
 		setLayout(new BorderLayout());
 		setOpaque(false);
+		this.isNewUser = isNewUser;
+		this.username = username;
 		flow = new CardLayout();
 		root = new JPanel(flow);
 		add(root, BorderLayout.CENTER);
 
-		root.add(buildQ1(() -> flow.show(root, "q2")), "q1");
-		root.add(buildQ2(() -> flow.show(root, "q3")), "q2");
-		root.add(buildQ3(() -> { if (listener != null) listener.onComplete(selectedGoal, selectedLanguage, selectedSkill); }), "q3");
-		flow.show(root, "q1");
+		if (isNewUser) {
+			// Show onboarding questions for new users
+			root.add(buildQ1(() -> flow.show(root, "q2")), "q1");
+			root.add(buildQ2(() -> flow.show(root, "q3")), "q2");
+			root.add(buildQ3(() -> flow.show(root, "completion")), "q3");
+			root.add(buildCompletionPanel(() -> { 
+				if (listener != null) listener.onComplete(selectedGoal, selectedLanguage, selectedSkill); 
+			}), "completion");
+			flow.show(root, "q1");
+		} else {
+			// Show welcome back message for existing users
+			root.add(buildWelcomeBackPanel(() -> { 
+				if (listener != null) listener.onComplete("Welcome Back", "Returning User", "Existing"); 
+			}), "welcome");
+			flow.show(root, "welcome");
+		}
+	}
+
+	private JPanel buildWelcomeBackPanel(Runnable continueAction) {
+		NeonBackgroundPanel bg = new NeonBackgroundPanel();
+		bg.setLayout(new GridBagLayout());
+		
+		JPanel center = new CardContainerPanel();
+		center.setOpaque(false);
+		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+		center.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+
+		// Welcome back title
+		GradientTextLabel welcomeTitle = new GradientTextLabel("Welcome back, " + (username != null ? username : "User") + "!");
+		welcomeTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+		welcomeTitle.setForeground(Theme.TEXT_PRIMARY);
+		welcomeTitle.setGradient(Theme.BRAND_BLUE, Theme.BRAND_PINK);
+		welcomeTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
+		center.add(welcomeTitle);
+		
+		center.add(Box.createRigidArea(new Dimension(0, 20)));
+
+		// Welcome message
+		JLabel welcomeMessage = new JLabel("<html><div style='text-align: center;'>" +
+			"<p style='font-size: 16px; color: #B4B8C8; margin: 10px 0;'>" +
+			"Great to see you again! Your personalized dashboard is ready.</p>" +
+			"<p style='font-size: 14px; color: #8A8FA3; margin: 10px 0;'>" +
+			"Let's continue your journey on ForgeGrid.</p>" +
+			"</div></html>");
+		welcomeMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+		center.add(welcomeMessage);
+		
+		center.add(Box.createRigidArea(new Dimension(0, 30)));
+
+		// Continue button
+		JButton continueBtn = createContinueButton();
+		continueBtn.setText("Continue to Dashboard");
+		continueBtn.addActionListener(e -> continueAction.run());
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setOpaque(false);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+		
+		JPanel continueWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)) {
+			@Override
+			public Dimension getMaximumSize() {
+				return getPreferredSize();
+			}
+		};
+		continueWrap.setOpaque(false);
+		continueBtn.setPreferredSize(new Dimension(280, 40));
+		continueBtn.setMaximumSize(new Dimension(280, 40));
+		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 20);
+		Dimension contSize = new Dimension(280, 40);
+		gradientButton.setPreferredSize(contSize);
+		gradientButton.setMinimumSize(contSize);
+		gradientButton.setMaximumSize(contSize);
+		continueWrap.setPreferredSize(contSize);
+		continueWrap.setMinimumSize(contSize);
+		continueWrap.setMaximumSize(contSize);
+		continueWrap.add(gradientButton);
+		buttonPanel.add(continueWrap);
+		
+		center.add(buttonPanel);
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
+		bg.add(center, gbc);
+		return bg;
+	}
+
+	private JPanel buildCompletionPanel(Runnable continueAction) {
+		NeonBackgroundPanel bg = new NeonBackgroundPanel();
+		bg.setLayout(new GridBagLayout());
+		
+		JPanel center = new CardContainerPanel();
+		center.setOpaque(false);
+		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+		center.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+
+		// Completion title with username
+		GradientTextLabel completionTitle = new GradientTextLabel("Hi " + (username != null ? username : "there") + "!");
+		completionTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+		completionTitle.setForeground(Theme.TEXT_PRIMARY);
+		completionTitle.setGradient(Theme.BRAND_BLUE, Theme.BRAND_PINK);
+		completionTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
+		center.add(completionTitle);
+		
+		center.add(Box.createRigidArea(new Dimension(0, 25)));
+
+		// Motivational message
+		JLabel motivationalMessage = new JLabel("<html><div style='text-align: center;'>" +
+			"<p style='font-size: 18px; color: #B4B8C8; margin: 15px 0; font-weight: bold;'>" +
+			"🎉 Welcome to ForgeGrid! 🎉</p>" +
+			"<p style='font-size: 16px; color: #A0A8B8; margin: 12px 0;'>" +
+			"Your journey to becoming a coding champion starts now!</p>" +
+			"<p style='font-size: 15px; color: #8A8FA3; margin: 12px 0;'>" +
+			"With your " + (selectedGoal != null ? selectedGoal.toLowerCase() : "chosen path") + " focus and " + 
+			(selectedLanguage != null ? selectedLanguage : "programming") + " skills,</p>" +
+			"<p style='font-size: 15px; color: #8A8FA3; margin: 12px 0;'>" +
+			"you're ready to tackle any challenge that comes your way.</p>" +
+			"<p style='font-size: 16px; color: #46C4B6; margin: 15px 0; font-weight: bold;'>" +
+			"Let's build something amazing together! 💪</p>" +
+			"</div></html>");
+		motivationalMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+		center.add(motivationalMessage);
+		
+		center.add(Box.createRigidArea(new Dimension(0, 35)));
+
+		// Continue button
+		JButton continueBtn = createContinueButton();
+		continueBtn.setText("Continue to Dashboard");
+		continueBtn.addActionListener(e -> continueAction.run());
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setOpaque(false);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+		
+		JPanel continueWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)) {
+			@Override
+			public Dimension getMaximumSize() {
+				return getPreferredSize();
+			}
+		};
+		continueWrap.setOpaque(false);
+		continueBtn.setPreferredSize(new Dimension(300, 45));
+		continueBtn.setMaximumSize(new Dimension(300, 45));
+		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 22);
+		Dimension contSize = new Dimension(300, 45);
+		gradientButton.setPreferredSize(contSize);
+		gradientButton.setMinimumSize(contSize);
+		gradientButton.setMaximumSize(contSize);
+		continueWrap.setPreferredSize(contSize);
+		continueWrap.setMinimumSize(contSize);
+		continueWrap.setMaximumSize(contSize);
+		continueWrap.add(gradientButton);
+		buttonPanel.add(continueWrap);
+		
+		center.add(buttonPanel);
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
+		bg.add(center, gbc);
+		return bg;
 	}
 
 	private JPanel buildQ1(Runnable next) {

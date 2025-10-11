@@ -25,6 +25,7 @@ public class Dashboard extends JFrame {
     private int currentStreak = 0;
     private boolean onboardingCompleted = false;
     private boolean quizAttempted = false;
+    // Note: onboarding.json file-based tracking is deprecated in favor of database tracking
     private static final String ONBOARDING_FILE = "onboarding.json";
     private static final String QUIZ_FILE = "quiz_responses.json";
     private int currentLevel = 1;

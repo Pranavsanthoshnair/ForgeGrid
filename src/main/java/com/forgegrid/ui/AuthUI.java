@@ -29,6 +29,14 @@ public class AuthUI extends JFrame {
     private LoadingScreen loadingScreen;
     private PlayerProfile currentProfile;
     
+    // Panel references for dynamic onboarding creation
+    private JPanel loginPanel;
+    private JPanel signupPanel;
+    private WelcomeUI welcomePanel;
+    private JPanel onboardingPrompt;
+    private JPanel loadingPanel;
+    private JPanel dashboardPanel;
+    
     public AuthUI() {
         this.authService = new AuthService();
         this.userService = new UserService();
@@ -99,56 +107,23 @@ public class AuthUI extends JFrame {
         
         
 		// Create login and signup panels
-        JPanel loginPanel = createLoginPanel();
-        JPanel signupPanel = createSignupPanel();
+        loginPanel = createLoginPanel();
+        signupPanel = createSignupPanel();
         
         addWithFade(loginPanel, "LOGIN");
         addWithFade(signupPanel, "SIGNUP");
 
 		// Create landing cover panel (shown first)
         // Welcome screen inside the same window (instead of separate tab/window)
-        WelcomeUI welcomePanel = new WelcomeUI();
+        welcomePanel = new WelcomeUI();
         welcomePanel.addStartActionListener(e -> showCard("LOGIN"));
         addWithFade(welcomePanel, "WELCOME");
 
-        // In-app Onboarding panel (same window)
-        OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
-            // Save onboarding data to database
-            System.out.println("=== ONBOARDING COMPLETION CALLBACK ===");
-            System.out.println("Current Profile: " + (currentProfile != null ? currentProfile.getUsername() : "NULL"));
-            System.out.println("Goal: " + goal);
-            System.out.println("Language: " + language);
-            System.out.println("Skill: " + skill);
-            
-            if (currentProfile != null && currentProfile.getUsername() != null) {
-                boolean saved = userService.saveOnboardingDataByUsername(
-                    currentProfile.getUsername(), 
-                    goal, 
-                    language, 
-                    skill
-                );
-                
-                if (saved) {
-                    System.out.println("✓ Onboarding data saved successfully to database!");
-                    // Update the current profile with onboarding data
-                    currentProfile.setOnboardingCompleted(true);
-                    currentProfile.setOnboardingGoal(goal);
-                    currentProfile.setOnboardingLanguage(language);
-                    currentProfile.setOnboardingSkill(skill);
-                } else {
-                    System.err.println("✗ Failed to save onboarding data to database");
-                }
-            } else {
-                System.err.println("✗ Cannot save onboarding: currentProfile is null or has no username");
-            }
-            
-            // After onboarding, open Dashboard within the same window
-            openDashboardInCard(goal, language, skill);
-        });
-        addWithFade(onboarding, "ONBOARDING");
+        // In-app Onboarding panel (same window) - will be created dynamically based on user status
+        addWithFade(new JPanel(), "ONBOARDING"); // Placeholder, will be replaced dynamically
 
         // Inline onboarding prompt card (asks Yes/No inside app UI)
-        JPanel onboardingPrompt = createOnboardingPromptPanel();
+        onboardingPrompt = createOnboardingPromptPanel();
         addWithFade(onboardingPrompt, "ONBOARDING_PROMPT");
         
         // Build a top header with a left-aligned back button (arrow only)
@@ -308,11 +283,8 @@ public class AuthUI extends JFrame {
             20
         );
         JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
-        // Disable hover effects on this button
-        switchToSignupButton.setRolloverEnabled(false);
-        for (java.awt.event.MouseListener ml : switchToSignupButton.getMouseListeners()) {
-            switchToSignupButton.removeMouseListener(ml);
-        }
+        // Keep hover effects enabled for proper button functionality
+        switchToSignupButton.setRolloverEnabled(true);
         
         // Add arrow key navigation to login button
         loginButton.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -1181,13 +1153,28 @@ public class AuthUI extends JFrame {
                     System.out.println("Onboarding Language: " + profile.getOnboardingLanguage());
                     System.out.println("Onboarding Skill: " + profile.getOnboardingSkill());
                     
-                    // Always show loading, then show inline onboarding prompt card
-                    System.out.println("→ Showing loading screen then inline onboarding prompt");
-                    showCard("LOADING");
-                    new javax.swing.Timer(3500, e2 -> {
-                        ((javax.swing.Timer) e2.getSource()).stop();
-                        showCard("ONBOARDING_PROMPT");
-                    }).start();
+                    // Check if user has completed onboarding
+                    boolean hasCompletedOnboarding = userService.hasCompletedOnboardingByUsername(profile.getUsername());
+                    System.out.println("→ User onboarding status: " + (hasCompletedOnboarding ? "COMPLETED" : "NOT COMPLETED"));
+                    
+                    if (hasCompletedOnboarding) {
+                        // User has completed onboarding, show welcome back message
+                        System.out.println("→ User has completed onboarding, showing welcome back message");
+                        showCard("LOADING");
+                        new javax.swing.Timer(2000, e2 -> {
+                            ((javax.swing.Timer) e2.getSource()).stop();
+                            // Create welcome back onboarding panel
+                            createWelcomeBackOnboarding(profile.getUsername());
+                        }).start();
+                    } else {
+                        // User hasn't completed onboarding, show prompt
+                        System.out.println("→ Showing loading screen then inline onboarding prompt");
+                        showCard("LOADING");
+                        new javax.swing.Timer(3500, e2 -> {
+                            ((javax.swing.Timer) e2.getSource()).stop();
+                            showCard("ONBOARDING_PROMPT");
+                        }).start();
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     showCard("LOGIN");
@@ -1331,14 +1318,14 @@ public class AuthUI extends JFrame {
                 ImageIcon logoIcon = new ImageIcon(logoUrl);
                 Image logoImage = logoIcon.getImage();
                 
-                // Scale the logo proportionally (much larger base size)
+                // Scale the logo proportionally (smaller size to fit screen)
                 double scale = calculateProportionalScale();
-                int logoWidth = (int) (360 * scale);
-                int logoHeight = (int) (220 * scale);
+                int logoWidth = (int) (200 * scale);
+                int logoHeight = (int) (120 * scale);
                 
-                // Ensure minimum sizes (much larger)
-                logoWidth = Math.max(240, logoWidth);
-                logoHeight = Math.max(140, logoHeight);
+                // Ensure reasonable sizes (smaller to prevent overflow)
+                logoWidth = Math.max(150, Math.min(200, logoWidth));
+                logoHeight = Math.max(90, Math.min(120, logoHeight));
                 
                 // Scale the image
                 Image scaledLogo = logoImage.getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
@@ -1683,15 +1670,12 @@ public class AuthUI extends JFrame {
      */
     private void showSignup() {
         SwingUtilities.invokeLater(() -> {
-            // Ensure a fresh SIGNUP panel is present and visible
-            JPanel signupPanel = createSignupPanel();
-            cardPanel.add(signupPanel, "SIGNUP");
-            cardLayout.show(cardPanel, "SIGNUP");
-            cardPanel.revalidate();
-            cardPanel.repaint();
+            // Use the standard showCard method like all other navigation
+            showCard("SIGNUP");
             if (nameField != null) nameField.requestFocusInWindow();
         });
     }
+    
     
     /**
      * Show the LOGIN card reliably and focus the first field.
@@ -1704,6 +1688,72 @@ public class AuthUI extends JFrame {
             cardPanel.repaint();
             if (emailField != null) emailField.requestFocusInWindow();
         });
+    }
+
+    /**
+     * Create onboarding panel for new users (shows questions)
+     */
+    private void createNewUserOnboarding() {
+        OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
+            // Save onboarding data to database
+            if (currentProfile != null && currentProfile.getUsername() != null) {
+                boolean saved = userService.saveOnboardingDataByUsername(
+                    currentProfile.getUsername(), 
+                    goal, 
+                    language, 
+                    skill
+                );
+                
+                if (saved) {
+                    // Update the current profile with onboarding data
+                    currentProfile.setOnboardingCompleted(true);
+                    currentProfile.setOnboardingGoal(goal);
+                    currentProfile.setOnboardingLanguage(language);
+                    currentProfile.setOnboardingSkill(skill);
+                }
+            }
+            
+            // After onboarding, open Dashboard within the same window
+            openDashboardInCard(goal, language, skill);
+        }, true, currentProfile != null ? currentProfile.getUsername() : null); // isNewUser = true, pass username
+        
+        // Replace the placeholder onboarding panel
+        cardPanel.removeAll();
+        addWithFade(loginPanel, "LOGIN");
+        addWithFade(signupPanel, "SIGNUP");
+        addWithFade(welcomePanel, "WELCOME");
+        addWithFade(onboarding, "ONBOARDING");
+        addWithFade(onboardingPrompt, "ONBOARDING_PROMPT");
+        addWithFade(loadingScreen, "LOADING");
+        
+        showCard("ONBOARDING");
+    }
+
+    /**
+     * Create onboarding panel for returning users (shows welcome back message)
+     */
+    private void createWelcomeBackOnboarding(String username) {
+        OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
+            // Load existing onboarding data from database
+            String[] onboardingData = userService.getOnboardingDataByUsername(username);
+            String existingGoal = onboardingData != null ? onboardingData[0] : null;
+            String existingLanguage = onboardingData != null ? onboardingData[1] : null;
+            String existingSkill = onboardingData != null ? onboardingData[2] : null;
+            
+            // Go directly to dashboard with existing data
+            openDashboardInCard(existingGoal, existingLanguage, existingSkill);
+        }, false, username); // isNewUser = false
+        
+        // Replace the placeholder onboarding panel
+        cardPanel.removeAll();
+        addWithFade(loginPanel, "LOGIN");
+        addWithFade(signupPanel, "SIGNUP");
+        addWithFade(welcomePanel, "WELCOME");
+        addWithFade(onboarding, "ONBOARDING");
+        addWithFade(onboardingPrompt, "ONBOARDING_PROMPT");
+        addWithFade(loadingScreen, "LOADING");
+        
+        showCard("ONBOARDING");
     }
 
     private JPanel createOnboardingPromptPanel() {
@@ -1728,8 +1778,32 @@ public class AuthUI extends JFrame {
         JButton yesBtn = createSolidButton("Yes, start onboarding", PRIMARY_COLOR, Color.BLACK);
         JButton skipBtn = createGlassButton("Skip for now – go to dashboard");
 
-        yesBtn.addActionListener(e -> showCard("ONBOARDING"));
+        yesBtn.addActionListener(e -> {
+            // Create new user onboarding panel
+            createNewUserOnboarding();
+        });
         skipBtn.addActionListener(e -> {
+            // Mark onboarding as completed (skipped) in database
+            if (currentProfile != null && currentProfile.getUsername() != null) {
+                boolean saved = userService.saveOnboardingDataByUsername(
+                    currentProfile.getUsername(), 
+                    "Skipped", 
+                    "Not specified", 
+                    "Not specified"
+                );
+                
+                if (saved) {
+                    System.out.println("✓ Onboarding marked as skipped in database!");
+                    // Update the current profile
+                    currentProfile.setOnboardingCompleted(true);
+                    currentProfile.setOnboardingGoal("Skipped");
+                    currentProfile.setOnboardingLanguage("Not specified");
+                    currentProfile.setOnboardingSkill("Not specified");
+                } else {
+                    System.err.println("✗ Failed to save skip status to database");
+                }
+            }
+            
             String goal = currentProfile != null ? currentProfile.getOnboardingGoal() : null;
             String language = currentProfile != null ? currentProfile.getOnboardingLanguage() : null;
             String skill = currentProfile != null ? currentProfile.getOnboardingSkill() : null;
