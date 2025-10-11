@@ -267,6 +267,119 @@ public class UserService {
     }
     
     /**
+     * Save user preferences (post-dashboard customization data) to user_preferences table
+     * 
+     * @param username Username
+     * @param experienceLevel Experience level preference
+     * @param workStyle Work style preference
+     * @param productivityGoals Productivity goals preference
+     * @param notificationPreference Notification preference
+     * @return true if save successful, false otherwise
+     */
+    public boolean saveUserPreferences(String username, String experienceLevel, String workStyle, 
+                                     String productivityGoals, String notificationPreference) {
+        String insertOrUpdateSQL = """
+            INSERT INTO user_preferences (username, experience_level, work_style, productivity_goals, notification_preference, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                experience_level = VALUES(experience_level),
+                work_style = VALUES(work_style),
+                productivity_goals = VALUES(productivity_goals),
+                notification_preference = VALUES(notification_preference),
+                updated_at = VALUES(updated_at)
+            """;
+        
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(insertOrUpdateSQL)) {
+            
+            pstmt.setString(1, username);
+            pstmt.setString(2, experienceLevel);
+            pstmt.setString(3, workStyle);
+            pstmt.setString(4, productivityGoals);
+            pstmt.setString(5, notificationPreference);
+            pstmt.setString(6, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("User preferences saved successfully for username: " + username);
+                return true;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error saving user preferences: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get user preferences (post-dashboard customization data) by username
+     * 
+     * @param username Username
+     * @return Array containing [experience_level, work_style, productivity_goals, notification_preference], or null if not found
+     */
+    public String[] getUserPreferences(String username) {
+        String selectSQL = """
+            SELECT experience_level, work_style, productivity_goals, notification_preference 
+            FROM user_preferences 
+            WHERE username = ?
+            """;
+        
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+            
+            pstmt.setString(1, username);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new String[] {
+                        rs.getString("experience_level"),
+                        rs.getString("work_style"),
+                        rs.getString("productivity_goals"),
+                        rs.getString("notification_preference")
+                    };
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error retrieving user preferences: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if user has saved preferences (post-dashboard customization data)
+     * 
+     * @param username Username
+     * @return true if preferences exist, false otherwise
+     */
+    public boolean hasUserPreferences(String username) {
+        String selectSQL = "SELECT COUNT(*) FROM user_preferences WHERE username = ?";
+        
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+            
+            pstmt.setString(1, username);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error checking user preferences: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
+    /**
      * Get user ID by username
      * 
      * @param username Username

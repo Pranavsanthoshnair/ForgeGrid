@@ -33,7 +33,7 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 - Level up to unlock harder challenges
 
 ### Persistent Data
-- Save/load player progress using **MySQL Database**
+- Save/load player progress using **Railway MySQL Database** (cloud-hosted)
 
 ### GUI (Swing)
 - **Top Panel**: Player stats (Name, Level, XP bar, Rank, Deadline timer)
@@ -96,15 +96,13 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 
 ## Installation & Setup
 1. Install **Java JDK 17 or higher** (recommended: Java 17 LTS for best compatibility)
-2. Install **XAMPP** and start MySQL service
-3. **Setup Database**: Run `database/forgegrid_schema.sql` in phpMyAdmin to create the database before launching the app
-4. Clone or download the project repository
-5. **Build the project**: Run `build.bat` (Windows) or `build.sh` (Linux/Mac)
-6. Open in an IDE (**VS Code / IntelliJ / Eclipse**)
-7. **Run the application**: Right-click on `Main.java` → "Run Java" or use the IDE's run button
-
-**Note:** The project uses MySQL for data persistence and requires the MySQL connector JAR in the `lib/` folder to be included in the classpath. Most IDEs will handle this automatically.
-8. Progress is automatically saved to the MySQL database (`forgegrid`)
+2. **Setup Railway MySQL Database**: 
+   - Create a Railway account and MySQL service
+   - Copy Railway credentials to `.env` file (see `RAILWAY_MIGRATION_GUIDE.md`)
+3. **Build & Run**: Use `build.bat` and `run.bat` scripts
+4. **First Launch**: The application will automatically create database tables
+5. **IDE Setup**: Open in VS Code/IntelliJ/Eclipse for development
+6. Progress is automatically saved to the Railway MySQL database
 
 ---
 

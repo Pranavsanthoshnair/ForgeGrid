@@ -12,7 +12,7 @@ javac -version
 ### Project Layout (key paths)
 - `src/main/java` — source code
 - `src/main/resources` — resources (icons, config)
-- `lib/` — third‑party jars (SQLite JDBC, SLF4J)
+- `lib/` — third‑party jars (MySQL JDBC connector)
 - `build.sh` and `build.bat` — helpers to compile
 - `run.bat` — run helper for Windows
 
@@ -31,7 +31,7 @@ chmod +x build.sh
 What the build does
 - Compiles sources under `src/main/java` to `bin/`.
 - Copies resources to the classpath.
-- Ensures the required `lib/*.jar` (SQLite JDBC, SLF4J) are available.
+- Ensures the required `lib/*.jar` (MySQL JDBC connector) are available.
 
 ### Run
 Windows:
@@ -49,24 +49,20 @@ Entry Point
 - Main class: `com.forgegrid.app.Main`
 
 ### Database
-- Embedded SQLite file: `forgegrid.db` at project root.
-- JDBC driver provided via `lib/sqlite-jdbc-3.44.1.0.jar`.
-- Configuration defaults are in `src/main/resources/config.properties` and `bin/config.properties` after build.
+- **Railway MySQL Database**: Cloud-hosted MySQL database
+- **JDBC Driver**: `lib/mysql-connector-j-8.0.33.jar` for MySQL connectivity
+- **Configuration**: Railway credentials stored in `.env` file (gitignored)
+- **Connection**: Automatic SSL-enabled connection to Railway MySQL
 
-Backups
-- To back up user data, copy `forgegrid.db` while the app is closed.
+### Environment Configuration
+- **Credentials**: Stored securely in `.env` file
+- **Fallback**: Defaults to localhost for development (if no Railway config)
+- **Security**: All sensitive data excluded from version control
 
 ### Logging
-- SLF4J Simple is included: `lib/slf4j-api-1.7.36.jar` and `lib/slf4j-simple-1.7.36.jar`.
-- Configure logging via system properties if needed, e.g.:
-```bash
-java -Dorg.slf4j.simpleLogger.defaultLogLevel=info -cp "bin:lib/*" com.forgegrid.app.Main
-```
-
-### Common Issues
-- Classpath errors: ensure the OS‑specific separator (`;` on Windows, `:` on macOS/Linux).
-- Java version: use JDK 17+; older JDKs may fail to compile.
-- Locked DB: if `forgegrid.db` is locked, close running instances before retrying.
+- **Console Logging**: Comprehensive migration and connection logging
+- **Success Indicators**: Clear ✅/❌ status messages for Railway connection
+- **Debug Info**: Detailed connection URL parsing and credential extraction
 
 ### Packaging (optional)
 If you want a runnable fat‑jar (manual example):
@@ -75,6 +71,13 @@ jar --create --file forgegrid.jar -C bin .
 # run with external libs on classpath
 java -cp "forgegrid.jar:lib/*" com.forgegrid.app.Main
 ```
+
+### Common Issues
+- **Railway Connection**: Ensure Railway MySQL service is running and credentials are correct
+- **Environment Variables**: Check `.env` file exists and contains valid Railway credentials
+- **Classpath**: Ensure `lib/mysql-connector-j-8.0.33.jar` is included in classpath
+- **Java Version**: Use JDK 17+; older JDKs may fail to compile
+- **SSL Issues**: Railway requires SSL connections; ensure `useSSL=true` in connection string
 
 ### Development Tips
 - Use an IDE (IntelliJ/Eclipse/VS Code) and set the project SDK to Java 17+.
