@@ -82,7 +82,7 @@ public class Dashboard extends JFrame {
                     JOptionPane.QUESTION_MESSAGE
                 );
                 if (result == JOptionPane.YES_OPTION) {
-                    System.exit(0);
+                    handleLogout();
                 }
             }
         });
@@ -294,7 +294,7 @@ public class Dashboard extends JFrame {
                     JOptionPane.YES_NO_OPTION
                 );
                 if (result == JOptionPane.YES_OPTION) {
-                    System.exit(0);
+                    handleLogout();
                 }
             } else {
                 switchView(selectedView);
@@ -2426,6 +2426,21 @@ public class Dashboard extends JFrame {
      */
     private void switchView(String viewName) {
         centerLayout.show(centerPanel, viewName);
+    }
+    
+    /**
+     * Handle logout - return to AuthUI screen
+     */
+    private void handleLogout() {
+        // Hide current dashboard
+        setVisible(false);
+        dispose();
+        
+        // Show AuthUI screen
+        SwingUtilities.invokeLater(() -> {
+            AuthUI authUI = new AuthUI();
+            authUI.setVisible(true);
+        });
     }
     
     /**
