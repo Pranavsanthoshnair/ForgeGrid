@@ -168,7 +168,7 @@ public class Dashboard extends JFrame {
                     badgeColor = new Color(80, 200, 120); // Green for beginner
                 } else if (currentLevel <= 25) {
                     badgeColor = new Color(100, 180, 220); // Blue for intermediate
-                } else {
+            } else {
                     badgeColor = new Color(255, 215, 0); // Gold for advanced
                 }
                 
@@ -321,59 +321,156 @@ public class Dashboard extends JFrame {
     }
     
     /**
-     * Creates the sidebar with enhanced tree menu
+     * Creates the modern sidebar menu
      */
     private JPanel createSidebarPanel() {
         JPanel sidebarPanel = new JPanel(new BorderLayout());
         sidebarPanel.setBackground(SIDEBAR_COLOR);
-        sidebarPanel.setPreferredSize(new Dimension(260, 0));
+        sidebarPanel.setPreferredSize(new Dimension(240, 0));
+        
+        // Header with logo and title
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        
+        // Load ForgeGrid logo
+        JLabel logoLabel = new JLabel();
+        try {
+            ImageIcon logoIcon = new ImageIcon(getClass().getResource("/com/forgegrid/icon/logo2_transparent.png"));
+            // Scale the logo to fit nicely in the sidebar
+            Image scaledLogo = logoIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+            logoLabel.setIcon(new ImageIcon(scaledLogo));
+        } catch (Exception e) {
+            // Fallback to emoji if logo can't be loaded
+            logoLabel.setText("🏗️");
+            logoLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
+        }
         
         // Title
         JLabel titleLabel = new JLabel("ForgeGrid");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(ACCENT_COLOR);
-        titleLabel.setBorder(new EmptyBorder(20, 20, 15, 20));
         
-        sidebarPanel.add(titleLabel, BorderLayout.NORTH);
+        headerPanel.add(logoLabel);
+        headerPanel.add(titleLabel);
         
-        // Menu tree - flat structure without parent nodes
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Menu");
+        // Menu panel
+        JPanel menuPanel = new JPanel();
+        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
+        menuPanel.setOpaque(false);
+        menuPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        // Add menu items directly to root (flat structure)
-        root.add(new DefaultMutableTreeNode(VIEW_DASHBOARD));
-        root.add(new DefaultMutableTreeNode(VIEW_TASKS));
-        root.add(new DefaultMutableTreeNode(VIEW_PROFILE));
-        root.add(new DefaultMutableTreeNode(VIEW_SETTINGS));
+        // Add menu items
+        menuPanel.add(createModernMenuItem("🏠", VIEW_DASHBOARD, true));
+        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(createModernMenuItem("✓", VIEW_TASKS, false));
+        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(createModernMenuItem("👤", VIEW_PROFILE, false));
+        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(createModernMenuItem("⚙️", VIEW_SETTINGS, false));
         
-        JTree tree = new JTree(new DefaultTreeModel(root));
-        tree.setRootVisible(false);
-        tree.setShowsRootHandles(false); // No handles needed for flat list
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        tree.setBackground(SIDEBAR_COLOR);
-        tree.setForeground(TEXT_COLOR);
-        tree.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        tree.setBorder(new EmptyBorder(5, 15, 10, 10));
-        tree.setRowHeight(32); // Increased row height for better readability
-        
-        // Custom cell renderer for better appearance
-        tree.setCellRenderer(new CustomTreeCellRenderer());
-        
-        // Add selection listener for menu items
-        tree.addTreeSelectionListener(e -> {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-            if (node == null || node.isRoot()) return;
-            
-            String selectedView = node.getUserObject().toString();
-                switchView(selectedView);
-        });
-        
-        JScrollPane scrollPane = new JScrollPane(tree);
+        // Wrap menu in scroll pane
+        JScrollPane scrollPane = new JScrollPane(menuPanel);
         scrollPane.setBorder(null);
-        scrollPane.getViewport().setBackground(SIDEBAR_COLOR);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
+        sidebarPanel.add(headerPanel, BorderLayout.NORTH);
         sidebarPanel.add(scrollPane, BorderLayout.CENTER);
         
         return sidebarPanel;
+    }
+    
+    /**
+     * Track the currently selected menu item
+     */
+    private JPanel currentSelectedMenuItem = null;
+    
+    /**
+     * Create a modern menu item with icon and text
+     */
+    private JPanel createModernMenuItem(String icon, String text, boolean selected) {
+        JPanel item = new JPanel(new BorderLayout(12, 0));
+        item.setOpaque(true);
+        item.setBackground(selected ? new Color(45, 55, 70) : SIDEBAR_COLOR);
+        item.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 3, 0, 0, selected ? ACCENT_COLOR : new Color(0, 0, 0, 0)),
+            new EmptyBorder(12, 15, 12, 15)
+        ));
+        item.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        
+        // Icon
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+        iconLabel.setForeground(selected ? ACCENT_COLOR : TEXT_SECONDARY);
+        
+        // Text
+        JLabel textLabel = new JLabel(text);
+        textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textLabel.setForeground(selected ? TEXT_COLOR : TEXT_SECONDARY);
+        
+        item.add(iconLabel, BorderLayout.WEST);
+        item.add(textLabel, BorderLayout.CENTER);
+        
+        // Track if this is the first selected item
+        if (selected) {
+            currentSelectedMenuItem = item;
+        }
+        
+        // Add hover and click effects
+        item.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (item != currentSelectedMenuItem) {
+                    item.setBackground(new Color(35, 45, 60));
+                    textLabel.setForeground(TEXT_COLOR);
+                    iconLabel.setForeground(ACCENT_COLOR);
+                }
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (item != currentSelectedMenuItem) {
+                    item.setBackground(SIDEBAR_COLOR);
+                    textLabel.setForeground(TEXT_SECONDARY);
+                    iconLabel.setForeground(TEXT_SECONDARY);
+                }
+            }
+            
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Deselect previous item
+                if (currentSelectedMenuItem != null && currentSelectedMenuItem != item) {
+                    currentSelectedMenuItem.setBackground(SIDEBAR_COLOR);
+                    currentSelectedMenuItem.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 3, 0, 0, new Color(0, 0, 0, 0)),
+                        new EmptyBorder(12, 15, 12, 15)
+                    ));
+                    Component[] components = currentSelectedMenuItem.getComponents();
+                    if (components.length >= 2) {
+                        ((JLabel) components[0]).setForeground(TEXT_SECONDARY);
+                        ((JLabel) components[1]).setForeground(TEXT_SECONDARY);
+                    }
+                }
+                
+                // Select new item
+                item.setBackground(new Color(45, 55, 70));
+                item.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 3, 0, 0, ACCENT_COLOR),
+                    new EmptyBorder(12, 15, 12, 15)
+                ));
+                textLabel.setForeground(TEXT_COLOR);
+                iconLabel.setForeground(ACCENT_COLOR);
+                currentSelectedMenuItem = item;
+                
+                // Switch view
+                switchView(text);
+            }
+        });
+        
+        return item;
     }
     
     /**
@@ -405,16 +502,7 @@ public class Dashboard extends JFrame {
     private JPanel createViewPanel(String viewName) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(BG_COLOR);
-        panel.setBorder(new EmptyBorder(20, 30, 20, 30)); // Less space for smaller windows
-        
-        // Title using shared GradientTextLabel for consistency
-        GradientTextLabel titleLabel = new GradientTextLabel(viewName);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titleLabel.setGradient(new Color(255, 215, 0), ACCENT_COLOR);
-        
-        // Player Info Bar
-        JPanel playerInfoBar = createPlayerInfoBar();
-        add(playerInfoBar, BorderLayout.NORTH);
+        panel.setBorder(new EmptyBorder(20, 30, 20, 30));
         
         JPanel contentArea = new CardContainerPanel();
         contentArea.setOpaque(false);
@@ -464,8 +552,6 @@ public class Dashboard extends JFrame {
             contentArea.add(infoLabel);
         }
         
-        panel.add(titleLabel, BorderLayout.NORTH);
-        panel.add(Box.createVerticalStrut(20));
         panel.add(contentArea, BorderLayout.CENTER);
         
         return panel;
@@ -476,74 +562,367 @@ public class Dashboard extends JFrame {
     private JComponent buildSimpleDashboardView() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setLayout(new BorderLayout(0, 20));
+        panel.setBorder(new EmptyBorder(0, 0, 0, 0));
         
-        JLabel title = new JLabel("Welcome to ForgeGrid");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        title.setForeground(TEXT_COLOR);
+        // Welcome Section
+        JPanel welcomeSection = new JPanel();
+        welcomeSection.setOpaque(false);
+        welcomeSection.setLayout(new BoxLayout(welcomeSection, BoxLayout.Y_AXIS));
+        
+        JLabel title = new JLabel("Home");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(ACCENT_COLOR);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        welcomeSection.add(title);
         
-        JLabel subtitle = new JLabel("Your productivity companion");
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        subtitle.setForeground(TEXT_SECONDARY);
-        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Stats Cards Section
+        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
+        statsPanel.setOpaque(false);
+        statsPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
         
-        panel.add(Box.createVerticalGlue());
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(subtitle);
-        panel.add(Box.createVerticalGlue());
+        // Stat Card 1: Total Tasks
+        statsPanel.add(createModernStatCard("Total Tasks", "24", "📋", new Color(147, 51, 234), 75));
+        
+        // Stat Card 2: Completed
+        statsPanel.add(createModernStatCard("Completed", "18", "✅", new Color(34, 139, 230), 75));
+        
+        // Stat Card 3: In Progress
+        statsPanel.add(createModernStatCard("In Progress", "6", "⏳", new Color(251, 191, 36), 25));
+        
+        // Stat Card 4: Streak
+        statsPanel.add(createModernStatCard("Streak", currentStreak + " days", "🔥", new Color(74, 222, 128), 90));
+        
+        welcomeSection.add(statsPanel);
+        
+        // Main Content Section
+        JPanel contentSection = new JPanel(new GridLayout(1, 2, 20, 0));
+        contentSection.setOpaque(false);
+        contentSection.setBorder(new EmptyBorder(20, 0, 0, 0));
+        
+        // Recent Activity Card
+        JPanel activityCard = createModernCard("Recent Activity");
+        JPanel activityContent = new JPanel();
+        activityContent.setOpaque(false);
+        activityContent.setLayout(new BoxLayout(activityContent, BoxLayout.Y_AXIS));
+        activityContent.add(createActivityItem("Completed task: Setup Environment", "2 hours ago"));
+        activityContent.add(Box.createVerticalStrut(10));
+        activityContent.add(createActivityItem("Started task: Build Dashboard", "3 hours ago"));
+        activityContent.add(Box.createVerticalStrut(10));
+        activityContent.add(createActivityItem("Achieved level 1", "1 day ago"));
+        activityCard.add(activityContent, BorderLayout.CENTER);
+        contentSection.add(activityCard);
+        
+        // Quick Actions Card
+        JPanel quickActionsCard = createModernCard("Quick Actions");
+        JPanel actionsContent = new JPanel();
+        actionsContent.setOpaque(false);
+        actionsContent.setLayout(new BoxLayout(actionsContent, BoxLayout.Y_AXIS));
+        actionsContent.add(createActionButton("➕ Create New Task", new Color(100, 180, 220)));
+        actionsContent.add(Box.createVerticalStrut(12));
+        actionsContent.add(createActionButton("📊 View Progress", new Color(100, 180, 220)));
+        actionsContent.add(Box.createVerticalStrut(12));
+        actionsContent.add(createActionButton("⚙️ Customize Settings", new Color(100, 180, 220)));
+        quickActionsCard.add(actionsContent, BorderLayout.CENTER);
+        contentSection.add(quickActionsCard);
+        
+        panel.add(welcomeSection, BorderLayout.NORTH);
+        panel.add(contentSection, BorderLayout.CENTER);
         
         return panel;
+    }
+    
+    /**
+     * Create a modern stat card with progress indicator
+     */
+    private JPanel createModernStatCard(String title, String value, String icon, Color accentColor, int progress) {
+        JPanel card = new JPanel(new BorderLayout(12, 8));
+        card.setBackground(PANEL_COLOR);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+                BorderFactory.createMatteBorder(0, 0, 3, 0, accentColor.darker())
+            ),
+            new EmptyBorder(18, 18, 18, 18)
+        ));
+        
+        // Icon and Value Section
+        JPanel topSection = new JPanel(new BorderLayout());
+        topSection.setOpaque(false);
+        
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 32));
+        iconLabel.setForeground(accentColor);
+        
+        JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        valueLabel.setForeground(TEXT_COLOR);
+        valueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        topSection.add(iconLabel, BorderLayout.WEST);
+        topSection.add(valueLabel, BorderLayout.EAST);
+        
+        // Title
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        titleLabel.setForeground(TEXT_SECONDARY);
+        
+        // Progress Bar
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(progress);
+        progressBar.setStringPainted(false);
+        progressBar.setPreferredSize(new Dimension(0, 6));
+        progressBar.setBackground(new Color(40, 50, 65));
+        progressBar.setForeground(accentColor);
+        progressBar.setBorderPainted(false);
+        
+        JPanel bottomSection = new JPanel(new BorderLayout(0, 8));
+        bottomSection.setOpaque(false);
+        bottomSection.add(titleLabel, BorderLayout.NORTH);
+        bottomSection.add(progressBar, BorderLayout.SOUTH);
+        
+        card.add(topSection, BorderLayout.NORTH);
+        card.add(bottomSection, BorderLayout.SOUTH);
+        
+        return card;
+    }
+    
+    /**
+     * Create a modern card panel
+     */
+    private JPanel createModernCard(String title) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(PANEL_COLOR);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 15, 0));
+        
+        card.add(titleLabel, BorderLayout.NORTH);
+        
+        return card;
+    }
+    
+    /**
+     * Create an activity item
+     */
+    private JPanel createActivityItem(String activity, String time) {
+        JPanel item = new JPanel(new BorderLayout(10, 0));
+        item.setOpaque(false);
+        item.setBorder(new EmptyBorder(8, 0, 8, 0));
+        
+        JLabel activityLabel = new JLabel(activity);
+        activityLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        activityLabel.setForeground(TEXT_COLOR);
+        
+        JLabel timeLabel = new JLabel(time);
+        timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        timeLabel.setForeground(TEXT_SECONDARY);
+        
+        item.add(activityLabel, BorderLayout.CENTER);
+        item.add(timeLabel, BorderLayout.EAST);
+        
+        return item;
+    }
+    
+    /**
+     * Create an action button
+     */
+    private JButton createActionButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        button.setForeground(Color.WHITE);
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setAlignmentX(Component.LEFT_ALIGNMENT);
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        button.setPreferredSize(new Dimension(0, 40));
+        
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(bgColor.brighter());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(bgColor);
+            }
+        });
+        
+        return button;
     }
     
     private JComponent buildSimpleTasksView() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setLayout(new BorderLayout(0, 20));
+        
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
         
         JLabel title = new JLabel("Tasks");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(TEXT_COLOR);
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(20));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(ACCENT_COLOR);
         
-        JLabel message = new JLabel("Task management features coming soon...");
-        message.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        message.setForeground(TEXT_SECONDARY);
-        message.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(message);
+        JButton addTaskBtn = new JButton("+ New Task");
+        addTaskBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        addTaskBtn.setForeground(Color.WHITE);
+        addTaskBtn.setBackground(ACCENT_COLOR);
+        addTaskBtn.setFocusPainted(false);
+        addTaskBtn.setBorderPainted(false);
+        addTaskBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addTaskBtn.setPreferredSize(new Dimension(120, 35));
+        
+        header.add(title, BorderLayout.WEST);
+        header.add(addTaskBtn, BorderLayout.EAST);
+        
+        // Tasks Table Card
+        JPanel tasksCard = createModernCard("All Tasks");
+        
+        // Create sample task list
+        JPanel tasksList = new JPanel();
+        tasksList.setLayout(new BoxLayout(tasksList, BoxLayout.Y_AXIS));
+        tasksList.setOpaque(false);
+        
+        tasksList.add(createTaskRow("Complete project documentation", "High", "In Progress", new Color(251, 191, 36)));
+        tasksList.add(Box.createVerticalStrut(8));
+        tasksList.add(createTaskRow("Review code changes", "Medium", "Pending", new Color(100, 180, 220)));
+        tasksList.add(Box.createVerticalStrut(8));
+        tasksList.add(createTaskRow("Setup testing environment", "High", "In Progress", new Color(251, 191, 36)));
+        tasksList.add(Box.createVerticalStrut(8));
+        tasksList.add(createTaskRow("Update dependencies", "Low", "Completed", new Color(74, 222, 128)));
+        tasksList.add(Box.createVerticalStrut(8));
+        tasksList.add(createTaskRow("Fix UI bugs", "Medium", "Pending", new Color(100, 180, 220)));
+        
+        tasksCard.add(tasksList, BorderLayout.CENTER);
+        
+        panel.add(header, BorderLayout.NORTH);
+        panel.add(tasksCard, BorderLayout.CENTER);
         
         return panel;
+    }
+    
+    /**
+     * Create a task row
+     */
+    private JPanel createTaskRow(String taskName, String priority, String status, Color statusColor) {
+        JPanel row = new JPanel(new BorderLayout(15, 0));
+        row.setOpaque(true);
+        row.setBackground(new Color(35, 45, 60));
+        row.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(50, 60, 75), 1),
+            new EmptyBorder(12, 15, 12, 15)
+        ));
+        
+        // Left: Task name
+        JLabel nameLabel = new JLabel(taskName);
+        nameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        nameLabel.setForeground(TEXT_COLOR);
+        
+        // Center: Priority badge
+        JLabel priorityLabel = new JLabel(priority);
+        priorityLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        priorityLabel.setForeground(TEXT_COLOR);
+        priorityLabel.setOpaque(true);
+        priorityLabel.setBackground(new Color(50, 60, 75));
+        priorityLabel.setBorder(new EmptyBorder(4, 10, 4, 10));
+        
+        // Right: Status badge
+        JLabel statusLabel = new JLabel(status);
+        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setOpaque(true);
+        statusLabel.setBackground(statusColor);
+        statusLabel.setBorder(new EmptyBorder(4, 10, 4, 10));
+        
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightPanel.setOpaque(false);
+        rightPanel.add(priorityLabel);
+        rightPanel.add(statusLabel);
+        
+        row.add(nameLabel, BorderLayout.WEST);
+        row.add(rightPanel, BorderLayout.EAST);
+        
+        // Add hover effect
+        row.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                row.setBackground(new Color(45, 55, 70));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                row.setBackground(new Color(35, 45, 60));
+            }
+        });
+        
+        return row;
     }
     
     private JComponent buildSimpleProfileView() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setLayout(new BorderLayout(0, 20));
         
+        // Header
         JLabel title = new JLabel("Profile");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(TEXT_COLOR);
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(20));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(ACCENT_COLOR);
         
         // Get user profile details
         java.util.Map<String, String> profileDetails = userService.getUserProfileDetails(profile.getUsername());
         
-        // Profile information panel
+        // Main content panel (will be scrollable)
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false);
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        // Profile Stats Cards (Top Section)
+        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
+        statsPanel.setOpaque(false);
+        statsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        
+        // Level Card
+        JPanel levelCard = createProfileStatCard("Level", String.valueOf(currentLevel), "🏆", ACCENT_COLOR);
+        statsPanel.add(levelCard);
+        
+        // XP Card
+        JPanel xpCard = createProfileStatCard("Total XP", String.valueOf(currentXP) + " / " + maxXP, "⭐", new Color(255, 215, 0));
+        statsPanel.add(xpCard);
+        
+        // Rank Card
+        JPanel rankCard = createProfileStatCard("Rank", playerRank, "🎖️", new Color(147, 51, 234));
+        statsPanel.add(rankCard);
+        
+        contentPanel.add(statsPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        
+        // Profile Information Card
         JPanel profilePanel = new JPanel();
         profilePanel.setOpaque(true);
         profilePanel.setBackground(PANEL_COLOR);
         profilePanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(ACCENT_COLOR, 1),
-            new EmptyBorder(20, 20, 20, 20)
+            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+            new EmptyBorder(25, 25, 25, 25)
         ));
         profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
         profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        profilePanel.setMaximumSize(new Dimension(600, Integer.MAX_VALUE));
+        
+        // Card title
+        JLabel cardTitle = new JLabel("Account Information");
+        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        cardTitle.setForeground(TEXT_COLOR);
+        cardTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cardTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
+        profilePanel.add(cardTitle);
         
         // Username
         JPanel usernamePanel = createProfileField("Username", profile.getUsername(), false, null);
@@ -638,9 +1017,61 @@ public class Dashboard extends JFrame {
         
         profilePanel.add(saveButton);
         
-        panel.add(profilePanel);
+        contentPanel.add(profilePanel);
+        
+        // Wrap content in scroll pane
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        panel.add(title, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
         
         return panel;
+    }
+    
+    /**
+     * Create a profile stat card
+     */
+    private JPanel createProfileStatCard(String label, String value, String icon, Color accentColor) {
+        JPanel card = new JPanel(new BorderLayout(12, 0));
+        card.setBackground(PANEL_COLOR);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
+        
+        // Icon
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 36));
+        iconLabel.setForeground(accentColor);
+        
+        // Right panel with label and value
+        JPanel rightPanel = new JPanel();
+        rightPanel.setOpaque(false);
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        
+        JLabel labelText = new JLabel(label);
+        labelText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        labelText.setForeground(TEXT_SECONDARY);
+        labelText.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel valueText = new JLabel(value);
+        valueText.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        valueText.setForeground(TEXT_COLOR);
+        valueText.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        rightPanel.add(labelText);
+        rightPanel.add(Box.createVerticalStrut(5));
+        rightPanel.add(valueText);
+        
+        card.add(iconLabel, BorderLayout.WEST);
+        card.add(rightPanel, BorderLayout.CENTER);
+        
+        return card;
     }
     
     private JPanel createProfileField(String label, String value, boolean editable, JTextField textField) {
@@ -1859,79 +2290,111 @@ public class Dashboard extends JFrame {
     private JComponent buildSettingsView() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setLayout(new BorderLayout(0, 20));
         
+        // Header
         JLabel title = new JLabel("Settings");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(TEXT_COLOR);
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(20));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(ACCENT_COLOR);
         
-        // Preferences section
-        JPanel preferencesSettings = new JPanel();
-        preferencesSettings.setOpaque(true);
-        preferencesSettings.setBackground(new Color(40, 50, 65));
-        preferencesSettings.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(100, 180, 220), 1),
-            new EmptyBorder(15, 15, 15, 15)
+        // Main content with GridLayout for two columns
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        contentPanel.setOpaque(false);
+        
+        // Left Column - Preferences Card
+        JPanel leftColumn = new JPanel();
+        leftColumn.setOpaque(false);
+        leftColumn.setLayout(new BoxLayout(leftColumn, BoxLayout.Y_AXIS));
+        
+        JPanel preferencesCard = new JPanel();
+        preferencesCard.setOpaque(true);
+        preferencesCard.setBackground(PANEL_COLOR);
+        preferencesCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+            new EmptyBorder(25, 25, 25, 25)
         ));
-        preferencesSettings.setLayout(new BoxLayout(preferencesSettings, BoxLayout.Y_AXIS));
+        preferencesCard.setLayout(new BoxLayout(preferencesCard, BoxLayout.Y_AXIS));
         
-        JLabel preferencesTitle = new JLabel("Preferences");
+        JLabel preferencesTitle = new JLabel("General Preferences");
         preferencesTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         preferencesTitle.setForeground(TEXT_COLOR);
         preferencesTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        preferencesSettings.add(preferencesTitle);
-        preferencesSettings.add(Box.createVerticalStrut(15));
+        preferencesCard.add(preferencesTitle);
+        preferencesCard.add(Box.createVerticalStrut(20));
         
         // Sound setting
-        JPanel soundPanel = createToggleSetting("🔊", "Sound", "Enable sound effects and notifications", true);
-        preferencesSettings.add(soundPanel);
-        preferencesSettings.add(Box.createVerticalStrut(10));
+        JPanel soundPanel = createEnhancedToggleSetting("🔊", "Sound Effects", "Enable sound effects and notifications", true);
+        preferencesCard.add(soundPanel);
+        preferencesCard.add(Box.createVerticalStrut(15));
         
         // Notifications setting
-        JPanel notificationsPanel = createToggleSetting("🔔", "Notifications", "Show alerts and reminders", true);
-        preferencesSettings.add(notificationsPanel);
-        preferencesSettings.add(Box.createVerticalStrut(10));
+        JPanel notificationsPanel = createEnhancedToggleSetting("🔔", "Notifications", "Show alerts and reminders", true);
+        preferencesCard.add(notificationsPanel);
+        preferencesCard.add(Box.createVerticalStrut(15));
         
         // Auto-save setting
-        JPanel autoSavePanel = createToggleSetting("💾", "Auto-save", "Automatically save progress every 5 minutes", true);
-        preferencesSettings.add(autoSavePanel);
+        JPanel autoSavePanel = createEnhancedToggleSetting("💾", "Auto-Save", "Automatically save progress every 5 minutes", true);
+        preferencesCard.add(autoSavePanel);
         
-        panel.add(preferencesSettings);
-        panel.add(Box.createVerticalStrut(20));
+        leftColumn.add(preferencesCard);
         
-        // Account section with Logout button
-        JPanel accountSection = new JPanel();
-        accountSection.setOpaque(true);
-        accountSection.setBackground(new Color(40, 50, 65));
-        accountSection.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(100, 180, 220), 1),
-            new EmptyBorder(15, 15, 15, 15)
+        // Right Column - Account & Security Card
+        JPanel rightColumn = new JPanel();
+        rightColumn.setOpaque(false);
+        rightColumn.setLayout(new BoxLayout(rightColumn, BoxLayout.Y_AXIS));
+        
+        JPanel accountCard = new JPanel();
+        accountCard.setOpaque(true);
+        accountCard.setBackground(PANEL_COLOR);
+        accountCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+            new EmptyBorder(25, 25, 25, 25)
         ));
-        accountSection.setLayout(new BoxLayout(accountSection, BoxLayout.Y_AXIS));
+        accountCard.setLayout(new BoxLayout(accountCard, BoxLayout.Y_AXIS));
         
         JLabel accountLabel = new JLabel("Account");
         accountLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         accountLabel.setForeground(TEXT_COLOR);
         accountLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        accountSection.add(accountLabel);
-        accountSection.add(Box.createVerticalStrut(15));
+        accountCard.add(accountLabel);
+        accountCard.add(Box.createVerticalStrut(20));
+        
+        // Account info display
+        JPanel accountInfo = new JPanel();
+        accountInfo.setOpaque(true);
+        accountInfo.setBackground(new Color(35, 45, 60));
+        accountInfo.setBorder(new EmptyBorder(15, 15, 15, 15));
+        accountInfo.setLayout(new BoxLayout(accountInfo, BoxLayout.Y_AXIS));
+        
+        JLabel usernameInfo = new JLabel("👤 " + profile.getUsername());
+        usernameInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        usernameInfo.setForeground(TEXT_COLOR);
+        usernameInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel levelInfo = new JLabel("🏆 Level " + currentLevel);
+        levelInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        levelInfo.setForeground(TEXT_COLOR);
+        levelInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        accountInfo.add(usernameInfo);
+        accountInfo.add(Box.createVerticalStrut(8));
+        accountInfo.add(levelInfo);
+        
+        accountCard.add(accountInfo);
+        accountCard.add(Box.createVerticalStrut(20));
         
         // Logout button
         JButton logoutButton = new JButton("Logout");
-        logoutButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        logoutButton.setForeground(TEXT_COLOR);
+        logoutButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        logoutButton.setForeground(Color.WHITE);
         logoutButton.setBackground(new Color(220, 60, 60));
         logoutButton.setFocusPainted(false);
         logoutButton.setBorderPainted(false);
         logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        logoutButton.setPreferredSize(new Dimension(150, 40));
-        logoutButton.setMaximumSize(new Dimension(150, 40));
         logoutButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        logoutButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        logoutButton.setPreferredSize(new Dimension(0, 40));
         
-        // Add hover effect
         logoutButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -1943,7 +2406,6 @@ public class Dashboard extends JFrame {
             }
         });
         
-        // Add click handler
         logoutButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
                 Dashboard.this,
@@ -1956,8 +2418,61 @@ public class Dashboard extends JFrame {
             }
         });
         
-        accountSection.add(logoutButton);
-        panel.add(accountSection);
+        accountCard.add(logoutButton);
+        
+        rightColumn.add(accountCard);
+        
+        contentPanel.add(leftColumn);
+        contentPanel.add(rightColumn);
+        
+        panel.add(title, BorderLayout.NORTH);
+        panel.add(contentPanel, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    /**
+     * Create an enhanced toggle setting
+     */
+    private JPanel createEnhancedToggleSetting(String icon, String title, String description, boolean enabled) {
+        JPanel panel = new JPanel(new BorderLayout(12, 0));
+        panel.setOpaque(true);
+        panel.setBackground(new Color(35, 45, 60));
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        
+        // Icon
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+        iconLabel.setForeground(ACCENT_COLOR);
+        
+        // Middle panel with title and description
+        JPanel middlePanel = new JPanel();
+        middlePanel.setOpaque(false);
+        middlePanel.setLayout(new BoxLayout(middlePanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel descLabel = new JLabel(description);
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        middlePanel.add(titleLabel);
+        middlePanel.add(Box.createVerticalStrut(4));
+        middlePanel.add(descLabel);
+        
+        // Toggle switch (simple checkbox styled as toggle)
+        JCheckBox toggle = new JCheckBox();
+        toggle.setSelected(enabled);
+        toggle.setOpaque(false);
+        toggle.setFocusPainted(false);
+        
+        panel.add(iconLabel, BorderLayout.WEST);
+        panel.add(middlePanel, BorderLayout.CENTER);
+        panel.add(toggle, BorderLayout.EAST);
         
         return panel;
     }
@@ -2729,270 +3244,5 @@ public class Dashboard extends JFrame {
         // This will be implemented when we add database functionality
         // For now, just store the values if needed
         System.out.println("Onboarding applied - Goal: " + goal + ", Language: " + language + ", Skill: " + skill);
-    }
-    
-    /**
-     * Custom tree cell renderer for enhanced appearance
-     */
-    private class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
-        
-        public CustomTreeCellRenderer() {
-            setOpaque(false);
-            setBackgroundNonSelectionColor(SIDEBAR_COLOR);
-            setBackgroundSelectionColor(ACCENT_COLOR);
-            setBorderSelectionColor(null);
-        }
-        
-        @Override
-        public Component getTreeCellRendererComponent(JTree tree, Object value,
-                boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-            
-            super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-            
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-            String text = node.getUserObject().toString();
-            
-            // Style category nodes (non-leaf) with bold font
-            if (!leaf) {
-                setFont(new Font("Segoe UI", Font.BOLD, 13));
-                setForeground(TEXT_SECONDARY);
-                setIcon(createFolderIcon());
-            } else {
-                // Style leaf nodes with regular font
-                setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                if (selected) {
-                    setForeground(Color.WHITE);
-                    setBackground(ACCENT_COLOR);
-                } else {
-                    setForeground(TEXT_COLOR);
-                    setBackground(SIDEBAR_COLOR);
-                }
-                // Set custom icons based on item type
-                setIcon(getIconForItem(text));
-            }
-            
-            setOpaque(selected);
-            setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
-            
-            return this;
-        }
-        
-        /**
-         * Returns appropriate icon for menu items
-         */
-        private Icon getIconForItem(String itemName) {
-            return switch (itemName) {
-                case VIEW_DASHBOARD -> createDashboardIcon();
-                case VIEW_ASSIGNED, VIEW_COMPLETED, VIEW_SKIPPED, VIEW_GOATED -> createTaskIcon();
-                case VIEW_PROFILE -> createProfileIcon();
-                case VIEW_ACHIEVEMENTS -> createAchievementIcon();
-                case VIEW_PROGRESS -> createProgressIcon();
-                // Components section icons removed
-                case VIEW_SETTINGS -> createSettingsIcon();
-                case VIEW_HELP -> createHelpIcon();
-                case "Logout" -> createExitIcon();
-                default -> createDefaultIcon();
-            };
-        }
-        
-        // Simple icon creation methods using shapes
-        private Icon createFolderIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(255, 200, 100));
-                    g2.fillRect(x + 2, y + 4, 12, 10);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 16; }
-                public int getIconHeight() { return 16; }
-            };
-        }
-        
-        private Icon createDashboardIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(ACCENT_COLOR);
-                    g2.fillRect(x + 2, y + 2, 6, 6);
-                    g2.fillRect(x + 10, y + 2, 6, 6);
-                    g2.fillRect(x + 2, y + 10, 6, 6);
-                    g2.fillRect(x + 10, y + 10, 6, 6);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createTaskIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(100, 180, 100));
-                    g2.setStroke(new BasicStroke(2));
-                    g2.drawRect(x + 3, y + 3, 12, 12);
-                    g2.drawLine(x + 6, y + 9, x + 8, y + 11);
-                    g2.drawLine(x + 8, y + 11, x + 12, y + 7);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createProfileIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(88, 166, 255));
-                    g2.fillOval(x + 5, y + 3, 8, 8);
-                    g2.fillArc(x + 3, y + 10, 12, 8, 0, 180);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createAchievementIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(255, 200, 50));
-                    int[] xPoints = {x + 9, x + 11, x + 16, x + 12, x + 14, x + 9, x + 4, x + 6, x + 2, x + 7};
-                    int[] yPoints = {y + 2, y + 7, y + 7, y + 11, y + 16, y + 13, y + 16, y + 11, y + 7, y + 7};
-                    g2.fillPolygon(xPoints, yPoints, 10);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createProgressIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(ACCENT_COLOR);
-                    g2.setStroke(new BasicStroke(2));
-                    g2.drawLine(x + 3, y + 14, x + 6, y + 10);
-                    g2.drawLine(x + 6, y + 10, x + 9, y + 7);
-                    g2.drawLine(x + 9, y + 7, x + 15, y + 3);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createDeadlineIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(220, 90, 90));
-                    g2.setStroke(new BasicStroke(2));
-                    g2.drawOval(x + 3, y + 3, 12, 12);
-                    g2.drawLine(x + 9, y + 6, x + 9, y + 9);
-                    g2.drawLine(x + 9, y + 9, x + 12, y + 9);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createSaveIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(160, 130, 210));
-                    g2.fillRect(x + 3, y + 3, 12, 12);
-                    g2.setColor(Color.WHITE);
-                    g2.fillRect(x + 5, y + 11, 8, 4);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createSettingsIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(TEXT_SECONDARY);
-                    g2.setStroke(new BasicStroke(2));
-                    g2.drawOval(x + 6, y + 6, 6, 6);
-                    for (int i = 0; i < 4; i++) {
-                        double angle = i * Math.PI / 2;
-                        int x1 = (int)(x + 9 + Math.cos(angle) * 3);
-                        int y1 = (int)(y + 9 + Math.sin(angle) * 3);
-                        int x2 = (int)(x + 9 + Math.cos(angle) * 6);
-                        int y2 = (int)(y + 9 + Math.sin(angle) * 6);
-                        g2.drawLine(x1, y1, x2, y2);
-                    }
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createHelpIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(ACCENT_COLOR);
-                    g2.setStroke(new BasicStroke(2));
-                    g2.drawOval(x + 3, y + 3, 12, 12);
-                    g2.setFont(new Font("Arial", Font.BOLD, 10));
-                    g2.drawString("?", x + 7, y + 13);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createExitIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(220, 90, 90));
-                    g2.setStroke(new BasicStroke(2));
-                    g2.drawLine(x + 4, y + 4, x + 14, y + 14);
-                    g2.drawLine(x + 14, y + 4, x + 4, y + 14);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
-        
-        private Icon createDefaultIcon() {
-            return new Icon() {
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(TEXT_SECONDARY);
-                    g2.fillOval(x + 6, y + 6, 6, 6);
-                    g2.dispose();
-                }
-                public int getIconWidth() { return 18; }
-                public int getIconHeight() { return 18; }
-            };
-        }
     }
 }
