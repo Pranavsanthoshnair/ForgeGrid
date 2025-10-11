@@ -36,12 +36,9 @@ public class UserPreferences {
         if (prefsFile.exists()) {
             try (FileInputStream fis = new FileInputStream(prefsFile)) {
                 properties.load(fis);
-                System.out.println("User preferences loaded from: " + prefsFile.getAbsolutePath());
             } catch (IOException e) {
-                System.err.println("Error loading preferences: " + e.getMessage());
+                // Silently fail - will use defaults
             }
-        } else {
-            System.out.println("No existing preferences file found. Will create new one at: " + prefsFile.getAbsolutePath());
         }
     }
     
@@ -51,9 +48,8 @@ public class UserPreferences {
     private void savePreferences() {
         try (FileOutputStream fos = new FileOutputStream(prefsFile)) {
             properties.store(fos, "ForgeGrid User Preferences - Device Specific");
-            System.out.println("User preferences saved to: " + prefsFile.getAbsolutePath());
         } catch (IOException e) {
-            System.err.println("Error saving preferences: " + e.getMessage());
+            // Silently fail
         }
     }
     
@@ -145,11 +141,9 @@ public class UserPreferences {
         if (username != null && !username.trim().isEmpty() && password != null) {
             properties.setProperty(KEY_REMEMBER_ME, "true");
             properties.setProperty(KEY_SAVED_USERNAME, username.trim());
-            // Encode password with Base64 (basic encoding, not encryption)
             String encoded = java.util.Base64.getEncoder().encodeToString(password.getBytes());
             properties.setProperty(KEY_SAVED_PASSWORD, encoded);
             savePreferences();
-            System.out.println("Remember me credentials saved for user: " + username);
         }
     }
     
@@ -161,6 +155,5 @@ public class UserPreferences {
         properties.remove(KEY_SAVED_USERNAME);
         properties.remove(KEY_SAVED_PASSWORD);
         savePreferences();
-        System.out.println("Remember me credentials cleared");
     }
 }

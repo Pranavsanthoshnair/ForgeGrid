@@ -47,33 +47,12 @@ public class DatabaseHelper {
      * Load Railway MySQL configuration from environment variables
      */
     private void loadRailwayConfiguration() {
-        System.out.println("=== RAILWAY MYSQL MIGRATION ===");
-        System.out.println("Loading Railway MySQL configuration...");
-        
-        // Load configuration from environment variables
         this.dbHost = EnvironmentConfig.getRailwayHost();
         this.dbPort = EnvironmentConfig.getRailwayPort();
         this.dbName = EnvironmentConfig.getRailwayDatabase();
         this.dbUsername = EnvironmentConfig.getRailwayUsername();
         this.dbPassword = EnvironmentConfig.getRailwayPassword();
-        
-        // Log configuration (without sensitive data)
-        System.out.println("Railway Host: " + dbHost);
-        System.out.println("Railway Port: " + dbPort);
-        System.out.println("Railway Database: " + dbName);
-        System.out.println("Railway Username: " + dbUsername);
-        System.out.println("Railway Password: " + (dbPassword.isEmpty() ? "[NOT SET]" : "[SET]"));
-        
-        if (EnvironmentConfig.isRailwayConfigured()) {
-            System.out.println("✅ Railway configuration detected");
-        } else {
-            System.out.println("⚠️  No Railway configuration found, using defaults");
-        }
-        
-        // Extract credentials from Railway URL if available
         extractCredentialsFromUrl();
-        
-        System.out.println("=== END RAILWAY MIGRATION ===");
     }
     
     /**
@@ -83,8 +62,7 @@ public class DatabaseHelper {
         String railwayUrl = EnvironmentConfig.get("RAILWAY_MYSQL_URL");
         if (railwayUrl != null && railwayUrl.startsWith("mysql://")) {
             try {
-                // Parse Railway URL: mysql://user:pass@host:port/database
-                String url = railwayUrl.substring(8); // Remove mysql://
+                String url = railwayUrl.substring(8);
                 int atIndex = url.indexOf('@');
                 if (atIndex != -1) {
                     String credentials = url.substring(0, atIndex);
@@ -92,13 +70,10 @@ public class DatabaseHelper {
                     if (colonIndex != -1) {
                         this.dbUsername = credentials.substring(0, colonIndex);
                         this.dbPassword = credentials.substring(colonIndex + 1);
-                        System.out.println("Extracted credentials from Railway URL");
-                        System.out.println("Username: " + dbUsername);
-                        System.out.println("Password: [EXTRACTED]");
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Error extracting credentials from Railway URL: " + e.getMessage());
+                // Silently fail - use environment variables instead
             }
         }
     }
@@ -121,18 +96,12 @@ public class DatabaseHelper {
      * @return Railway MySQL JDBC URL
      */
     private String buildRailwayMySQLUrl() {
-        // Try to get the full URL from environment first
         String fullUrl = EnvironmentConfig.getRailwayUrl();
         if (fullUrl != null && !fullUrl.isEmpty()) {
-            System.out.println("Using Railway connection URL from environment");
             return fullUrl;
         }
-        
-        // Build URL from components
-        String url = String.format("jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
-                                 dbHost, dbPort, dbName);
-        System.out.println("Built Railway connection URL: " + url.replaceAll("password=[^&]*", "password=[PASSWORD]"));
-        return url;
+        return String.format("jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
+                           dbHost, dbPort, dbName);
     }
     
     /**
@@ -143,9 +112,7 @@ public class DatabaseHelper {
      */
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            System.out.println("Establishing connection to Railway MySQL...");
             connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-            System.out.println("✅ Successfully connected to Railway MySQL");
         }
         return connection;
     }
@@ -155,32 +122,12 @@ public class DatabaseHelper {
      */
     private void initializeDatabase() {
         try {
-            System.out.println("=== INITIALIZING RAILWAY MYSQL DATABASE ===");
-            
-            // Load MySQL JDBC driver
             Class.forName("com.mysql.cj.jdbc.Driver");
-            System.out.println("✅ MySQL JDBC driver loaded");
-            
-            // Create connection to Railway MySQL
             connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-            System.out.println("✅ Connected to Railway MySQL database: " + dbName);
-            
-            // Create users table if it doesn't exist
             createUsersTable();
-            
-            // Create user_preferences table if it doesn't exist
             createUserPreferencesTable();
-            
-            System.out.println("✅ Railway MySQL database initialized successfully");
-            System.out.println("=== END DATABASE INITIALIZATION ===");
-            
-        } catch (ClassNotFoundException e) {
-            System.err.println("❌ MySQL JDBC driver not found: " + e.getMessage());
-            e.printStackTrace();
-        } catch (SQLException e) {
-            System.err.println("❌ Error initializing Railway MySQL database: " + e.getMessage());
-            System.err.println("Connection URL: " + dbUrl.replace(dbPassword, "[PASSWORD]"));
-            e.printStackTrace();
+        } catch (ClassNotFoundException | SQLException e) {
+            throw new RuntimeException("Database initialization failed", e);
         }
     }
 
@@ -191,19 +138,9 @@ public class DatabaseHelper {
      */
     public boolean testConnection() {
         try {
-            System.out.println("Testing Railway MySQL connection...");
             Connection testConn = getConnection();
-            boolean isConnected = testConn != null && !testConn.isClosed();
-            
-            if (isConnected) {
-                System.out.println("✅ Railway MySQL connection test successful");
-            } else {
-                System.out.println("❌ Railway MySQL connection test failed");
-            }
-            
-            return isConnected;
+            return testConn != null && !testConn.isClosed();
         } catch (SQLException e) {
-            System.err.println("❌ Railway MySQL connection test failed: " + e.getMessage());
             return false;
         }
     }
@@ -212,8 +149,6 @@ public class DatabaseHelper {
      * Create the users table with required columns including onboarding fields
      */
     private void createUsersTable() throws SQLException {
-        System.out.println("Creating/verifying users table in Railway MySQL...");
-        
         String createTableSQL = """
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -231,9 +166,6 @@ public class DatabaseHelper {
         
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
-            System.out.println("✅ Users table created/verified successfully in Railway MySQL");
-            
-            // Create indexes for better performance
             createIndexes();
         }
     }
@@ -242,8 +174,6 @@ public class DatabaseHelper {
      * Create the user_preferences table for post-dashboard customization data
      */
     private void createUserPreferencesTable() throws SQLException {
-        System.out.println("Creating/verifying user_preferences table in Railway MySQL...");
-        
         String createTableSQL = """
             CREATE TABLE IF NOT EXISTS user_preferences (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -260,7 +190,6 @@ public class DatabaseHelper {
         
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
-            System.out.println("✅ User preferences table created/verified successfully in Railway MySQL");
         }
     }
     
@@ -269,36 +198,12 @@ public class DatabaseHelper {
      */
     private void createIndexes() {
         try (Statement statement = connection.createStatement()) {
-            System.out.println("Creating/verifying database indexes in Railway MySQL...");
-            
-            // Create indexes if they don't exist (MySQL syntax)
-            try {
-                statement.execute("CREATE INDEX idx_users_username ON users(username)");
-            } catch (SQLException e) {
-                // Index might already exist, ignore error
-            }
-            
-            try {
-                statement.execute("CREATE INDEX idx_users_email ON users(email)");
-            } catch (SQLException e) {
-                // Index might already exist, ignore error
-            }
-            
-            try {
-                statement.execute("CREATE INDEX idx_users_onboarding_completed ON users(onboarding_completed)");
-            } catch (SQLException e) {
-                // Index might already exist, ignore error
-            }
-            
-            try {
-                statement.execute("CREATE INDEX idx_user_preferences_username ON user_preferences(username)");
-            } catch (SQLException e) {
-                // Index might already exist, ignore error
-            }
-            
-            System.out.println("✅ Database indexes created/verified successfully in Railway MySQL");
+            try { statement.execute("CREATE INDEX idx_users_username ON users(username)"); } catch (SQLException e) {}
+            try { statement.execute("CREATE INDEX idx_users_email ON users(email)"); } catch (SQLException e) {}
+            try { statement.execute("CREATE INDEX idx_users_onboarding_completed ON users(onboarding_completed)"); } catch (SQLException e) {}
+            try { statement.execute("CREATE INDEX idx_user_preferences_username ON user_preferences(username)"); } catch (SQLException e) {}
         } catch (SQLException e) {
-            System.err.println("❌ Error creating indexes in Railway MySQL: " + e.getMessage());
+            // Silently fail - indexes not critical
         }
     }
     
@@ -309,10 +214,9 @@ public class DatabaseHelper {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                System.out.println("✅ Railway MySQL database connection closed");
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error closing Railway MySQL database connection: " + e.getMessage());
+            // Silently fail
         }
     }
     

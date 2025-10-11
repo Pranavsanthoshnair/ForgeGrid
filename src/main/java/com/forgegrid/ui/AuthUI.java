@@ -471,9 +471,7 @@ public class AuthUI extends JFrame {
                 passwordField.setText(savedPassword);
                 passwordField.setForeground(Color.WHITE);
                 passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
-                
                 rememberMeCheckbox.setSelected(true);
-                System.out.println("Auto-filled credentials for: " + savedUsername);
             }
         }
         
@@ -1150,30 +1148,15 @@ public class AuthUI extends JFrame {
                     // Save username for auto-fill on next login
                     userPreferences.setLastUsername(username);
                     
-                    // Handle remember me functionality
                     if (rememberMeCheckbox.isSelected()) {
-                        // Save credentials if remember me is checked
                         userPreferences.saveRememberMeCredentials(username, password);
                     } else {
-                        // Clear saved credentials if remember me is unchecked
                         userPreferences.clearRememberMe();
                     }
                     
-                    // Debug logging
-                    System.out.println("=== LOGIN SUCCESS ===");
-                    System.out.println("Username: " + profile.getUsername());
-                    System.out.println("Onboarding Completed: " + profile.isOnboardingCompleted());
-                    System.out.println("Onboarding Goal: " + profile.getOnboardingGoal());
-                    System.out.println("Onboarding Language: " + profile.getOnboardingLanguage());
-                    System.out.println("Onboarding Skill: " + profile.getOnboardingSkill());
-                    
-                    // Check if user has completed onboarding
                     boolean hasCompletedOnboarding = userService.hasCompletedOnboardingByUsername(profile.getUsername());
-                    System.out.println("→ User onboarding status: " + (hasCompletedOnboarding ? "COMPLETED" : "NOT COMPLETED"));
                     
                     if (hasCompletedOnboarding) {
-                        // User has completed onboarding, show welcome back message
-                        System.out.println("→ User has completed onboarding, showing welcome back message");
                         showCard("LOADING");
                         new javax.swing.Timer(2000, e2 -> {
                             ((javax.swing.Timer) e2.getSource()).stop();
@@ -1181,8 +1164,6 @@ public class AuthUI extends JFrame {
                             createWelcomeBackOnboarding(profile.getUsername());
                         }).start();
                     } else {
-                        // User hasn't completed onboarding, show prompt
-                        System.out.println("→ Showing loading screen then inline onboarding prompt");
                         showCard("LOADING");
                         new javax.swing.Timer(3500, e2 -> {
                             ((javax.swing.Timer) e2.getSource()).stop();

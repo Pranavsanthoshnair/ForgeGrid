@@ -82,8 +82,6 @@ public class Dashboard extends JFrame {
                     JOptionPane.QUESTION_MESSAGE
                 );
                 if (result == JOptionPane.YES_OPTION) {
-                    // Exit application completely (keep remember me intact)
-                    System.out.println("Exiting application (remember me preserved)");
                     System.exit(0);
                 }
             }
@@ -2434,16 +2432,10 @@ public class Dashboard extends JFrame {
      * Handle logout - return to AuthUI screen
      */
     private void handleLogout() {
-        // Clear remember me credentials on logout
         com.forgegrid.config.UserPreferences userPrefs = new com.forgegrid.config.UserPreferences();
         userPrefs.clearRememberMe();
-        System.out.println("Cleared remember me credentials on logout");
-        
-        // Hide current dashboard
         setVisible(false);
         dispose();
-        
-        // Show AuthUI screen
         SwingUtilities.invokeLater(() -> {
             AuthUI authUI = new AuthUI();
             authUI.setVisible(true);

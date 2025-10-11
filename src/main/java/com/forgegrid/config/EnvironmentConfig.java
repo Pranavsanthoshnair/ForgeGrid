@@ -28,12 +28,8 @@ public class EnvironmentConfig {
         
         // Load from .env file first
         loadFromEnvFile();
-        
-        // Override with system environment variables if they exist
         loadFromSystemEnv();
-        
         envLoaded = true;
-        System.out.println("Environment configuration loaded successfully");
     }
     
     /**
@@ -41,39 +37,28 @@ public class EnvironmentConfig {
      */
     private static void loadFromEnvFile() {
         File envFile = new File(ENV_FILE);
-        if (!envFile.exists()) {
-            System.out.println("No .env file found. Using system environment variables or defaults.");
-            return;
-        }
+        if (!envFile.exists()) return;
         
         try (BufferedReader reader = new BufferedReader(new FileReader(envFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
                 
-                // Skip empty lines and comments
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-                
-                // Parse KEY=VALUE format
                 int equalIndex = line.indexOf('=');
                 if (equalIndex > 0) {
                     String key = line.substring(0, equalIndex).trim();
                     String value = line.substring(equalIndex + 1).trim();
                     
-                    // Remove quotes if present
                     if ((value.startsWith("\"") && value.endsWith("\"")) ||
                         (value.startsWith("'") && value.endsWith("'"))) {
                         value = value.substring(1, value.length() - 1);
                     }
-                    
                     envVars.put(key, value);
                 }
             }
-            System.out.println("Loaded " + envVars.size() + " variables from .env file");
         } catch (IOException e) {
-            System.err.println("Error reading .env file: " + e.getMessage());
+            // Silently fail
         }
     }
     
@@ -82,19 +67,14 @@ public class EnvironmentConfig {
      */
     private static void loadFromSystemEnv() {
         String[] railwayKeys = {
-            "RAILWAY_MYSQL_HOST",
-            "RAILWAY_MYSQL_PORT", 
-            "RAILWAY_MYSQL_DATABASE",
-            "RAILWAY_MYSQL_USERNAME",
-            "RAILWAY_MYSQL_PASSWORD",
-            "RAILWAY_MYSQL_URL"
+            "RAILWAY_MYSQL_HOST", "RAILWAY_MYSQL_PORT", "RAILWAY_MYSQL_DATABASE",
+            "RAILWAY_MYSQL_USERNAME", "RAILWAY_MYSQL_PASSWORD", "RAILWAY_MYSQL_URL"
         };
         
         for (String key : railwayKeys) {
             String value = System.getenv(key);
             if (value != null && !value.isEmpty()) {
                 envVars.put(key, value);
-                System.out.println("Loaded " + key + " from system environment");
             }
         }
     }
@@ -174,12 +154,8 @@ public class EnvironmentConfig {
     public static String getRailwayUrl() {
         String url = get("RAILWAY_MYSQL_URL");
         if (url != null && !url.isEmpty()) {
-            // Convert Railway's mysql:// format to JDBC format
             if (url.startsWith("mysql://")) {
-                // Parse Railway connection string: mysql://user:pass@host:port/database
-                String jdbcUrl = convertRailwayUrlToJdbc(url);
-                System.out.println("Converted Railway URL to JDBC format");
-                return jdbcUrl;
+                return convertRailwayUrlToJdbc(url);
             }
             return url;
         }
@@ -241,23 +217,10 @@ public class EnvironmentConfig {
             String port = portAndDb.substring(0, slashIndex);
             String database = portAndDb.substring(slashIndex + 1);
             
-            // Build JDBC URL
-            String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
-                                         host, port, database);
-            
-            System.out.println("Converted Railway URL:");
-            System.out.println("  From: " + railwayUrl.replace(password, "[PASSWORD]"));
-            System.out.println("  To:   " + jdbcUrl);
-            System.out.println("  Host: " + host);
-            System.out.println("  Port: " + port);
-            System.out.println("  Database: " + database);
-            System.out.println("  Username: " + username);
-            
-            return jdbcUrl;
-            
+            return String.format("jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
+                               host, port, database);
         } catch (Exception e) {
-            System.err.println("Error converting Railway URL: " + e.getMessage());
-            return railwayUrl; // Return original if conversion fails
+            return railwayUrl;
         }
     }
     
