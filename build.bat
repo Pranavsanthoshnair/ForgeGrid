@@ -28,6 +28,7 @@ if %ERRORLEVEL% EQU 0 (
             echo Copying icon resources...
             if not exist "bin\com\forgegrid\icon" mkdir "bin\com\forgegrid\icon"
             xcopy /Y "src\main\resources\com\forgegrid\icon\*" "bin\com\forgegrid\icon\" >nul 2>&1
+            echo Icon resources copied to: bin\com\forgegrid\icon\
         )
     )
     

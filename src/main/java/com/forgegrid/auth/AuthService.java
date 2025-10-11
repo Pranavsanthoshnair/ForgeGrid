@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Authentication service using SQLite database for user management.
+ * Authentication service using MySQL database for user management.
  * Provides registration and login functionality with SHA-256 password hashing.
  */
 public class AuthService {

@@ -33,7 +33,7 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 - Level up to unlock harder challenges
 
 ### Persistent Data
-- Save/load player progress using **SQLite Database**
+- Save/load player progress using **MySQL Database**
 
 ### GUI (Swing)
 - **Top Panel**: Player stats (Name, Level, XP bar, Rank, Deadline timer)
@@ -89,21 +89,22 @@ ForgeGrid combines **progression, gamification, and engagement** into a single p
 ## Technology Stack
 - **Java JDK 17+**
 - **Swing GUI**: JFrame, JTable, JButton, JLabel, JProgressBar
-- **SQLite Database** for data persistence
-- **SLF4J Logging** for application logging
+- **MySQL Database** for data persistence
 - **Collections**: ArrayList, HashMap for task management
 
 ---
 
 ## Installation & Setup
 1. Install **Java JDK 17 or higher** (recommended: Java 17 LTS for best compatibility)
-2. Clone or download the project repository
-3. **Build the project**: Run `build.bat` (Windows) or `build.sh` (Linux/Mac)
-4. Open in an IDE (**VS Code / IntelliJ / Eclipse**)
-5. **Run the application**: Right-click on `Main.java` → "Run Java" or use the IDE's run button
+2. Install **XAMPP** and start MySQL service
+3. **Setup Database**: Run `database/forgegrid_schema.sql` in phpMyAdmin to create the database before launching the app
+4. Clone or download the project repository
+5. **Build the project**: Run `build.bat` (Windows) or `build.sh` (Linux/Mac)
+6. Open in an IDE (**VS Code / IntelliJ / Eclipse**)
+7. **Run the application**: Right-click on `Main.java` → "Run Java" or use the IDE's run button
 
-**Note:** The project uses SQLite for data persistence and requires the JAR files in the `lib/` folder to be included in the classpath. Most IDEs will handle this automatically.
-6. Progress is automatically saved to the SQLite database (`forgegrid.db`)
+**Note:** The project uses MySQL for data persistence and requires the MySQL connector JAR in the `lib/` folder to be included in the classpath. Most IDEs will handle this automatically.
+8. Progress is automatically saved to the MySQL database (`forgegrid`)
 
 ---
 

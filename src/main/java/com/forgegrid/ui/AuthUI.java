@@ -979,7 +979,7 @@ public class AuthUI extends JFrame {
         return button;
     }
 
-    // Google OAuth methods removed - using SQLite authentication only
+    // Google OAuth methods removed - using MySQL authentication only
 
 
     private JButton createSolidButton(String text, Color backgroundColor, Color foregroundColor) {
@@ -1113,7 +1113,7 @@ public class AuthUI extends JFrame {
         loginButton.setEnabled(false);
         loginButton.setText("Authenticating...");
         
-        // Use SQLite authentication
+        // Use MySQL authentication
         SwingUtilities.invokeLater(() -> {
             try {
                 PlayerProfile profile = authService.login(username, password);
@@ -1247,7 +1247,7 @@ public class AuthUI extends JFrame {
         signupButton.setEnabled(false);
         signupButton.setText("Creating Account...");
         
-        // Use SQLite authentication for registration with username, email, and password
+        // Use MySQL authentication for registration with username, email, and password
         SwingUtilities.invokeLater(() -> {
             try {
                 boolean success = authService.register(name, email, password);

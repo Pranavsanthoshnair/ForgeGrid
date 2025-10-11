@@ -90,7 +90,7 @@ public class AppConfig {
         System.out.println("App Name: " + getAppName());
         System.out.println("App Version: " + getAppVersion());
         System.out.println("Debug Mode: " + isDebugEnabled());
-        System.out.println("Authentication: SQLite Database");
+        System.out.println("Authentication: MySQL Database");
         System.out.println("========================\n");
     }
 }

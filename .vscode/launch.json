@@ -3,44 +3,35 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Main",
+            "name": "Main (MySQL)",
             "request": "launch",
             "mainClass": "com.forgegrid.app.Main",
-            "projectName": "ForgeGrid_af805301"
+            "projectName": "ForgeGrid_af805301",
+            "classPaths": [
+                "${workspaceFolder}/bin",
+                "${workspaceFolder}/lib/mysql-connector-j-8.0.33.jar",
+            ]
         },
         {
             "type": "java",
-            "name": "Main",
+            "name": "Main (MySQL) - Alt",
             "request": "launch",
             "mainClass": "com.forgegrid.app.Main",
-            "projectName": "ForgeGrid_b0e8f465"
+            "projectName": "ForgeGrid_b0e8f465",
+            "classPaths": [
+                "${workspaceFolder}/bin",
+                "${workspaceFolder}/lib/mysql-connector-j-8.0.33.jar",
+            ]
         },
         {
             "type": "java",
-            "name": "Launch ForgeGrid",
+            "name": "Launch ForgeGrid (MySQL)",
             "request": "launch",
             "mainClass": "com.forgegrid.app.Main",
             "projectName": "forgegrid",
             "classPaths": [
                 "${workspaceFolder}/bin",
-                "${workspaceFolder}/lib/sqlite-jdbc-3.44.1.0.jar",
-                "${workspaceFolder}/lib/slf4j-api-1.7.36.jar",
-                "${workspaceFolder}/lib/slf4j-simple-1.7.36.jar"
-            ],
-            "modulePaths": [],
-            "args": "",
-            "vmArgs": "",
-            "console": "integratedTerminal"
-        },
-        {
-            "type": "java",
-            "name": "Launch ForgeGrid (All JARs)",
-            "request": "launch",
-            "mainClass": "com.forgegrid.app.Main",
-            "projectName": "forgegrid",
-            "classPaths": [
-                "${workspaceFolder}/bin",
-                "${workspaceFolder}/lib/*"
+                "${workspaceFolder}/lib/mysql-connector-j-8.0.33.jar",
             ],
             "modulePaths": [],
             "args": "",

@@ -1,6 +1,6 @@
 package com.forgegrid.model;
 
-// Gson imports removed - using SQLite instead of JSON
+// Gson imports removed - using MySQL instead of JSON
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -223,7 +223,7 @@ public class PlayerProfile implements Serializable {
         return Math.max(1, score / 1000 + 1);
     }
     
-    // JSON methods removed - using SQLite instead of JSON files
+    // JSON methods removed - using MySQL instead of JSON files
     
     /**
      * Creates a copy of this profile for local storage

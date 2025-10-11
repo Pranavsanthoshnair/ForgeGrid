@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Database helper class for managing SQLite database connections and initialization.
- * Creates and manages the forgegrid.db database with users table.
+ * Database helper class for managing MySQL database connections and initialization.
+ * Creates and manages the forgegrid database with users table.
  */
 public class DatabaseHelper {
     
@@ -16,11 +16,18 @@ public class DatabaseHelper {
     private static DatabaseHelper instance;
     private Connection connection;
     
+    // MySQL connection parameters
+    private static final String DB_HOST = "localhost";
+    private static final String DB_PORT = "3306";
+    private static final String DB_NAME = "forgegrid";
+    private static final String DB_USERNAME = "root";
+    private static final String DB_PASSWORD = "";
+    
     /**
      * Private constructor for singleton pattern
      */
     private DatabaseHelper() {
-        this.dbUrl = resolveDatabaseUrl();
+        this.dbUrl = buildMySQLUrl();
         initializeDatabase();
     }
     
@@ -37,14 +44,24 @@ public class DatabaseHelper {
     }
     
     /**
+     * Build MySQL JDBC URL
+     * 
+     * @return MySQL JDBC URL
+     */
+    private String buildMySQLUrl() {
+        return String.format("jdbc:mysql://%s:%s/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
+                           DB_HOST, DB_PORT, DB_NAME);
+    }
+    
+    /**
      * Get database connection
      * 
-     * @return Connection to SQLite database
+     * @return Connection to MySQL database
      * @throws SQLException if connection fails
      */
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(dbUrl);
+            connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD);
         }
         return connection;
     }
@@ -54,69 +71,39 @@ public class DatabaseHelper {
      */
     private void initializeDatabase() {
         try {
-            // Load SQLite JDBC driver
-            Class.forName("org.sqlite.JDBC");
+            // Load MySQL JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
             
             // Create connection
-            connection = DriverManager.getConnection(dbUrl);
+            connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD);
             
             // Create users table if it doesn't exist
             createUsersTable();
             
-            System.out.println("Database initialized successfully: forgegrid.db");
+            System.out.println("MySQL database initialized successfully: forgegrid");
             
         } catch (ClassNotFoundException e) {
-            System.err.println("SQLite JDBC driver not found: " + e.getMessage());
+            System.err.println("MySQL JDBC driver not found: " + e.getMessage());
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("Error initializing database: " + e.getMessage());
+            System.err.println("Error initializing MySQL database: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Determine the SQLite JDBC URL, preferring config over defaults.
-     * Order:
-     * 1) config.properties key db.path (absolute or relative)
-     * 2) project root alongside the built classes/jar (../forgegrid.db from bin/ or jar dir)
-     * 3) current working directory (forgegrid.db)
+     * Test database connection
+     * 
+     * @return true if database is accessible, false otherwise
      */
-    private String resolveDatabaseUrl() {
-        // 1) config.properties
+    public boolean testConnection() {
         try {
-            java.util.Properties props = new java.util.Properties();
-            try (java.io.InputStream in = DatabaseHelper.class.getClassLoader().getResourceAsStream("config.properties")) {
-                if (in != null) {
-                    props.load(in);
-                    String path = props.getProperty("db.path");
-                    if (path != null && !path.trim().isEmpty()) {
-                        java.io.File f = new java.io.File(path.trim());
-                        String abs = f.getAbsolutePath();
-                        System.out.println("Using SQLite path from config: " + abs);
-                        return "jdbc:sqlite:" + abs;
-                    }
-                }
-            }
-        } catch (Exception ignore) {}
-
-        // 2) co-locate with classes/jar → project root (../forgegrid.db from bin/)
-        try {
-            java.net.URL loc = DatabaseHelper.class.getProtectionDomain().getCodeSource().getLocation();
-            java.nio.file.Path binOrJar = java.nio.file.Paths.get(loc.toURI());
-            java.nio.file.Path baseDir = binOrJar.toFile().isFile() ? binOrJar.getParent() : binOrJar; // jar dir or bin/
-            // project root when running from bin/: go one up; when jar, use jar dir
-            java.nio.file.Path candidate = baseDir.getFileName().toString().equalsIgnoreCase("bin")
-                ? baseDir.getParent().resolve("forgegrid.db")
-                : baseDir.resolve("forgegrid.db");
-            java.io.File f = candidate.toFile();
-            System.out.println("Using SQLite path near classes/jar: " + f.getAbsolutePath());
-            return "jdbc:sqlite:" + f.getAbsolutePath();
-        } catch (Exception ignore) {}
-
-        // 3) fallback: working directory
-        String fallback = new java.io.File("forgegrid.db").getAbsolutePath();
-        System.out.println("Using SQLite path from working dir: " + fallback);
-        return "jdbc:sqlite:" + fallback;
+            Connection testConn = getConnection();
+            return testConn != null && !testConn.isClosed();
+        } catch (SQLException e) {
+            System.err.println("Database connection test failed: " + e.getMessage());
+            return false;
+        }
     }
     
     /**
@@ -125,85 +112,40 @@ public class DatabaseHelper {
     private void createUsersTable() throws SQLException {
         String createTableSQL = """
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                onboarding_completed INTEGER DEFAULT 0,
-                onboarding_goal TEXT,
-                onboarding_language TEXT,
-                onboarding_skill TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                onboarding_completed TINYINT(1) DEFAULT 0,
+                onboarding_goal VARCHAR(255) NULL,
+                onboarding_language VARCHAR(255) NULL,
+                onboarding_skill VARCHAR(255) NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """;
         
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
             System.out.println("Users table created/verified successfully");
             
-            // Add onboarding and email columns to existing tables (migration)
-            migrateOnboardingColumns();
-            migrateEmailColumn();
+            // Create indexes for better performance
+            createIndexes();
         }
     }
     
     /**
-     * Migrate existing users table to add email column if it doesn't exist
+     * Create indexes for better performance
      */
-    private void migrateEmailColumn() {
+    private void createIndexes() {
         try (Statement statement = connection.createStatement()) {
-            // Check if email column exists
-            ResultSet rs = statement.executeQuery("PRAGMA table_info(users)");
-            boolean emailExists = false;
-            while (rs.next()) {
-                if ("email".equals(rs.getString("name"))) {
-                    emailExists = true;
-                    break;
-                }
-            }
-            rs.close();
-            
-            // Add email column if it doesn't exist
-            if (!emailExists) {
-                statement.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
-                System.out.println("Email column added to users table");
-            }
+            // Create indexes if they don't exist
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_users_onboarding_completed ON users(onboarding_completed)");
+            System.out.println("Database indexes created/verified successfully");
         } catch (SQLException e) {
-            System.err.println("Error migrating email column: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Migrate existing users table to add onboarding columns if they don't exist
-     */
-    private void migrateOnboardingColumns() {
-        try (Statement statement = connection.createStatement()) {
-            // Check if onboarding_completed column exists
-            try {
-                statement.execute("SELECT onboarding_completed FROM users LIMIT 1");
-            } catch (SQLException e) {
-                // Column doesn't exist, add it
-                System.out.println("Adding onboarding columns to existing users table...");
-                statement.execute("ALTER TABLE users ADD COLUMN onboarding_completed INTEGER DEFAULT 0");
-                statement.execute("ALTER TABLE users ADD COLUMN onboarding_goal TEXT");
-                statement.execute("ALTER TABLE users ADD COLUMN onboarding_language TEXT");
-                statement.execute("ALTER TABLE users ADD COLUMN onboarding_skill TEXT");
-                System.out.println("Onboarding columns added successfully");
-            }
-            
-            // Check if created_at column exists (separate check for timestamp columns)
-            try {
-                statement.execute("SELECT created_at FROM users LIMIT 1");
-            } catch (SQLException e) {
-                // Column doesn't exist, add timestamp columns
-                System.out.println("Adding timestamp columns to existing users table...");
-                statement.execute("ALTER TABLE users ADD COLUMN created_at TEXT");
-                statement.execute("ALTER TABLE users ADD COLUMN updated_at TEXT");
-                System.out.println("Timestamp columns added successfully");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error during migration: " + e.getMessage());
+            System.err.println("Error creating indexes: " + e.getMessage());
         }
     }
     
@@ -221,18 +163,4 @@ public class DatabaseHelper {
         }
     }
     
-    /**
-     * Test database connection
-     * 
-     * @return true if connection is successful, false otherwise
-     */
-    public boolean testConnection() {
-        try {
-            Connection testConn = getConnection();
-            return testConn != null && !testConn.isClosed();
-        } catch (SQLException e) {
-            System.err.println("Database connection test failed: " + e.getMessage());
-            return false;
-        }
-    }
 }
