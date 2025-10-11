@@ -428,4 +428,97 @@ public class UserService {
         
         return -1;
     }
+    
+    /**
+     * Get user profile details including onboarding information
+     * 
+     * @param username Username
+     * @return Map with keys: email, onboarding_language, onboarding_skill, notification_preference
+     */
+    public java.util.Map<String, String> getUserProfileDetails(String username) {
+        java.util.Map<String, String> details = new java.util.HashMap<>();
+        
+        // Get user data from users table
+        String userQuery = "SELECT email, onboarding_language, onboarding_skill FROM users WHERE username = ?";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(userQuery)) {
+            
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                details.put("email", rs.getString("email"));
+                details.put("onboarding_language", rs.getString("onboarding_language"));
+                details.put("onboarding_skill", rs.getString("onboarding_skill"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // Get notification preference from user_preferences table
+        String prefQuery = "SELECT notification_preference FROM user_preferences WHERE username = ?";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(prefQuery)) {
+            
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                details.put("notification_preference", rs.getString("notification_preference"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return details;
+    }
+    
+    /**
+     * Update user profile details
+     * 
+     * @param username Username
+     * @param email Email address
+     * @param language Preferred programming language
+     * @param skillLevel Skill level
+     * @param notificationTime Preferred notification time
+     * @return true if update successful, false otherwise
+     */
+    public boolean updateUserProfileDetails(String username, String email, String language, String skillLevel, String notificationTime) {
+        // Update users table
+        String updateUserSQL = "UPDATE users SET email = ?, onboarding_language = ?, onboarding_skill = ? WHERE username = ?";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(updateUserSQL)) {
+            
+            pstmt.setString(1, email);
+            pstmt.setString(2, language);
+            pstmt.setString(3, skillLevel);
+            pstmt.setString(4, username);
+            pstmt.executeUpdate();
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        // Update user_preferences table
+        String updatePrefSQL = """
+            INSERT INTO user_preferences (username, notification_preference) 
+            VALUES (?, ?) 
+            ON DUPLICATE KEY UPDATE notification_preference = ?
+            """;
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(updatePrefSQL)) {
+            
+            pstmt.setString(1, username);
+            pstmt.setString(2, notificationTime);
+            pstmt.setString(3, notificationTime);
+            pstmt.executeUpdate();
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
+    }
 }

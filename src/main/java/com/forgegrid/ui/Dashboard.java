@@ -530,17 +530,176 @@ public class Dashboard extends JFrame {
         panel.add(title);
         panel.add(Box.createVerticalStrut(20));
         
-        JLabel nameLabel = new JLabel("Player: " + (profile != null ? profile.getUsername() : "Guest"));
-        nameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        nameLabel.setForeground(TEXT_COLOR);
-        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(nameLabel);
+        // Get user profile details
+        java.util.Map<String, String> profileDetails = userService.getUserProfileDetails(profile.getUsername());
         
-        JLabel levelLabel = new JLabel("Level: " + (profile != null ? profile.getLevel() : "1"));
-        levelLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        levelLabel.setForeground(TEXT_COLOR);
-        levelLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(levelLabel);
+        // Profile information panel
+        JPanel profilePanel = new JPanel();
+        profilePanel.setOpaque(true);
+        profilePanel.setBackground(PANEL_COLOR);
+        profilePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ACCENT_COLOR, 1),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
+        profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
+        profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        profilePanel.setMaximumSize(new Dimension(600, Integer.MAX_VALUE));
+        
+        // Username
+        JPanel usernamePanel = createProfileField("Username", profile.getUsername(), false, null);
+        profilePanel.add(usernamePanel);
+        profilePanel.add(Box.createVerticalStrut(15));
+        
+        // Level
+        JPanel levelPanel = createProfileField("Level", String.valueOf(profile.getLevel()), false, null);
+        profilePanel.add(levelPanel);
+        profilePanel.add(Box.createVerticalStrut(15));
+        
+        // Email
+        JTextField emailField = new JTextField(profileDetails.getOrDefault("email", ""));
+        JPanel emailPanel = createProfileField("Email", null, true, emailField);
+        profilePanel.add(emailPanel);
+        profilePanel.add(Box.createVerticalStrut(15));
+        
+        // Programming Language
+        String[] languages = {"Java", "Python", "JavaScript", "C++", "C#", "Go", "Rust", "Ruby", "PHP", "Swift"};
+        JComboBox<String> languageBox = new JComboBox<>(languages);
+        languageBox.setSelectedItem(profileDetails.getOrDefault("onboarding_language", "Java"));
+        languageBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        languageBox.setBackground(Color.WHITE);
+        languageBox.setForeground(Color.BLACK);
+        JPanel languagePanel = createProfileFieldWithComponent("Preferred Language", languageBox);
+        profilePanel.add(languagePanel);
+        profilePanel.add(Box.createVerticalStrut(15));
+        
+        // Skill Level
+        String[] skillLevels = {"Beginner", "Intermediate", "Advanced", "Expert"};
+        JComboBox<String> skillBox = new JComboBox<>(skillLevels);
+        skillBox.setSelectedItem(profileDetails.getOrDefault("onboarding_skill", "Beginner"));
+        skillBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        skillBox.setBackground(Color.WHITE);
+        skillBox.setForeground(Color.BLACK);
+        JPanel skillPanel = createProfileFieldWithComponent("Skill Level", skillBox);
+        profilePanel.add(skillPanel);
+        profilePanel.add(Box.createVerticalStrut(15));
+        
+        // Preferred Time for Tasks
+        String[] times = {"Morning (6 AM - 12 PM)", "Afternoon (12 PM - 6 PM)", "Evening (6 PM - 12 AM)", "Night (12 AM - 6 AM)"};
+        JComboBox<String> timeBox = new JComboBox<>(times);
+        timeBox.setSelectedItem(profileDetails.getOrDefault("notification_preference", "Morning (6 AM - 12 PM)"));
+        timeBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        timeBox.setBackground(Color.WHITE);
+        timeBox.setForeground(Color.BLACK);
+        JPanel timePanel = createProfileFieldWithComponent("Preferred Time for Tasks", timeBox);
+        profilePanel.add(timePanel);
+        profilePanel.add(Box.createVerticalStrut(20));
+        
+        // Save button
+        JButton saveButton = new JButton("Save Changes");
+        saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        saveButton.setForeground(TEXT_COLOR);
+        saveButton.setBackground(ACCENT_COLOR);
+        saveButton.setFocusPainted(false);
+        saveButton.setBorderPainted(false);
+        saveButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        saveButton.setPreferredSize(new Dimension(150, 40));
+        saveButton.setMaximumSize(new Dimension(150, 40));
+        saveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        saveButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                saveButton.setBackground(ACCENT_COLOR.brighter());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                saveButton.setBackground(ACCENT_COLOR);
+            }
+        });
+        
+        saveButton.addActionListener(e -> {
+            String email = emailField.getText();
+            String language = (String) languageBox.getSelectedItem();
+            String skill = (String) skillBox.getSelectedItem();
+            String time = (String) timeBox.getSelectedItem();
+            
+            if (email.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Email cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            boolean success = userService.updateUserProfileDetails(profile.getUsername(), email, language, skill, time);
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Profile updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update profile!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        profilePanel.add(saveButton);
+        
+        panel.add(profilePanel);
+        
+        return panel;
+    }
+    
+    private JPanel createProfileField(String label, String value, boolean editable, JTextField textField) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        labelComponent.setForeground(ACCENT_COLOR);
+        labelComponent.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        if (editable && textField != null) {
+            textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            textField.setBackground(Color.WHITE);
+            textField.setForeground(Color.BLACK);
+            textField.setCaretColor(Color.BLACK);
+            textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(70, 80, 95), 1),
+                new EmptyBorder(8, 10, 8, 10)
+            ));
+            textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+            textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            panel.add(labelComponent);
+            panel.add(Box.createVerticalStrut(5));
+            panel.add(textField);
+        } else {
+            JLabel valueComponent = new JLabel(value);
+            valueComponent.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            valueComponent.setForeground(TEXT_COLOR);
+            valueComponent.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            panel.add(labelComponent);
+            panel.add(Box.createVerticalStrut(5));
+            panel.add(valueComponent);
+        }
+        
+        return panel;
+    }
+    
+    private JPanel createProfileFieldWithComponent(String label, JComponent component) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        labelComponent.setForeground(ACCENT_COLOR);
+        labelComponent.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        component.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        component.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        panel.add(labelComponent);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(component);
         
         return panel;
     }

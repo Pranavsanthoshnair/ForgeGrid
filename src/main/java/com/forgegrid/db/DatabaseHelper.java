@@ -206,6 +206,28 @@ public class DatabaseHelper {
         } catch (SQLException e) {
             // Silently fail - indexes not critical
         }
+        migrateUserPreferencesTable();
+    }
+    
+    /**
+     * Migrate user_preferences table to add customize_completed column if it doesn't exist
+     */
+    private void migrateUserPreferencesTable() {
+        try (Statement statement = connection.createStatement()) {
+            // Check if customize_completed column exists
+            try {
+                statement.executeQuery("SELECT customize_completed FROM user_preferences LIMIT 1");
+            } catch (SQLException e) {
+                // Column doesn't exist, add it
+                try {
+                    statement.execute("ALTER TABLE user_preferences ADD COLUMN customize_completed BOOLEAN DEFAULT FALSE");
+                } catch (SQLException ex) {
+                    // Silently fail if already exists
+                }
+            }
+        } catch (SQLException e) {
+            // Silently fail
+        }
     }
     
     /**
