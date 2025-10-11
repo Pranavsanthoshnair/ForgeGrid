@@ -321,53 +321,68 @@ public class Dashboard extends JFrame {
     }
     
     /**
-     * Creates the modern sidebar menu
+     * Creates the ultra-modern professional sidebar menu
      */
     private JPanel createSidebarPanel() {
         JPanel sidebarPanel = new JPanel(new BorderLayout());
         sidebarPanel.setBackground(SIDEBAR_COLOR);
-        sidebarPanel.setPreferredSize(new Dimension(240, 0));
+        sidebarPanel.setPreferredSize(new Dimension(250, 0));
+        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(45, 55, 70)));
         
-        // Header with logo and title
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        // === HEADER SECTION ===
+        JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        headerPanel.setBorder(new EmptyBorder(25, 20, 25, 20));
         
-        // Load ForgeGrid logo
+        // Logo and Title Container
+        JPanel logoTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        logoTitlePanel.setOpaque(false);
+        
+        // Load ForgeGrid logo with better sizing
         JLabel logoLabel = new JLabel();
         try {
             ImageIcon logoIcon = new ImageIcon(getClass().getResource("/com/forgegrid/icon/logo2_transparent.png"));
-            // Scale the logo to fit nicely in the sidebar
-            Image scaledLogo = logoIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+            Image scaledLogo = logoIcon.getImage().getScaledInstance(36, 36, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(scaledLogo));
         } catch (Exception e) {
-            // Fallback to emoji if logo can't be loaded
             logoLabel.setText("🏗️");
-            logoLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
+            logoLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 32));
         }
         
-        // Title
+        // Title with better styling
         JLabel titleLabel = new JLabel("ForgeGrid");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(ACCENT_COLOR);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 19));
+        titleLabel.setForeground(new Color(255, 255, 255));
         
-        headerPanel.add(logoLabel);
-        headerPanel.add(titleLabel);
+        logoTitlePanel.add(logoLabel);
+        logoTitlePanel.add(titleLabel);
+        headerPanel.add(logoTitlePanel, BorderLayout.CENTER);
         
-        // Menu panel
+        // === MENU SECTION ===
         JPanel menuPanel = new JPanel();
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setOpaque(false);
-        menuPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        menuPanel.setBorder(new EmptyBorder(5, 12, 20, 12));
         
-        // Add menu items
+        // Add section label
+        JLabel mainLabel = new JLabel("MAIN MENU");
+        mainLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        mainLabel.setForeground(new Color(120, 130, 150));
+        mainLabel.setBorder(new EmptyBorder(5, 12, 10, 0));
+        mainLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        menuPanel.add(mainLabel);
+        
+        // Add menu items with icons
         menuPanel.add(createModernMenuItem("🏠", VIEW_DASHBOARD, true));
-        menuPanel.add(Box.createVerticalStrut(5));
-        menuPanel.add(createModernMenuItem("✓", VIEW_TASKS, false));
-        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(Box.createVerticalStrut(4));
+        menuPanel.add(createModernMenuItem("📋", VIEW_TASKS, false));
+        menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(createModernMenuItem("👤", VIEW_PROFILE, false));
-        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(createModernMenuItem("⚙️", VIEW_SETTINGS, false));
+        
+        // Add some spacing
+        menuPanel.add(Box.createVerticalStrut(20));
         
         // Wrap menu in scroll pane
         JScrollPane scrollPane = new JScrollPane(menuPanel);
@@ -375,9 +390,54 @@ public class Dashboard extends JFrame {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setOpaque(false);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(12);
         
+        // === FOOTER SECTION ===
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setOpaque(false);
+        footerPanel.setBorder(new EmptyBorder(15, 20, 20, 20));
+        
+        // User info card at bottom
+        JPanel userCard = new JPanel(new BorderLayout(10, 0));
+        userCard.setOpaque(true);
+        userCard.setBackground(new Color(30, 38, 50));
+        userCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(50, 60, 75), 1),
+            new EmptyBorder(12, 12, 12, 12)
+        ));
+        
+        // User icon
+        JLabel userIcon = new JLabel("👤");
+        userIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        
+        // User details
+        JPanel userDetails = new JPanel();
+        userDetails.setOpaque(false);
+        userDetails.setLayout(new BoxLayout(userDetails, BoxLayout.Y_AXIS));
+        
+        JLabel userName = new JLabel(profile != null ? profile.getUsername() : "Guest");
+        userName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        userName.setForeground(TEXT_COLOR);
+        userName.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel userLevel = new JLabel("Level " + (profile != null ? profile.getLevel() : "1") + " • " + playerRank);
+        userLevel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        userLevel.setForeground(TEXT_SECONDARY);
+        userLevel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        userDetails.add(userName);
+        userDetails.add(Box.createVerticalStrut(2));
+        userDetails.add(userLevel);
+        
+        userCard.add(userIcon, BorderLayout.WEST);
+        userCard.add(userDetails, BorderLayout.CENTER);
+        
+        footerPanel.add(userCard, BorderLayout.CENTER);
+        
+        // Assemble sidebar
         sidebarPanel.add(headerPanel, BorderLayout.NORTH);
         sidebarPanel.add(scrollPane, BorderLayout.CENTER);
+        sidebarPanel.add(footerPanel, BorderLayout.SOUTH);
         
         return sidebarPanel;
     }
@@ -388,28 +448,44 @@ public class Dashboard extends JFrame {
     private JPanel currentSelectedMenuItem = null;
     
     /**
-     * Create a modern menu item with icon and text
+     * Create an ultra-modern menu item with smooth animations
      */
     private JPanel createModernMenuItem(String icon, String text, boolean selected) {
-        JPanel item = new JPanel(new BorderLayout(12, 0));
-        item.setOpaque(true);
-        item.setBackground(selected ? new Color(45, 55, 70) : SIDEBAR_COLOR);
+        JPanel item = new JPanel(new BorderLayout(14, 0)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw rounded background
+                if (getBackground().getRGB() != SIDEBAR_COLOR.getRGB()) {
+                    g2.setColor(getBackground());
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                }
+                
+                g2.dispose();
+            }
+        };
+        
+        item.setOpaque(false);
+        item.setBackground(selected ? new Color(40, 50, 65) : SIDEBAR_COLOR);
         item.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 3, 0, 0, selected ? ACCENT_COLOR : new Color(0, 0, 0, 0)),
-            new EmptyBorder(12, 15, 12, 15)
+            new EmptyBorder(14, 16, 14, 16)
         ));
         item.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
         
-        // Icon
+        // Icon with better styling
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
-        iconLabel.setForeground(selected ? ACCENT_COLOR : TEXT_SECONDARY);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+        iconLabel.setForeground(selected ? ACCENT_COLOR : new Color(140, 150, 170));
         
-        // Text
+        // Text with better styling
         JLabel textLabel = new JLabel(text);
         textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textLabel.setForeground(selected ? TEXT_COLOR : TEXT_SECONDARY);
+        textLabel.setForeground(selected ? new Color(240, 245, 250) : new Color(160, 170, 185));
         
         item.add(iconLabel, BorderLayout.WEST);
         item.add(textLabel, BorderLayout.CENTER);
@@ -419,23 +495,50 @@ public class Dashboard extends JFrame {
             currentSelectedMenuItem = item;
         }
         
-        // Add hover and click effects
+        // Add smooth hover and click effects with timer for animation
+        final Timer[] hoverTimer = {null};
+        
         item.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (item != currentSelectedMenuItem) {
-                    item.setBackground(new Color(35, 45, 60));
-                    textLabel.setForeground(TEXT_COLOR);
-                    iconLabel.setForeground(ACCENT_COLOR);
+                    // Cancel any existing timer
+                    if (hoverTimer[0] != null && hoverTimer[0].isRunning()) {
+                        hoverTimer[0].stop();
+                    }
+                    
+                    // Smooth transition
+                    hoverTimer[0] = new Timer(10, new ActionListener() {
+                        float alpha = 0f;
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            alpha += 0.15f;
+                            if (alpha >= 1f) {
+                                alpha = 1f;
+                                ((Timer) e.getSource()).stop();
+                            }
+                            item.setBackground(new Color(35, 45, 60));
+                            textLabel.setForeground(new Color(240, 245, 250));
+                            iconLabel.setForeground(ACCENT_COLOR);
+                            item.repaint();
+                        }
+                    });
+                    hoverTimer[0].start();
                 }
             }
             
             @Override
             public void mouseExited(MouseEvent e) {
                 if (item != currentSelectedMenuItem) {
+                    // Cancel timer
+                    if (hoverTimer[0] != null && hoverTimer[0].isRunning()) {
+                        hoverTimer[0].stop();
+                    }
+                    
                     item.setBackground(SIDEBAR_COLOR);
-                    textLabel.setForeground(TEXT_SECONDARY);
-                    iconLabel.setForeground(TEXT_SECONDARY);
+                    textLabel.setForeground(new Color(160, 170, 185));
+                    iconLabel.setForeground(new Color(140, 150, 170));
+                    item.repaint();
                 }
             }
             
@@ -446,24 +549,26 @@ public class Dashboard extends JFrame {
                     currentSelectedMenuItem.setBackground(SIDEBAR_COLOR);
                     currentSelectedMenuItem.setBorder(BorderFactory.createCompoundBorder(
                         BorderFactory.createMatteBorder(0, 3, 0, 0, new Color(0, 0, 0, 0)),
-                        new EmptyBorder(12, 15, 12, 15)
+                        new EmptyBorder(14, 16, 14, 16)
                     ));
                     Component[] components = currentSelectedMenuItem.getComponents();
                     if (components.length >= 2) {
-                        ((JLabel) components[0]).setForeground(TEXT_SECONDARY);
-                        ((JLabel) components[1]).setForeground(TEXT_SECONDARY);
+                        ((JLabel) components[0]).setForeground(new Color(140, 150, 170));
+                        ((JLabel) components[1]).setForeground(new Color(160, 170, 185));
                     }
+                    currentSelectedMenuItem.repaint();
                 }
                 
                 // Select new item
-                item.setBackground(new Color(45, 55, 70));
+                item.setBackground(new Color(40, 50, 65));
                 item.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createMatteBorder(0, 3, 0, 0, ACCENT_COLOR),
-                    new EmptyBorder(12, 15, 12, 15)
+                    new EmptyBorder(14, 16, 14, 16)
                 ));
-                textLabel.setForeground(TEXT_COLOR);
+                textLabel.setForeground(new Color(240, 245, 250));
                 iconLabel.setForeground(ACCENT_COLOR);
                 currentSelectedMenuItem = item;
+                item.repaint();
                 
                 // Switch view
                 switchView(text);
