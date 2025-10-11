@@ -76,13 +76,15 @@ public class Dashboard extends JFrame {
             public void windowClosing(WindowEvent e) {
                 int result = JOptionPane.showConfirmDialog(
                     Dashboard.this,
-                    "Are you sure you want to logout?",
-                    "Confirm Logout",
+                    "Are you sure you want to exit ForgeGrid?",
+                    "Confirm Exit",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE
                 );
                 if (result == JOptionPane.YES_OPTION) {
-                    handleLogout();
+                    // Exit application completely (keep remember me intact)
+                    System.out.println("Exiting application (remember me preserved)");
+                    System.exit(0);
                 }
             }
         });
@@ -2432,6 +2434,11 @@ public class Dashboard extends JFrame {
      * Handle logout - return to AuthUI screen
      */
     private void handleLogout() {
+        // Clear remember me credentials on logout
+        com.forgegrid.config.UserPreferences userPrefs = new com.forgegrid.config.UserPreferences();
+        userPrefs.clearRememberMe();
+        System.out.println("Cleared remember me credentials on logout");
+        
         // Hide current dashboard
         setVisible(false);
         dispose();

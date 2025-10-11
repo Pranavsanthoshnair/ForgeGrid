@@ -16,6 +16,7 @@ public class AuthUI extends JFrame {
     
     private JTextField emailField;
     private JPasswordField passwordField;
+    private JCheckBox rememberMeCheckbox;
     private JTextField nameField;
     private JButton loginButton;
     private JButton signupButton;
@@ -411,6 +412,17 @@ public class AuthUI extends JFrame {
         card.add(emailContainer);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
         card.add(passwordField);
+        card.add(Box.createRigidArea(new Dimension(0, 15)));
+        
+        // Add "Remember Me" checkbox
+        rememberMeCheckbox = new JCheckBox("Remember Me");
+        rememberMeCheckbox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        rememberMeCheckbox.setForeground(new Color(200, 210, 220));
+        rememberMeCheckbox.setOpaque(false);
+        rememberMeCheckbox.setFocusPainted(false);
+        rememberMeCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
+        rememberMeCheckbox.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        card.add(rememberMeCheckbox);
 
         // Add "Forgot Password?" link
         JLabel forgotPasswordLink = new JLabel("Forgot Password?");
@@ -445,6 +457,25 @@ public class AuthUI extends JFrame {
         // Layout with better spacing: center the card vertically (shifted upward via reduced top padding)
         panel.add(card);
         panel.add(Box.createVerticalGlue());
+        
+        // Auto-fill credentials if remember me was previously enabled
+        if (userPreferences.isRememberMeEnabled()) {
+            String savedUsername = userPreferences.getSavedUsername();
+            String savedPassword = userPreferences.getSavedPassword();
+            
+            if (savedUsername != null && savedPassword != null) {
+                emailField.setText(savedUsername);
+                emailField.setForeground(Color.WHITE);
+                emailField.putClientProperty("placeholderActive", Boolean.FALSE);
+                
+                passwordField.setText(savedPassword);
+                passwordField.setForeground(Color.WHITE);
+                passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
+                
+                rememberMeCheckbox.setSelected(true);
+                System.out.println("Auto-filled credentials for: " + savedUsername);
+            }
+        }
         
         return panel;
     }
@@ -1118,6 +1149,15 @@ public class AuthUI extends JFrame {
                     
                     // Save username for auto-fill on next login
                     userPreferences.setLastUsername(username);
+                    
+                    // Handle remember me functionality
+                    if (rememberMeCheckbox.isSelected()) {
+                        // Save credentials if remember me is checked
+                        userPreferences.saveRememberMeCredentials(username, password);
+                    } else {
+                        // Clear saved credentials if remember me is unchecked
+                        userPreferences.clearRememberMe();
+                    }
                     
                     // Debug logging
                     System.out.println("=== LOGIN SUCCESS ===");
