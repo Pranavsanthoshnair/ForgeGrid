@@ -143,57 +143,48 @@ public class Dashboard extends JFrame {
     }
     
     /**
-     * Create user info section with level badge
+     * Create user info card (matching sidebar footer style)
      */
     private JPanel createUserInfoSection() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        panel.setOpaque(false);
+        JPanel userCard = new JPanel(new BorderLayout(10, 0));
+        userCard.setOpaque(true);
+        userCard.setBackground(new Color(30, 38, 50));
+        userCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(50, 60, 75), 1),
+            new EmptyBorder(12, 12, 12, 12)
+        ));
+        userCard.setPreferredSize(new Dimension(220, 65));
         
-        String playerName = (profile != null && profile.getUsername() != null) ? profile.getUsername() : "Player";
-        JLabel nameLabel = new JLabel(playerName);
-        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        nameLabel.setForeground(TEXT_COLOR);
+        // User icon
+        JLabel userIcon = new JLabel("👤");
+        userIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        userIcon.setPreferredSize(new Dimension(30, 30));
+        userIcon.setHorizontalAlignment(SwingConstants.CENTER);
+        userIcon.setVerticalAlignment(SwingConstants.CENTER);
         
-        // Level badge with color based on level
-        JPanel levelBadge = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Determine badge color based on level
-                Color badgeColor;
-                if (currentLevel <= 10) {
-                    badgeColor = new Color(80, 200, 120); // Green for beginner
-                } else if (currentLevel <= 25) {
-                    badgeColor = new Color(100, 180, 220); // Blue for intermediate
-            } else {
-                    badgeColor = new Color(255, 215, 0); // Gold for advanced
-                }
-                
-                g2.setColor(badgeColor);
-                g2.fillOval(2, 2, 24, 24);
-                
-                // Draw level number
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                String levelText = String.valueOf(currentLevel);
-                FontMetrics fm = g2.getFontMetrics();
-                int textX = (28 - fm.stringWidth(levelText)) / 2;
-                int textY = (28 + fm.getAscent()) / 2 - 2;
-                g2.drawString(levelText, textX, textY);
-                
-                g2.dispose();
-            }
-        };
-        levelBadge.setPreferredSize(new Dimension(28, 28));
-        levelBadge.setOpaque(false);
+        // User details
+        JPanel userDetails = new JPanel();
+        userDetails.setOpaque(false);
+        userDetails.setLayout(new BoxLayout(userDetails, BoxLayout.Y_AXIS));
         
-        panel.add(nameLabel);
-        panel.add(levelBadge);
+        JLabel userName = new JLabel(profile != null ? profile.getUsername() : "Guest");
+        userName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        userName.setForeground(TEXT_COLOR);
+        userName.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        return panel;
+        JLabel userLevel = new JLabel("Level " + (profile != null ? profile.getLevel() : "1") + " • " + playerRank);
+        userLevel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        userLevel.setForeground(TEXT_SECONDARY);
+        userLevel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        userDetails.add(userName);
+        userDetails.add(Box.createVerticalStrut(2));
+        userDetails.add(userLevel);
+        
+        userCard.add(userIcon, BorderLayout.WEST);
+        userCard.add(userDetails, BorderLayout.CENTER);
+        
+        return userCard;
     }
     
     /**
@@ -340,13 +331,16 @@ public class Dashboard extends JFrame {
         
         // Load ForgeGrid logo with better sizing
         JLabel logoLabel = new JLabel();
+        logoLabel.setPreferredSize(new Dimension(40, 40));
+        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        logoLabel.setVerticalAlignment(SwingConstants.CENTER);
         try {
             ImageIcon logoIcon = new ImageIcon(getClass().getResource("/com/forgegrid/icon/logo2_transparent.png"));
-            Image scaledLogo = logoIcon.getImage().getScaledInstance(36, 36, Image.SCALE_SMOOTH);
+            Image scaledLogo = logoIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(scaledLogo));
         } catch (Exception e) {
             logoLabel.setText("🏗️");
-            logoLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 32));
+            logoLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
         }
         
         // Title with better styling
@@ -364,13 +358,18 @@ public class Dashboard extends JFrame {
         menuPanel.setOpaque(false);
         menuPanel.setBorder(new EmptyBorder(5, 12, 20, 12));
         
-        // Add section label
+        // Add section label (centered)
+        JPanel labelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        labelPanel.setOpaque(false);
+        labelPanel.setBorder(new EmptyBorder(5, 0, 10, 0));
+        labelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+        
         JLabel mainLabel = new JLabel("MAIN MENU");
         mainLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
         mainLabel.setForeground(new Color(120, 130, 150));
-        mainLabel.setBorder(new EmptyBorder(5, 12, 10, 0));
-        mainLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        menuPanel.add(mainLabel);
+        
+        labelPanel.add(mainLabel);
+        menuPanel.add(labelPanel);
         
         // Add menu items with icons
         menuPanel.add(createModernMenuItem("🏠", VIEW_DASHBOARD, true));
@@ -392,52 +391,9 @@ public class Dashboard extends JFrame {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(12);
         
-        // === FOOTER SECTION ===
-        JPanel footerPanel = new JPanel(new BorderLayout());
-        footerPanel.setOpaque(false);
-        footerPanel.setBorder(new EmptyBorder(15, 20, 20, 20));
-        
-        // User info card at bottom
-        JPanel userCard = new JPanel(new BorderLayout(10, 0));
-        userCard.setOpaque(true);
-        userCard.setBackground(new Color(30, 38, 50));
-        userCard.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(50, 60, 75), 1),
-            new EmptyBorder(12, 12, 12, 12)
-        ));
-        
-        // User icon
-        JLabel userIcon = new JLabel("👤");
-        userIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
-        
-        // User details
-        JPanel userDetails = new JPanel();
-        userDetails.setOpaque(false);
-        userDetails.setLayout(new BoxLayout(userDetails, BoxLayout.Y_AXIS));
-        
-        JLabel userName = new JLabel(profile != null ? profile.getUsername() : "Guest");
-        userName.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        userName.setForeground(TEXT_COLOR);
-        userName.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JLabel userLevel = new JLabel("Level " + (profile != null ? profile.getLevel() : "1") + " • " + playerRank);
-        userLevel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        userLevel.setForeground(TEXT_SECONDARY);
-        userLevel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        userDetails.add(userName);
-        userDetails.add(Box.createVerticalStrut(2));
-        userDetails.add(userLevel);
-        
-        userCard.add(userIcon, BorderLayout.WEST);
-        userCard.add(userDetails, BorderLayout.CENTER);
-        
-        footerPanel.add(userCard, BorderLayout.CENTER);
-        
-        // Assemble sidebar
+        // Assemble sidebar (no footer needed - user info is in top header now)
         sidebarPanel.add(headerPanel, BorderLayout.NORTH);
         sidebarPanel.add(scrollPane, BorderLayout.CENTER);
-        sidebarPanel.add(footerPanel, BorderLayout.SOUTH);
         
         return sidebarPanel;
     }
@@ -479,8 +435,11 @@ public class Dashboard extends JFrame {
         
         // Icon with better styling
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
         iconLabel.setForeground(selected ? ACCENT_COLOR : new Color(140, 150, 170));
+        iconLabel.setPreferredSize(new Dimension(25, 25));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
         
         // Text with better styling
         JLabel textLabel = new JLabel(text);
@@ -2996,7 +2955,7 @@ public class Dashboard extends JFrame {
         
         // Add rounded corners to progress bar
         xpBar = new JProgressBar(0, maxXP) {
-            @Override
+        @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
