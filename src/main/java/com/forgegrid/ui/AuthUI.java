@@ -4,6 +4,7 @@ import com.forgegrid.auth.AuthService;
 import com.forgegrid.config.UserPreferences;
 import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
+import com.forgegrid.ui.LandingPage;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -162,21 +163,12 @@ public class AuthUI extends JFrame {
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
-        // Check if user has completed onboarding to determine if we should skip the dashboard welcome screen
-        boolean skipWelcome = currentProfile != null && currentProfile.isOnboardingCompleted();
+        // Show landing page first, then dashboard
+        LandingPage landingPage = new LandingPage(currentProfile, goal, language, skill);
+        landingPage.setVisible(true);
         
-        JPanel dashboardHost = new JPanel(new BorderLayout());
-        dashboardHost.setOpaque(false);
-        // Reuse existing Dashboard panel building by instantiating and extracting its content pane
-        Dashboard dashFrame = new Dashboard(currentProfile, skipWelcome);
-        // Apply onboarding selections to dashboard UI
-        dashFrame.applyOnboardingSelections(goal, language, skill, null);
-        Component content = dashFrame.getContentPane();
-        dashFrame.setVisible(false);
-        dashFrame.dispose();
-        dashboardHost.add(content);
-        addWithFade(dashboardHost, "DASHBOARD");
-        showCard("DASHBOARD");
+        // Hide the current AuthUI window
+        setVisible(false);
     }
 
 
