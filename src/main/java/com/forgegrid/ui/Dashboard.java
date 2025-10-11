@@ -39,10 +39,10 @@ public class Dashboard extends JFrame {
     private static final Color HOVER_COLOR = new Color(55, 65, 80);
     
     // View constants
-    private static final String VIEW_DASHBOARD = "Dashboard";
+    private static final String VIEW_DASHBOARD = "Home";
     private static final String VIEW_TASKS = "Tasks";
     private static final String VIEW_PROFILE = "Profile";
-    private static final String VIEW_EXIT = "Logout";
+    private static final String VIEW_SETTINGS = "Settings";
     private static final String VIEW_HELP = "Help";
     private static final String VIEW_ASSIGNED = "Assigned Tasks";
     private static final String VIEW_COMPLETED = "Completed Tasks";
@@ -50,7 +50,6 @@ public class Dashboard extends JFrame {
     private static final String VIEW_GOATED = "Goated Tasks";
     private static final String VIEW_ACHIEVEMENTS = "Achievements";
     private static final String VIEW_PROGRESS = "Progress Tracker";
-    private static final String VIEW_SETTINGS = "Settings";
 
     public Dashboard(PlayerProfile profile) {
         this(profile, false);
@@ -337,78 +336,35 @@ public class Dashboard extends JFrame {
         
         sidebarPanel.add(titleLabel, BorderLayout.NORTH);
         
-        // Menu tree
+        // Menu tree - flat structure without parent nodes
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Menu");
         
-        // MAIN
-        DefaultMutableTreeNode main = new DefaultMutableTreeNode("MAIN");
-        main.add(new DefaultMutableTreeNode(VIEW_DASHBOARD));
-        main.add(new DefaultMutableTreeNode(VIEW_TASKS));
-        main.add(new DefaultMutableTreeNode(VIEW_PROFILE));
-        main.add(new DefaultMutableTreeNode("Logout"));
-        root.add(main);
+        // Add menu items directly to root (flat structure)
+        root.add(new DefaultMutableTreeNode(VIEW_DASHBOARD));
+        root.add(new DefaultMutableTreeNode(VIEW_TASKS));
+        root.add(new DefaultMutableTreeNode(VIEW_PROFILE));
+        root.add(new DefaultMutableTreeNode(VIEW_SETTINGS));
         
         JTree tree = new JTree(new DefaultTreeModel(root));
         tree.setRootVisible(false);
-        tree.setShowsRootHandles(true);
+        tree.setShowsRootHandles(false); // No handles needed for flat list
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.setBackground(SIDEBAR_COLOR);
         tree.setForeground(TEXT_COLOR);
         tree.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tree.setBorder(new EmptyBorder(5, 15, 10, 10));
-        tree.setRowHeight(28); // Increased row height for better readability
+        tree.setRowHeight(32); // Increased row height for better readability
         
         // Custom cell renderer for better appearance
         tree.setCellRenderer(new CustomTreeCellRenderer());
         
-        // Expand all nodes by default
-        for (int i = 0; i < tree.getRowCount(); i++) {
-            tree.expandRow(i);
-        }
-        
-        // Add mouse listener for single-click expand/collapse on categories
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int row = tree.getRowForLocation(e.getX(), e.getY());
-                if (row != -1) {
-                    TreePath path = tree.getPathForRow(row);
-                    if (path != null) {
-                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                        
-                        // Toggle expand/collapse for category nodes (non-leaf) on single click
-                        if (!node.isLeaf() && e.getClickCount() == 1) {
-                            if (tree.isExpanded(path)) {
-                                tree.collapsePath(path);
-                            } else {
-                                tree.expandPath(path);
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Add selection listener for leaf nodes (actual menu items)
+        // Add selection listener for menu items
         tree.addTreeSelectionListener(e -> {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-            if (node == null || node.isRoot() || !node.isLeaf()) return;
+            if (node == null || node.isRoot()) return;
             
             String selectedView = node.getUserObject().toString();
-            
-            if ("Logout".equals(selectedView)) {
-                int result = JOptionPane.showConfirmDialog(
-                    this,
-                    "Are you sure you want to logout?",
-                    "Confirm Logout",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (result == JOptionPane.YES_OPTION) {
-                    handleLogout();
-                }
-            } else {
                 switchView(selectedView);
-            }
         });
         
         JScrollPane scrollPane = new JScrollPane(tree);
@@ -436,6 +392,7 @@ public class Dashboard extends JFrame {
         centerPanel.add(createViewPanel(VIEW_DASHBOARD), VIEW_DASHBOARD);
         centerPanel.add(createViewPanel(VIEW_TASKS), VIEW_TASKS);
         centerPanel.add(createViewPanel(VIEW_PROFILE), VIEW_PROFILE);
+        centerPanel.add(createViewPanel(VIEW_SETTINGS), VIEW_SETTINGS);
         
         container.add(centerPanel, BorderLayout.CENTER);
         
@@ -489,8 +446,8 @@ public class Dashboard extends JFrame {
             contentArea.add(buildSimpleTasksView());
         } else if (VIEW_PROFILE.equals(viewName)) {
             contentArea.add(buildSimpleProfileView());
-        } else if (VIEW_EXIT.equals(viewName)) {
-            contentArea.add(buildExitView());
+        } else if (VIEW_SETTINGS.equals(viewName)) {
+            contentArea.add(buildSettingsView());
         } else {
             JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
             placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -587,6 +544,7 @@ public class Dashboard extends JFrame {
         
         return panel;
     }
+    
 
     // Zero-state Dashboard Widgets
     private JComponent buildOverallProgressWidgetZero() {
@@ -1751,52 +1709,96 @@ public class Dashboard extends JFrame {
         panel.add(title);
         panel.add(Box.createVerticalStrut(20));
         
-        // Settings grid
-        JPanel settingsGrid = new JPanel(new GridLayout(2, 2, 20, 20));
-        settingsGrid.setOpaque(false);
-        
-        // Theme setting
-        settingsGrid.add(createSettingCard("🎨", "Theme", "Dark/Light", "Dark", new String[]{"Dark", "Light"}));
-        
-        // Sound setting
-        settingsGrid.add(createSettingCard("🔊", "Sound", "Notifications", "On", new String[]{"On", "Off"}));
-        
-        // Notifications setting
-        settingsGrid.add(createSettingCard("🔔", "Notifications", "Alerts & Reminders", "Enabled", new String[]{"Enabled", "Disabled"}));
-        
-        // Language setting
-        settingsGrid.add(createSettingCard("🌐", "Language", "Interface Language", "English", new String[]{"English", "Spanish", "French", "German"}));
-        
-        panel.add(settingsGrid);
-        panel.add(Box.createVerticalStrut(20));
-        
-        // Additional settings
-        JPanel additionalSettings = new JPanel();
-        additionalSettings.setOpaque(true);
-        additionalSettings.setBackground(new Color(40, 50, 65));
-        additionalSettings.setBorder(BorderFactory.createCompoundBorder(
+        // Preferences section
+        JPanel preferencesSettings = new JPanel();
+        preferencesSettings.setOpaque(true);
+        preferencesSettings.setBackground(new Color(40, 50, 65));
+        preferencesSettings.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(100, 180, 220), 1),
             new EmptyBorder(15, 15, 15, 15)
         ));
-        additionalSettings.setLayout(new BoxLayout(additionalSettings, BoxLayout.Y_AXIS));
+        preferencesSettings.setLayout(new BoxLayout(preferencesSettings, BoxLayout.Y_AXIS));
         
-        JLabel additionalTitle = new JLabel("Additional Settings");
-        additionalTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        additionalTitle.setForeground(TEXT_COLOR);
-        additionalTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        additionalSettings.add(additionalTitle);
-        additionalSettings.add(Box.createVerticalStrut(10));
+        JLabel preferencesTitle = new JLabel("Preferences");
+        preferencesTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        preferencesTitle.setForeground(TEXT_COLOR);
+        preferencesTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        preferencesSettings.add(preferencesTitle);
+        preferencesSettings.add(Box.createVerticalStrut(15));
+        
+        // Sound setting
+        JPanel soundPanel = createToggleSetting("🔊", "Sound", "Enable sound effects and notifications", true);
+        preferencesSettings.add(soundPanel);
+        preferencesSettings.add(Box.createVerticalStrut(10));
+        
+        // Notifications setting
+        JPanel notificationsPanel = createToggleSetting("🔔", "Notifications", "Show alerts and reminders", true);
+        preferencesSettings.add(notificationsPanel);
+        preferencesSettings.add(Box.createVerticalStrut(10));
         
         // Auto-save setting
         JPanel autoSavePanel = createToggleSetting("💾", "Auto-save", "Automatically save progress every 5 minutes", true);
-        additionalSettings.add(autoSavePanel);
-        additionalSettings.add(Box.createVerticalStrut(10));
+        preferencesSettings.add(autoSavePanel);
         
-        // Analytics setting
-        JPanel analyticsPanel = createToggleSetting("📊", "Analytics", "Help improve the app by sharing usage data", false);
-        additionalSettings.add(analyticsPanel);
+        panel.add(preferencesSettings);
+        panel.add(Box.createVerticalStrut(20));
         
-        panel.add(additionalSettings);
+        // Account section with Logout button
+        JPanel accountSection = new JPanel();
+        accountSection.setOpaque(true);
+        accountSection.setBackground(new Color(40, 50, 65));
+        accountSection.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(100, 180, 220), 1),
+            new EmptyBorder(15, 15, 15, 15)
+        ));
+        accountSection.setLayout(new BoxLayout(accountSection, BoxLayout.Y_AXIS));
+        
+        JLabel accountLabel = new JLabel("Account");
+        accountLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        accountLabel.setForeground(TEXT_COLOR);
+        accountLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        accountSection.add(accountLabel);
+        accountSection.add(Box.createVerticalStrut(15));
+        
+        // Logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        logoutButton.setForeground(TEXT_COLOR);
+        logoutButton.setBackground(new Color(220, 60, 60));
+        logoutButton.setFocusPainted(false);
+        logoutButton.setBorderPainted(false);
+        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutButton.setPreferredSize(new Dimension(150, 40));
+        logoutButton.setMaximumSize(new Dimension(150, 40));
+        logoutButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Add hover effect
+        logoutButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                logoutButton.setBackground(new Color(255, 80, 80));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                logoutButton.setBackground(new Color(220, 60, 60));
+            }
+        });
+        
+        // Add click handler
+        logoutButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(
+                Dashboard.this,
+                "Are you sure you want to logout?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (result == JOptionPane.YES_OPTION) {
+                handleLogout();
+            }
+        });
+        
+        accountSection.add(logoutButton);
+        panel.add(accountSection);
         
         return panel;
     }
