@@ -156,14 +156,10 @@ public class Dashboard extends JFrame {
         // LEFT: User Info Section with Level Badge
         JPanel leftPanel = createUserInfoSection();
         
-        // CENTER: XP Section with Rank and Streak
-        JPanel centerPanel = createXPSection();
-        
         // RIGHT: Customize Experience Button (only show if not completed)
         customizeSection = createCustomizeSection();
         
         topPanel.add(leftPanel, BorderLayout.WEST);
-        topPanel.add(centerPanel, BorderLayout.CENTER);
         topPanel.add(customizeSection, BorderLayout.EAST);
         
         return topPanel;
@@ -663,78 +659,302 @@ public class Dashboard extends JFrame {
         panel.setLayout(new BorderLayout(0, 20));
         panel.setBorder(new EmptyBorder(0, 0, 0, 0));
         
-        // Welcome Section
-        JPanel welcomeSection = new JPanel();
-        welcomeSection.setOpaque(false);
-        welcomeSection.setLayout(new BoxLayout(welcomeSection, BoxLayout.Y_AXIS));
+        // Main container with vertical layout
+        JPanel mainContainer = new JPanel();
+        mainContainer.setOpaque(false);
+        mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
         
-        JLabel title = new JLabel("Home");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setForeground(ACCENT_COLOR);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        welcomeSection.add(title);
+        // ===== TOP: DYNAMIC STATS CARDS =====
+        JPanel statsSection = new JPanel(new GridLayout(1, 4, 20, 0));
+        statsSection.setOpaque(false);
+        statsSection.setBorder(new EmptyBorder(0, 0, 20, 0));
+        statsSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
         
-        // Stats Cards Section
-        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
-        statsPanel.setOpaque(false);
-        statsPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
-        
-        // Calculate real stats
+        // Get real-time stats from database
         int totalTasks = currentTasks != null ? currentTasks.size() : 0;
-        int completedCount = completedTaskNames != null ? completedTaskNames.size() : 0;
-        int inProgressCount = totalTasks - completedCount;
+        int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
+        int availableTasks = totalTasks - completedCount;
+        int totalXPEarned = taskService.getTotalXP(profile != null ? profile.getUsername() : "");
+        
+        // Calculate percentages
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
+        int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 100;
         
-        // Stat Card 1: Total Tasks
-        statsPanel.add(createModernStatCard("Total Tasks", String.valueOf(totalTasks), "📋", new Color(147, 51, 234), 100));
+        // Stat Cards with animations
+        statsSection.add(createModernStatCard("Total Tasks", String.valueOf(totalTasks), "📋", new Color(147, 51, 234), 100));
+        statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
+        statsSection.add(createModernStatCard("Available", String.valueOf(availableTasks), "⏳", new Color(251, 146, 60), availablePercentage));
+        statsSection.add(createModernStatCard("Total XP", String.valueOf(totalXPEarned), "⭐", new Color(234, 179, 8), 100));
         
-        // Stat Card 2: Completed
-        statsPanel.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 139, 230), completedPercentage));
+        mainContainer.add(statsSection);
+        mainContainer.add(Box.createVerticalStrut(15));
         
-        // Stat Card 3: Available
-        statsPanel.add(createModernStatCard("Available", String.valueOf(inProgressCount), "⏳", new Color(251, 191, 36), 100 - completedPercentage));
+        // ===== MIDDLE: LEVEL PROGRESS BAR =====
+        JPanel levelProgressCard = createLevelProgressCard();
+        levelProgressCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
+        mainContainer.add(levelProgressCard);
+        mainContainer.add(Box.createVerticalStrut(20));
         
-        // Stat Card 4: Total XP
-        int totalXP = taskService.getTotalXP(profile != null ? profile.getUsername() : "");
-        statsPanel.add(createModernStatCard("Total XP", String.valueOf(totalXP), "🔥", new Color(74, 222, 128), 100));
+        // ===== BOTTOM: TWO COLUMNS =====
+        JPanel bottomSection = new JPanel(new GridLayout(1, 2, 20, 0));
+        bottomSection.setOpaque(false);
+        bottomSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
         
-        welcomeSection.add(statsPanel);
+        // Left: Milestone Summary
+        JPanel milestoneCard = createMilestoneSummaryCard();
+        bottomSection.add(milestoneCard);
         
-        // Main Content Section
-        JPanel contentSection = new JPanel(new GridLayout(1, 2, 20, 0));
-        contentSection.setOpaque(false);
-        contentSection.setBorder(new EmptyBorder(20, 0, 0, 0));
+        // Right: User Stats Snapshot
+        JPanel statsSnapshotCard = createUserStatsSnapshot();
+        bottomSection.add(statsSnapshotCard);
         
-        // Recent Activity Card
-        JPanel activityCard = createModernCard("Recent Activity");
-        JPanel activityContent = new JPanel();
-        activityContent.setOpaque(false);
-        activityContent.setLayout(new BoxLayout(activityContent, BoxLayout.Y_AXIS));
-        activityContent.add(createActivityItem("Completed task: Setup Environment", "2 hours ago"));
-        activityContent.add(Box.createVerticalStrut(10));
-        activityContent.add(createActivityItem("Started task: Build Dashboard", "3 hours ago"));
-        activityContent.add(Box.createVerticalStrut(10));
-        activityContent.add(createActivityItem("Achieved level 1", "1 day ago"));
-        activityCard.add(activityContent, BorderLayout.CENTER);
-        contentSection.add(activityCard);
+        mainContainer.add(bottomSection);
         
-        // Quick Actions Card
-        JPanel quickActionsCard = createModernCard("Quick Actions");
-        JPanel actionsContent = new JPanel();
-        actionsContent.setOpaque(false);
-        actionsContent.setLayout(new BoxLayout(actionsContent, BoxLayout.Y_AXIS));
-        actionsContent.add(createActionButton("➕ Create New Task", new Color(100, 180, 220)));
-        actionsContent.add(Box.createVerticalStrut(12));
-        actionsContent.add(createActionButton("📊 View Progress", new Color(100, 180, 220)));
-        actionsContent.add(Box.createVerticalStrut(12));
-        actionsContent.add(createActionButton("⚙️ Customize Settings", new Color(100, 180, 220)));
-        quickActionsCard.add(actionsContent, BorderLayout.CENTER);
-        contentSection.add(quickActionsCard);
-        
-        panel.add(welcomeSection, BorderLayout.NORTH);
-        panel.add(contentSection, BorderLayout.CENTER);
+        panel.add(mainContainer, BorderLayout.NORTH);
         
         return panel;
+    }
+    
+    /**
+     * Create Level Progress Card showing current level and XP progress
+     */
+    private JPanel createLevelProgressCard() {
+        JPanel card = new JPanel(new BorderLayout(0, 12));
+        card.setBackground(PANEL_COLOR);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(100, 180, 220, 100), 2),
+            new EmptyBorder(20, 25, 20, 25)
+        ));
+        
+        // Get level info
+        com.forgegrid.service.LevelService levelService = new com.forgegrid.service.LevelService();
+        com.forgegrid.service.LevelService.LevelInfo levelInfo = levelService.getLevelInfo(profile != null ? profile.getUsername() : "");
+        
+        // Top row: Level and XP info
+        JPanel topRow = new JPanel(new BorderLayout());
+        topRow.setOpaque(false);
+        
+        JLabel levelLabel = new JLabel("Level " + levelInfo.level);
+        levelLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        levelLabel.setForeground(ACCENT_COLOR);
+        
+        JLabel xpLabel = new JLabel(levelInfo.currentLevelXP + " / " + levelInfo.requiredForNextLevel + " XP");
+        xpLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        xpLabel.setForeground(TEXT_SECONDARY);
+        xpLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        topRow.add(levelLabel, BorderLayout.WEST);
+        topRow.add(xpLabel, BorderLayout.EAST);
+        
+        // Progress bar
+        JPanel progressBarPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int width = getWidth();
+                int height = getHeight();
+                
+                // Background
+                g2.setColor(new Color(30, 40, 55));
+                g2.fillRoundRect(0, 0, width, height, 15, 15);
+                
+                // Progress
+                if (levelInfo.requiredForNextLevel > 0) {
+                    int progressWidth = (int) ((width * levelInfo.currentLevelXP) / (double) levelInfo.requiredForNextLevel);
+                    
+                    // Gradient for progress bar
+                    GradientPaint gradient = new GradientPaint(
+                        0, 0, new Color(59, 130, 246),
+                        progressWidth, 0, new Color(147, 51, 234)
+                    );
+                    g2.setPaint(gradient);
+                    g2.fillRoundRect(0, 0, progressWidth, height, 15, 15);
+                }
+                
+                // Percentage text
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                String percentText = levelInfo.getProgressPercentage() + "%";
+                FontMetrics fm = g2.getFontMetrics();
+                int textX = (width - fm.stringWidth(percentText)) / 2;
+                int textY = (height + fm.getAscent()) / 2 - 2;
+                g2.drawString(percentText, textX, textY);
+                
+                g2.dispose();
+            }
+        };
+        progressBarPanel.setPreferredSize(new Dimension(0, 35));
+        progressBarPanel.setOpaque(false);
+        
+        // Bottom info
+        JLabel nextLevelLabel = new JLabel("Next level at " + levelInfo.requiredForNextLevel + " XP");
+        nextLevelLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        nextLevelLabel.setForeground(new Color(160, 170, 185));
+        
+        card.add(topRow, BorderLayout.NORTH);
+        card.add(progressBarPanel, BorderLayout.CENTER);
+        card.add(nextLevelLabel, BorderLayout.SOUTH);
+        
+        return card;
+    }
+    
+    /**
+     * Create Milestone Summary Card
+     */
+    private JPanel createMilestoneSummaryCard() {
+        JPanel card = createModernCard("🎯 Upcoming Milestones");
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        
+        // Get level info
+        com.forgegrid.service.LevelService levelService = new com.forgegrid.service.LevelService();
+        com.forgegrid.service.LevelService.LevelInfo levelInfo = levelService.getLevelInfo(profile != null ? profile.getUsername() : "");
+        
+        // Calculate milestones
+        int totalTasks = currentTasks != null ? currentTasks.size() : 0;
+        int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
+        int tasksLeft = totalTasks - completedCount;
+        int xpNeeded = levelInfo.requiredForNextLevel - levelInfo.currentLevelXP;
+        
+        // Milestone 1: Next Level
+        content.add(createMilestoneItem(
+            "🏆 Next Level",
+            xpNeeded + " XP needed",
+            new Color(100, 180, 220)
+        ));
+        content.add(Box.createVerticalStrut(12));
+        
+        // Milestone 2: Tasks to complete
+        if (tasksLeft > 0) {
+            content.add(createMilestoneItem(
+                "📝 Complete Tasks",
+                tasksLeft + " tasks remaining",
+                new Color(251, 146, 60)
+            ));
+            content.add(Box.createVerticalStrut(12));
+        }
+        
+        // Milestone 3: Perfect completion bonus
+        if (completedCount < totalTasks) {
+            content.add(createMilestoneItem(
+                "⭐ Perfect Score",
+                "Complete all tasks without skipping",
+                new Color(234, 179, 8)
+            ));
+        }
+        
+        card.add(content, BorderLayout.CENTER);
+        return card;
+    }
+    
+    /**
+     * Create a single milestone item
+     */
+    private JPanel createMilestoneItem(String title, String description, Color accentColor) {
+        JPanel item = new JPanel(new BorderLayout(12, 0));
+        item.setOpaque(false);
+        
+        // Color indicator
+        JPanel indicator = new JPanel();
+        indicator.setBackground(accentColor);
+        indicator.setPreferredSize(new Dimension(4, 40));
+        indicator.setOpaque(true);
+        
+        // Text content
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel descLabel = new JLabel(description);
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        textPanel.add(titleLabel);
+        textPanel.add(Box.createVerticalStrut(3));
+        textPanel.add(descLabel);
+        
+        item.add(indicator, BorderLayout.WEST);
+        item.add(textPanel, BorderLayout.CENTER);
+        
+        return item;
+    }
+    
+    /**
+     * Create User Stats Snapshot Card
+     */
+    private JPanel createUserStatsSnapshot() {
+        JPanel card = createModernCard("📊 Your Stats");
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        
+        // Get stats from database
+        java.util.List<TaskHistoryEntry> history = taskService.getTaskHistory(
+            profile != null ? profile.getUsername() : "", 100
+        );
+        
+        // Calculate total time spent
+        int totalMinutes = 0;
+        int totalXP = 0;
+        int taskCount = 0;
+        for (TaskHistoryEntry entry : history) {
+            if ("completed".equals(entry.status)) {
+                totalMinutes += entry.timeTaken;
+                totalXP += entry.xpEarned;
+                taskCount++;
+            }
+        }
+        
+        int avgXP = taskCount > 0 ? totalXP / taskCount : 0;
+        int hours = totalMinutes / 60;
+        int minutes = totalMinutes % 60;
+        String timeStr = hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
+        
+        // Stat rows
+        content.add(createStatRow("⏱ Total Time", timeStr, new Color(100, 180, 220)));
+        content.add(Box.createVerticalStrut(12));
+        content.add(createStatRow("🔥 Streak", currentStreak + " days", new Color(251, 146, 60)));
+        content.add(Box.createVerticalStrut(12));
+        content.add(createStatRow("📈 Avg XP/Task", avgXP + " XP", new Color(34, 197, 94)));
+        content.add(Box.createVerticalStrut(12));
+        content.add(createStatRow("✅ Completion Rate", 
+            taskCount > 0 ? ((taskCount * 100) / (currentTasks != null ? currentTasks.size() : 1)) + "%" : "0%",
+            new Color(234, 179, 8)));
+        
+        card.add(content, BorderLayout.CENTER);
+        return card;
+    }
+    
+    /**
+     * Create a stat row for stats snapshot
+     */
+    private JPanel createStatRow(String label, String value, Color accentColor) {
+        JPanel row = new JPanel(new BorderLayout(10, 0));
+        row.setOpaque(false);
+        
+        JLabel labelText = new JLabel(label);
+        labelText.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        labelText.setForeground(TEXT_SECONDARY);
+        
+        JLabel valueText = new JLabel(value);
+        valueText.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        valueText.setForeground(accentColor);
+        valueText.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        row.add(labelText, BorderLayout.WEST);
+        row.add(valueText, BorderLayout.EAST);
+        
+        return row;
     }
     
     /**
