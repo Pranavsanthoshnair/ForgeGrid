@@ -793,22 +793,30 @@ public class Dashboard extends JFrame {
         this.currentTasks = taskService.getTasksForUser(language, skillLevel);
         this.completedTaskNames = taskService.getCompletedTasks(profile != null ? profile.getUsername() : "");
         
-        // Get real-time stats from database
-        int totalTasks = currentTasks != null ? currentTasks.size() : 0;
-        int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
-        int availableTasks = totalTasks - completedCount;
-        if (availableTasks < 0) availableTasks = 0; // Ensure non-negative
-        int totalXPEarned = taskService.getTotalXP(profile != null ? profile.getUsername() : "");
+        // Compute stats from DB and current task list
+        String uname = profile != null ? profile.getUsername() : "";
+        int completedCount = taskService.getCompletedTaskCount(uname);
+        int skippedCount = taskService.getSkippedTaskCount(uname);
+        // Tasks available = tasks in current hardcoded list that are not recorded (completed or skipped)
+        java.util.Set<String> recorded = taskService.getRecordedTaskNames(uname);
+        int availableTasks = 0;
+        if (currentTasks != null) {
+            for (com.forgegrid.model.HardcodedTask t : currentTasks) {
+                if (!recorded.contains(t.getTaskName())) availableTasks++;
+            }
+        }
+        int totalTasks = (currentTasks != null ? currentTasks.size() : 0);
+        int netXP = taskService.getNetXP(uname); // completed adds, skipped subtracts
         
-        // Calculate percentages
+        // Calculate percentages relative to current task list
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
-        int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 100;
+        int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
         
-        // Stat Cards
+        // Stat Cards: Total from current list, Completed, Skipped, Net XP
         statsSection.add(createModernStatCard("Total Tasks", String.valueOf(totalTasks), "📋", new Color(147, 51, 234), 100));
         statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
-        statsSection.add(createModernStatCard("Available", String.valueOf(availableTasks), "⏳", new Color(251, 146, 60), availablePercentage));
-        statsSection.add(createModernStatCard("Total XP", String.valueOf(totalXPEarned), "⭐", new Color(234, 179, 8), 100));
+        statsSection.add(createModernStatCard("Skipped", String.valueOf(skippedCount), "⏭", new Color(251, 191, 36), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0));
+        statsSection.add(createModernStatCard("Net XP", String.valueOf(netXP), "⭐", new Color(234, 179, 8), 100));
         
         mainContainer.add(statsSection);
         mainContainer.add(Box.createVerticalStrut(15));

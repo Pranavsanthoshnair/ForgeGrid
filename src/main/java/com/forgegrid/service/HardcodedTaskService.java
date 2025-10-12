@@ -384,6 +384,65 @@ public class HardcodedTaskService {
         
         return 0;
     }
+
+    /**
+     * Get net XP across all tasks (completed positive, skipped negative)
+     */
+    public int getNetXP(String username) {
+        String selectSQL = "SELECT COALESCE(SUM(xp_earned), 0) as total FROM user_tasks WHERE username = ?";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting net XP: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Get count of skipped tasks for a user
+     */
+    public int getSkippedTaskCount(String username) {
+        String selectSQL = "SELECT COUNT(*) as count FROM user_tasks WHERE username = ? AND status = 'skipped'";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting skipped task count: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Get names of all tasks recorded (completed or skipped) for the given user.
+     * Used to compute remaining available tasks from the current hardcoded list.
+     */
+    public java.util.Set<String> getRecordedTaskNames(String username) {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        String selectSQL = "SELECT task_name FROM user_tasks WHERE username = ?";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                names.add(rs.getString("task_name"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting recorded task names: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return names;
+    }
     
     /**
      * Get task completion count
