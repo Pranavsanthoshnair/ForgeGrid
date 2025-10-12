@@ -398,8 +398,7 @@ public class Dashboard extends JFrame {
         menuPanel.add(createModernMenuItem("📋", VIEW_TASKS, false));
         menuPanel.add(Box.createVerticalStrut(4));
         // Profile moved to footer avatar button
-        menuPanel.add(Box.createVerticalStrut(4));
-        menuPanel.add(createModernMenuItem("⚙️", VIEW_SETTINGS, false));
+        // Settings moved to footer gear button
         
         // Add some spacing
         menuPanel.add(Box.createVerticalStrut(20));
@@ -474,6 +473,40 @@ public class Dashboard extends JFrame {
         });
 
         footer.add(avatarBtn, BorderLayout.WEST);
+
+        // Settings gear icon button on the right
+        JPanel gearButton = new JPanel(new BorderLayout()) {
+            private boolean hovered = false;
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(hovered ? new Color(55, 65, 85) : new Color(40, 50, 70));
+                g2.fillOval(0, 0, getWidth()-1, getHeight()-1);
+            }
+        };
+        gearButton.setOpaque(false);
+        gearButton.setPreferredSize(new Dimension(40, 40));
+        gearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JLabel gearIcon = new JLabel("⚙️", SwingConstants.CENTER);
+        try {
+            gearIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 18));
+        } catch (Exception ex) {
+            gearIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+        }
+        gearIcon.setForeground(Color.WHITE);
+        gearButton.add(gearIcon, BorderLayout.CENTER);
+        gearButton.setToolTipText("Settings");
+        gearButton.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseEntered(MouseEvent e) { ((JPanel)e.getComponent()).setOpaque(true); ((JPanel)e.getComponent()).repaint(); }
+            @Override
+            public void mouseExited(MouseEvent e) { ((JPanel)e.getComponent()).setOpaque(false); ((JPanel)e.getComponent()).repaint(); }
+            @Override
+            public void mouseClicked(MouseEvent e) { switchView(VIEW_SETTINGS); }
+        });
+        footer.add(gearButton, BorderLayout.EAST);
 
         // Assemble sidebar
         sidebarPanel.add(headerPanel, BorderLayout.NORTH);
@@ -712,12 +745,12 @@ public class Dashboard extends JFrame {
         panel.setOpaque(false);
         panel.setLayout(new BorderLayout(0, 20));
         panel.setBorder(new EmptyBorder(0, 0, 0, 0));
-
+        
         // Main container with vertical layout
         JPanel mainContainer = new JPanel();
         mainContainer.setOpaque(false);
         mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
-
+        
         // ===== TOP: DYNAMIC STATS CARDS =====
         JPanel statsSection = new JPanel(new GridLayout(1, 4, 20, 0));
         statsSection.setOpaque(false);
@@ -731,48 +764,48 @@ public class Dashboard extends JFrame {
             ? profile.getOnboardingSkill() : "Beginner";
         this.currentTasks = taskService.getTasksForUser(language, skillLevel);
         this.completedTaskNames = taskService.getCompletedTasks(profile != null ? profile.getUsername() : "");
-
+        
         // Get real-time stats from database
         int totalTasks = currentTasks != null ? currentTasks.size() : 0;
         int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
         int availableTasks = totalTasks - completedCount;
         if (availableTasks < 0) availableTasks = 0; // Ensure non-negative
         int totalXPEarned = taskService.getTotalXP(profile != null ? profile.getUsername() : "");
-
+        
         // Calculate percentages
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 100;
-
+        
         // Stat Cards
         statsSection.add(createModernStatCard("Total Tasks", String.valueOf(totalTasks), "📋", new Color(147, 51, 234), 100));
         statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
         statsSection.add(createModernStatCard("Available", String.valueOf(availableTasks), "⏳", new Color(251, 146, 60), availablePercentage));
         statsSection.add(createModernStatCard("Total XP", String.valueOf(totalXPEarned), "⭐", new Color(234, 179, 8), 100));
-
+        
         mainContainer.add(statsSection);
         mainContainer.add(Box.createVerticalStrut(15));
-
+        
         // ===== MIDDLE: LEVEL PROGRESS BAR =====
         JPanel levelProgressCard = createLevelProgressCard();
         levelProgressCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
         mainContainer.add(levelProgressCard);
         mainContainer.add(Box.createVerticalStrut(20));
-
+        
         // ===== BOTTOM: TWO COLUMNS =====
         JPanel bottomSection = new JPanel(new GridLayout(1, 2, 20, 0));
         bottomSection.setOpaque(false);
         bottomSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
-
+        
         // Left: Milestone Summary
         JPanel milestoneCard = createMilestoneSummaryCard();
         bottomSection.add(milestoneCard);
-
+        
         // Right: User Stats Snapshot
         JPanel statsSnapshotCard = createUserStatsSnapshot();
         bottomSection.add(statsSnapshotCard);
-
+        
         mainContainer.add(bottomSection);
-
+        
         // Bottom padding
         mainContainer.add(Box.createVerticalStrut(20));
 
@@ -786,7 +819,7 @@ public class Dashboard extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         panel.add(scrollPane, BorderLayout.CENTER);
-
+        
         return panel;
     }
     
@@ -3067,12 +3100,20 @@ public class Dashboard extends JFrame {
         accountInfo.setLayout(new BoxLayout(accountInfo, BoxLayout.Y_AXIS));
         
         JLabel usernameInfo = new JLabel("👤 " + profile.getUsername());
+        try {
         usernameInfo.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
+        } catch (Exception ex) {
+            usernameInfo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
+        }
         usernameInfo.setForeground(TEXT_COLOR);
         usernameInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel levelInfo = new JLabel("🏆 Level " + currentLevel);
+        try {
         levelInfo.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
+        } catch (Exception ex) {
+            levelInfo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
+        }
         levelInfo.setForeground(TEXT_COLOR);
         levelInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
         

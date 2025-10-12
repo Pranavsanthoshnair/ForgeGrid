@@ -37,6 +37,9 @@ public class TaskPopupDialog extends JDialog {
         setSize(600, 550); // Slightly taller for custom title bar
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        // Ensure no white flash/background from the window itself
+        setBackground(BG_COLOR);
+        getContentPane().setBackground(BG_COLOR);
         
         setupUI();
         startUITimer();
@@ -53,7 +56,11 @@ public class TaskPopupDialog extends JDialog {
         titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
         
         JLabel titleBarLabel = new JLabel("📋 Current Task");
-        titleBarLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        try {
+            titleBarLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 14));
+        } catch (Exception ex) {
+            titleBarLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        }
         titleBarLabel.setForeground(TEXT_COLOR);
         
         JButton closeButton = new JButton("✕");
@@ -113,11 +120,19 @@ public class TaskPopupDialog extends JDialog {
         headerPanel.setOpaque(false);
         
         JLabel titleLabel = new JLabel("📋 Your Next Task");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        try {
+            titleLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 20));
+        } catch (Exception ex) {
+            titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        }
         titleLabel.setForeground(ACCENT_COLOR);
         
         timerLabel = new JLabel("⏱ 00:00");
-        timerLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        try {
+            timerLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 16));
+        } catch (Exception ex) {
+            timerLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        }
         timerLabel.setForeground(new Color(251, 191, 36));
         
         headerPanel.add(titleLabel, BorderLayout.WEST);
@@ -170,7 +185,7 @@ public class TaskPopupDialog extends JDialog {
         
         // Warning label
         taskCard.add(Box.createVerticalStrut(15));
-        JLabel warningLabel = new JLabel("<html><i>⚠️ Timer is tracking your work. Submit only after completing the task!</i></html>");
+        JLabel warningLabel = new JLabel("<html><i>⚠ Timer is tracking your work. Submit only after completing the task!</i></html>");
         warningLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         warningLabel.setForeground(new Color(251, 191, 36));
         warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
