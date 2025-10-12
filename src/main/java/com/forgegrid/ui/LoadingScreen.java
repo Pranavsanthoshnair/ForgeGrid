@@ -294,7 +294,7 @@ public class LoadingScreen extends JPanel {
             g2d.drawOval(cx - 28, cy - 28, 56, 56);
 
             // Icons on slices
-            g2d.setFont(new Font("Segoe UI Emoji", Font.BOLD, Math.max(16, r / 6)));
+            g2d.setFont(FontUtils.getEmojiFont(Font.BOLD, Math.max(16, r / 6)));
             for (int i = 0; i < slices; i++) {
                 float mid = (i + 0.5f) * per + wheelAngle;
                 double rad = Math.toRadians(mid);

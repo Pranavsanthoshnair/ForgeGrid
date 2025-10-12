@@ -161,7 +161,7 @@ public class Dashboard extends JFrame {
         
         // User icon
         JLabel userIcon = new JLabel("👤");
-        userIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        userIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 24));
         userIcon.setPreferredSize(new Dimension(30, 30));
         userIcon.setHorizontalAlignment(SwingConstants.CENTER);
         userIcon.setVerticalAlignment(SwingConstants.CENTER);
@@ -172,12 +172,12 @@ public class Dashboard extends JFrame {
         userDetails.setLayout(new BoxLayout(userDetails, BoxLayout.Y_AXIS));
         
         JLabel userName = new JLabel(profile != null ? profile.getUsername() : "Guest");
-        userName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        userName.setFont(FontUtils.getEmojiFont(Font.BOLD, 14));
         userName.setForeground(TEXT_COLOR);
         userName.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel userLevel = new JLabel("Level " + (profile != null ? profile.getLevel() : "1") + " • " + playerRank);
-        userLevel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        userLevel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 11));
         userLevel.setForeground(TEXT_SECONDARY);
         userLevel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
@@ -243,7 +243,7 @@ public class Dashboard extends JFrame {
         
         // RIGHT: Streak with fire icon
         JLabel streakLabel = new JLabel("🔥 Streak: " + currentStreak);
-        streakLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        streakLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 13));
         streakLabel.setForeground(new Color(255, 150, 100));
         
         panel.add(rankLabel, BorderLayout.WEST);
@@ -726,7 +726,7 @@ public class Dashboard extends JFrame {
         topSection.setOpaque(false);
         
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 32));
+        iconLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 32));
         iconLabel.setForeground(accentColor);
         
         JLabel valueLabel = new JLabel(value);
@@ -810,7 +810,7 @@ public class Dashboard extends JFrame {
      */
     private JButton createActionButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        button.setFont(FontUtils.getEmojiFont(Font.PLAIN, 13));
         button.setForeground(Color.WHITE);
         button.setBackground(bgColor);
         button.setFocusPainted(false);
@@ -1718,7 +1718,7 @@ public class Dashboard extends JFrame {
             
             // Trophy icon
             JLabel trophyLabel = new JLabel("🏆");
-            trophyLabel.setFont(new Font("Segoe UI", Font.PLAIN, 24));
+            trophyLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 24));
             taskCard.add(trophyLabel, BorderLayout.EAST);
             
             panel.add(taskCard);
@@ -2334,7 +2334,7 @@ public class Dashboard extends JFrame {
         ));
         
         JLabel syncIcon = new JLabel("☁️");
-        syncIcon.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        syncIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 20));
         syncIcon.setForeground(new Color(100, 180, 220));
         
         JPanel statusPanel = new JPanel();
@@ -2442,12 +2442,12 @@ public class Dashboard extends JFrame {
         accountInfo.setLayout(new BoxLayout(accountInfo, BoxLayout.Y_AXIS));
         
         JLabel usernameInfo = new JLabel("👤 " + profile.getUsername());
-        usernameInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        usernameInfo.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
         usernameInfo.setForeground(TEXT_COLOR);
         usernameInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel levelInfo = new JLabel("🏆 Level " + currentLevel);
-        levelInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        levelInfo.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
         levelInfo.setForeground(TEXT_COLOR);
         levelInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
         
@@ -2827,7 +2827,7 @@ public class Dashboard extends JFrame {
         
         // Exit icon and title
         JLabel exitIcon = new JLabel("⚠️");
-        exitIcon.setFont(new Font("Segoe UI", Font.PLAIN, 32));
+        exitIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 32));
         exitIcon.setForeground(new Color(255, 150, 100));
         exitIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
         
@@ -2932,7 +2932,7 @@ public class Dashboard extends JFrame {
         levelBadge.setLayout(new BoxLayout(levelBadge, BoxLayout.X_AXIS));
         
         JLabel levelIcon = new JLabel("⭐");
-        levelIcon.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        levelIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 12));
         levelIcon.setForeground(Color.WHITE);
         
         JLabel levelLabel = new JLabel("Level " + currentLevel);
@@ -3012,7 +3012,7 @@ public class Dashboard extends JFrame {
         rankCard.setLayout(new BoxLayout(rankCard, BoxLayout.X_AXIS));
         
         JLabel rankIcon = new JLabel("🏆");
-        rankIcon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        rankIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
         
         JLabel rankLabel = new JLabel("Novice");
         rankLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -3030,7 +3030,7 @@ public class Dashboard extends JFrame {
         streakCard.setLayout(new BoxLayout(streakCard, BoxLayout.X_AXIS));
         
         JLabel streakIcon = new JLabel("🔥");
-        streakIcon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        streakIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
         
         JLabel streakLabel = new JLabel("0");
         streakLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -3089,7 +3089,7 @@ public class Dashboard extends JFrame {
         headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         
         JLabel titleLabel = new JLabel("🎯 Customize Your Experience");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 20));
         titleLabel.setForeground(TEXT_COLOR);
         
         JLabel descLabel = new JLabel("Help us personalize your ForgeGrid experience");

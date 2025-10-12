@@ -1,6 +1,7 @@
 package com.forgegrid.app;
 
 import com.forgegrid.ui.AuthUI;
+import com.forgegrid.ui.FontUtils;
 
 import javax.swing.*;
 
@@ -15,6 +16,9 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        // Initialize emoji font support BEFORE creating any UI
+        FontUtils.configureGlobalFonts();
         
         // Run the application on the Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
