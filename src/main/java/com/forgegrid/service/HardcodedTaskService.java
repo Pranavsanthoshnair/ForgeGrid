@@ -424,6 +424,70 @@ public class HardcodedTaskService {
     }
 
     /**
+     * Record that a task has been assigned to the user now, if not already recorded.
+     * Uses status 'assigned' and stores the assigned time in completed_at column.
+     */
+    public void recordAssignedTask(String username, String taskName) {
+        String existsSQL = "SELECT 1 FROM user_tasks WHERE username = ? AND task_name = ? LIMIT 1";
+        String insertSQL = "INSERT INTO user_tasks (username, task_name, time_taken, xp_earned, status, completed_at) VALUES (?, ?, NULL, 0, 'assigned', ?)";
+        try (Connection conn = dbHelper.getConnection()) {
+            try (PreparedStatement check = conn.prepareStatement(existsSQL)) {
+                check.setString(1, username);
+                check.setString(2, taskName);
+                ResultSet rs = check.executeQuery();
+                if (rs.next()) {
+                    return; // already recorded (assigned/completed/skipped)
+                }
+            }
+            try (PreparedStatement ins = conn.prepareStatement(insertSQL)) {
+                ins.setString(1, username);
+                ins.setString(2, taskName);
+                ins.setTimestamp(3, Timestamp.valueOf(java.time.LocalDateTime.now()));
+                ins.executeUpdate();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error recording assigned task: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Convert any 'assigned' tasks older than 24 hours into 'skipped' with XP penalty.
+     * Penalty is 50% of the task XP (negative).
+     */
+    public void autoSkipExpiredAssignedTasks(String username, String language, String level) {
+        String selectExpired = "SELECT task_name FROM user_tasks WHERE username = ? AND status = 'assigned' AND completed_at < (NOW() - INTERVAL 24 HOUR)";
+        String updateSQL = "UPDATE user_tasks SET status='skipped', xp_earned=?, time_taken=?, completed_at=? WHERE username=? AND task_name=? AND status='assigned'";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement sel = conn.prepareStatement(selectExpired);
+             PreparedStatement upd = conn.prepareStatement(updateSQL)) {
+            sel.setString(1, username);
+            ResultSet rs = sel.executeQuery();
+            while (rs.next()) {
+                String taskName = rs.getString("task_name");
+                int reward = getXpRewardForTaskName(taskName, language, level);
+                int penalty = -(Math.max(1, reward / 2));
+                upd.setInt(1, penalty);
+                upd.setInt(2, 1440); // 24h in minutes
+                upd.setTimestamp(3, Timestamp.valueOf(java.time.LocalDateTime.now()));
+                upd.setString(4, username);
+                upd.setString(5, taskName);
+                upd.executeUpdate();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error auto-skipping expired tasks: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private int getXpRewardForTaskName(String taskName, String language, String level) {
+        List<HardcodedTask> list = getTasksForUser(language, level);
+        for (HardcodedTask t : list) {
+            if (t.getTaskName().equalsIgnoreCase(taskName)) return t.getXpReward();
+        }
+        return 10; // sensible default
+    }
+
+    /**
      * Get names of all tasks recorded (completed or skipped) for the given user.
      * Used to compute remaining available tasks from the current hardcoded list.
      */

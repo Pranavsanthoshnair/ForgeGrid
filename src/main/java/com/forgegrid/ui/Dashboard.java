@@ -578,7 +578,7 @@ public class Dashboard extends JFrame {
         try {
             iconLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 18));
         } catch (Exception ex) {
-            iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
         }
         iconLabel.setForeground(selected ? ACCENT_COLOR : new Color(140, 150, 170));
         iconLabel.setPreferredSize(new Dimension(25, 25));
@@ -784,7 +784,7 @@ public class Dashboard extends JFrame {
         statsSection.setOpaque(false);
         statsSection.setBorder(new EmptyBorder(0, 0, 20, 0));
         statsSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
-
+        
         // Refresh tasks and completed list from database for accurate stats
         String language = (profile != null && profile.getOnboardingLanguage() != null)
             ? profile.getOnboardingLanguage() : "Java";
@@ -797,24 +797,17 @@ public class Dashboard extends JFrame {
         String uname = profile != null ? profile.getUsername() : "";
         int completedCount = taskService.getCompletedTaskCount(uname);
         int skippedCount = taskService.getSkippedTaskCount(uname);
-        // Tasks available = tasks in current hardcoded list that are not recorded (completed or skipped)
-        java.util.Set<String> recorded = taskService.getRecordedTaskNames(uname);
-        int availableTasks = 0;
-        if (currentTasks != null) {
-            for (com.forgegrid.model.HardcodedTask t : currentTasks) {
-                if (!recorded.contains(t.getTaskName())) availableTasks++;
-            }
-        }
-        int totalTasks = (currentTasks != null ? currentTasks.size() : 0);
+        // Total tasks (history) = completed + skipped as requested
+        int totalTasks = completedCount + skippedCount;
+        int availableTasks = totalTasks; // reuse variable for first card value
         int netXP = taskService.getNetXP(uname); // completed adds, skipped subtracts
         
         // Calculate percentages relative to current task list
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
         
-        // Stat Cards: Total from current list, Completed, Skipped, Net XP
-        // Show currently available tasks as the primary total user cares about
-        statsSection.add(createModernStatCard("Available Tasks", String.valueOf(availableTasks), "📋", new Color(147, 51, 234), 100));
+        // Stat Cards: Total tasks done, Completed, Skipped, Net XP
+        statsSection.add(createModernStatCard("Total Tasks", String.valueOf(availableTasks), "📋", new Color(147, 51, 234), 100));
         statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
         statsSection.add(createModernStatCard("Skipped", String.valueOf(skippedCount), "⏭", new Color(251, 191, 36), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0));
         statsSection.add(createModernStatCard("Net XP", String.valueOf(netXP), "⭐", new Color(234, 179, 8), 100));
@@ -1412,6 +1405,14 @@ public class Dashboard extends JFrame {
         
         // Start timer
         taskStartTime = System.currentTimeMillis();
+        
+        // Record assignment so 24h auto-skip can apply
+        try {
+            String lang = (profile != null && profile.getOnboardingLanguage() != null) ? profile.getOnboardingLanguage() : "Java";
+            String lvl = (profile != null && profile.getOnboardingSkill() != null) ? profile.getOnboardingSkill() : "Beginner";
+            taskService.recordAssignedTask(profile.getUsername(), nextTask.getTaskName());
+            taskService.autoSkipExpiredAssignedTasks(profile.getUsername(), lang, lvl);
+        } catch (Exception ignore) {}
         
         // Show dark overlay to avoid any white flash while dialog initializes
         if (getGlassPane() != null) {
