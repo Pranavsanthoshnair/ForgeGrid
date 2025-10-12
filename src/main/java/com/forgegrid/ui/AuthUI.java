@@ -163,24 +163,51 @@ public class AuthUI extends JFrame {
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
-        // Reuse the same frame and replace content with Dashboard
-        Dashboard dashboard = new Dashboard(currentProfile, true); // skipWelcome = true
+        // Show loading screen immediately for better UX
+        showCard("LOADING");
         
-        // Get the dashboard content pane
-        Container dashboardContent = dashboard.getContentPane();
+        // Create Dashboard asynchronously to avoid blocking the UI thread
+        SwingWorker<Dashboard, Void> worker = new SwingWorker<Dashboard, Void>() {
+            @Override
+            protected Dashboard doInBackground() throws Exception {
+                // Create Dashboard in background thread
+                return new Dashboard(currentProfile, true); // skipWelcome = true
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    // Get the created Dashboard
+                    Dashboard dashboard = get();
+                    
+                    // Get the dashboard content pane
+                    Container dashboardContent = dashboard.getContentPane();
+                    
+                    // Replace this frame's content with the dashboard content
+                    setContentPane(dashboardContent);
+                    
+                    // Keep the title as "ForgeGrid"
+                    setTitle("ForgeGrid");
+                    
+                    // Refresh the frame
+                    revalidate();
+                    repaint();
+                    
+                    // Dispose the temporary dashboard frame (we only needed its content)
+                    dashboard.dispose();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(
+                        AuthUI.this,
+                        "Error loading dashboard: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        };
         
-        // Replace this frame's content with the dashboard content
-        setContentPane(dashboardContent);
-        
-        // Keep the title as "ForgeGrid" (or update if needed)
-        setTitle("ForgeGrid");
-        
-        // Refresh the frame
-        revalidate();
-        repaint();
-        
-        // Dispose the temporary dashboard frame (we only needed its content)
-        dashboard.dispose();
+        worker.execute();
     }
 
 

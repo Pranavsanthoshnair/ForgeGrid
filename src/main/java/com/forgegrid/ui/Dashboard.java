@@ -20,6 +20,10 @@ public class Dashboard extends JFrame {
     private JPanel centerPanel;
     private CardLayout centerLayout;
     private JLabel currentViewLabel;
+    private JPanel customizeSection; // Reference to customize section for dynamic hiding
+    
+    // Lazy loading for views
+    private final java.util.Map<String, Boolean> loadedViews = new java.util.HashMap<>();
     
     // Player stats (placeholders for now)
     private int currentXP = 0;
@@ -132,12 +136,12 @@ public class Dashboard extends JFrame {
         // CENTER: XP Section with Rank and Streak
         JPanel centerPanel = createXPSection();
         
-        // RIGHT: Customize Experience Button
-        JPanel rightPanel = createCustomizeSection();
+        // RIGHT: Customize Experience Button (only show if not completed)
+        customizeSection = createCustomizeSection();
         
         topPanel.add(leftPanel, BorderLayout.WEST);
         topPanel.add(centerPanel, BorderLayout.CENTER);
-        topPanel.add(rightPanel, BorderLayout.EAST);
+        topPanel.add(customizeSection, BorderLayout.EAST);
         
         return topPanel;
     }
@@ -257,10 +261,18 @@ public class Dashboard extends JFrame {
         panel.setOpaque(false);
         
         // Check if customization is completed
-        final boolean[] showRedDot = {true};
+        boolean isCustomizationCompleted = false;
         if (profile != null && profile.getUsername() != null) {
-            showRedDot[0] = !userService.hasCompletedCustomization(profile.getUsername());
+            isCustomizationCompleted = userService.hasCompletedCustomization(profile.getUsername());
         }
+        
+        // If customization is already completed, return empty panel (hide the button)
+        if (isCustomizationCompleted) {
+            return panel; // Return empty panel
+        }
+        
+        // Show the customization button with red dot indicator
+        final boolean[] showRedDot = {true};
         
         // Customization label
         JLabel customizeLabel = new JLabel("Customize your experience");
@@ -269,7 +281,7 @@ public class Dashboard extends JFrame {
         customizeLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         customizeLabel.setOpaque(false);
         
-        // Red dot indicator (only show if not completed) - using a custom painted component
+        // Red dot indicator - using a custom painted component
         JPanel redDotPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -549,11 +561,10 @@ public class Dashboard extends JFrame {
         centerPanel = new JPanel(centerLayout);
         centerPanel.setBackground(BG_COLOR);
         
-        // Add all views
+        // Only load the Home view initially for faster startup
+        // Other views will be loaded on-demand when first accessed
         centerPanel.add(createViewPanel(VIEW_DASHBOARD), VIEW_DASHBOARD);
-        centerPanel.add(createViewPanel(VIEW_TASKS), VIEW_TASKS);
-        centerPanel.add(createViewPanel(VIEW_PROFILE), VIEW_PROFILE);
-        centerPanel.add(createViewPanel(VIEW_SETTINGS), VIEW_SETTINGS);
+        loadedViews.put(VIEW_DASHBOARD, true);
         
         container.add(centerPanel, BorderLayout.CENTER);
         
@@ -3148,6 +3159,8 @@ public class Dashboard extends JFrame {
         saveBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         saveBtn.addActionListener(e -> {
             saveCustomizationData(responses);
+            // Hide the customize section after saving
+            hideCustomizeSection();
             // Switch back to dashboard view
             centerLayout.show(centerPanel, VIEW_DASHBOARD);
         });
@@ -3249,6 +3262,17 @@ public class Dashboard extends JFrame {
             }
         }
     }
+    
+    /**
+     * Hide the customize section after preferences have been saved
+     */
+    private void hideCustomizeSection() {
+        if (customizeSection != null) {
+            customizeSection.setVisible(false);
+            customizeSection.revalidate();
+            customizeSection.repaint();
+        }
+    }
 
     private void openDoc(String filename) {
         try {
@@ -3279,9 +3303,14 @@ public class Dashboard extends JFrame {
     
     
     /**
-     * Switches to a different view
+     * Switches to a different view (with lazy loading)
      */
     private void switchView(String viewName) {
+        // Lazy load the view if not already loaded
+        if (!loadedViews.containsKey(viewName) || !loadedViews.get(viewName)) {
+            centerPanel.add(createViewPanel(viewName), viewName);
+            loadedViews.put(viewName, true);
+        }
         centerLayout.show(centerPanel, viewName);
     }
     
