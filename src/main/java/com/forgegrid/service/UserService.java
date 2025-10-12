@@ -521,4 +521,31 @@ public class UserService {
         
         return true;
     }
+    
+    /**
+     * Update user's score
+     * 
+     * @param username Username
+     * @param newScore New score value
+     * @return true if update successful, false otherwise
+     */
+    public boolean updateUserScore(String username, int newScore) {
+        String updateSQL = "UPDATE users SET score = ?, updated_at = ? WHERE username = ?";
+        
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(updateSQL)) {
+            
+            pstmt.setInt(1, newScore);
+            pstmt.setString(2, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            pstmt.setString(3, username);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating user score: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

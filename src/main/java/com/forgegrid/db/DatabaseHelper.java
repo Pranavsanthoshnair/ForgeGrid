@@ -155,6 +155,8 @@ public class DatabaseHelper {
                 username VARCHAR(255) UNIQUE NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
+                total_xp INT DEFAULT 0,
+                level INT DEFAULT 1,
                 onboarding_completed TINYINT(1) DEFAULT 0,
                 onboarding_goal VARCHAR(255) NULL,
                 onboarding_language VARCHAR(255) NULL,
@@ -166,7 +168,31 @@ public class DatabaseHelper {
         
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
+            migrateUsersTableForXP();
             createIndexes();
+        }
+    }
+    
+    /**
+     * Migrate users table to add total_xp and level columns if they don't exist
+     */
+    private void migrateUsersTableForXP() {
+        try (Statement statement = connection.createStatement()) {
+            try {
+                statement.execute("ALTER TABLE users ADD COLUMN total_xp INT DEFAULT 0");
+                System.out.println("✓ Added total_xp column to users table");
+            } catch (SQLException e) {
+                // Column already exists
+            }
+            
+            try {
+                statement.execute("ALTER TABLE users ADD COLUMN level INT DEFAULT 1");
+                System.out.println("✓ Added level column to users table");
+            } catch (SQLException e) {
+                // Column already exists
+            }
+        } catch (SQLException e) {
+            System.err.println("Error migrating users table: " + e.getMessage());
         }
     }
     
