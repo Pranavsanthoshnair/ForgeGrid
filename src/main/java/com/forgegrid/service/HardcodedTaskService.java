@@ -472,6 +472,11 @@ public class HardcodedTaskService {
                 upd.setString(4, username);
                 upd.setString(5, taskName);
                 upd.executeUpdate();
+
+                // Reflect penalty to user's total XP so UI progress matches net history
+                try {
+                    new com.forgegrid.service.LevelService().addXP(username, penalty);
+                } catch (Exception ignored) {}
             }
         } catch (SQLException e) {
             System.err.println("Error auto-skipping expired tasks: " + e.getMessage());
