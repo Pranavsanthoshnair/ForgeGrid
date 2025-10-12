@@ -163,12 +163,24 @@ public class AuthUI extends JFrame {
     }
 
     private void openDashboardInCard(String goal, String language, String skill) {
-        // Go directly to dashboard (skip landing page)
+        // Reuse the same frame and replace content with Dashboard
         Dashboard dashboard = new Dashboard(currentProfile, true); // skipWelcome = true
-        dashboard.setVisible(true);
         
-        // Hide the current AuthUI window
-        setVisible(false);
+        // Get the dashboard content pane
+        Container dashboardContent = dashboard.getContentPane();
+        
+        // Replace this frame's content with the dashboard content
+        setContentPane(dashboardContent);
+        
+        // Keep the title as "ForgeGrid" (or update if needed)
+        setTitle("ForgeGrid");
+        
+        // Refresh the frame
+        revalidate();
+        repaint();
+        
+        // Dispose the temporary dashboard frame (we only needed its content)
+        dashboard.dispose();
     }
 
 
