@@ -315,7 +315,9 @@ public class TaskPopupDialog extends JDialog {
             task.getXpReward()
         );
         
-        if (success) {
+                        if (success) {
+                            // Play success tone
+                            try { com.forgegrid.ui.Sound.playSuccess(); } catch (Exception ignored) {}
             // Add XP and check for level up
             LevelService.LevelUpResult result = levelService.addXP(profile.getUsername(), task.getXpReward());
             
@@ -371,6 +373,7 @@ public class TaskPopupDialog extends JDialog {
                 "Error",
                 JOptionPane.ERROR_MESSAGE
             );
+            try { com.forgegrid.ui.Sound.playError(); } catch (Exception ignored) {}
             uiTimer.start();
         }
     }
@@ -411,6 +414,7 @@ public class TaskPopupDialog extends JDialog {
         );
         
         if (success) {
+            try { com.forgegrid.ui.Sound.playSkip(); } catch (Exception ignored) {}
             // Apply XP penalty
             LevelService.LevelUpResult levelResult = levelService.addXP(profile.getUsername(), xpPenalty);
             
@@ -453,6 +457,7 @@ public class TaskPopupDialog extends JDialog {
                 "Error",
                 JOptionPane.ERROR_MESSAGE
             );
+            try { com.forgegrid.ui.Sound.playError(); } catch (Exception ignored) {}
             uiTimer.start();
         }
     }
