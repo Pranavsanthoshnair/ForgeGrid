@@ -670,10 +670,19 @@ public class Dashboard extends JFrame {
         statsSection.setBorder(new EmptyBorder(0, 0, 20, 0));
         statsSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
         
+        // Refresh tasks and completed list from database for accurate stats
+        String language = (profile != null && profile.getOnboardingLanguage() != null) 
+            ? profile.getOnboardingLanguage() : "Java";
+        String skillLevel = (profile != null && profile.getOnboardingSkill() != null) 
+            ? profile.getOnboardingSkill() : "Beginner";
+        this.currentTasks = taskService.getTasksForUser(language, skillLevel);
+        this.completedTaskNames = taskService.getCompletedTasks(profile != null ? profile.getUsername() : "");
+        
         // Get real-time stats from database
         int totalTasks = currentTasks != null ? currentTasks.size() : 0;
         int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
         int availableTasks = totalTasks - completedCount;
+        if (availableTasks < 0) availableTasks = 0; // Ensure non-negative
         int totalXPEarned = taskService.getTotalXP(profile != null ? profile.getUsername() : "");
         
         // Calculate percentages
@@ -709,8 +718,18 @@ public class Dashboard extends JFrame {
         bottomSection.add(statsSnapshotCard);
         
         mainContainer.add(bottomSection);
+        mainContainer.add(Box.createVerticalStrut(20)); // Add some bottom padding
         
-        panel.add(mainContainer, BorderLayout.NORTH);
+        // Wrap in scroll pane for scrollability
+        JScrollPane scrollPane = new JScrollPane(mainContainer);
+        scrollPane.setBorder(null);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        panel.add(scrollPane, BorderLayout.CENTER);
         
         return panel;
     }
@@ -3043,8 +3062,17 @@ public class Dashboard extends JFrame {
         contentPanel.add(leftColumn);
         contentPanel.add(rightColumn);
         
+        // Wrap in scroll pane for scrollability
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
         panel.add(title, BorderLayout.NORTH);
-        panel.add(contentPanel, BorderLayout.CENTER);
+        panel.add(scrollPane, BorderLayout.CENTER);
         
         return panel;
     }

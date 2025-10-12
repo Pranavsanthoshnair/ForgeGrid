@@ -28,12 +28,13 @@ public class TaskPopupDialog extends JDialog {
     private Dashboard parent;
     
     public TaskPopupDialog(Dashboard parent, HardcodedTask task, long startTime) {
-        super(parent, "Current Task", true);
+        super(parent, true);
         this.parent = parent;
         this.task = task;
         this.startTime = startTime;
         
-        setSize(600, 500);
+        setUndecorated(true); // Remove default white title bar
+        setSize(600, 550); // Slightly taller for custom title bar
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         
@@ -42,9 +43,70 @@ public class TaskPopupDialog extends JDialog {
     }
     
     private void setupUI() {
-        JPanel mainPanel = new JPanel(new BorderLayout(0, 20));
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
         mainPanel.setBackground(BG_COLOR);
-        mainPanel.setBorder(new EmptyBorder(25, 30, 25, 30));
+        mainPanel.setBorder(BorderFactory.createLineBorder(new Color(100, 110, 130), 2));
+        
+        // Custom title bar
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setBackground(new Color(30, 35, 45));
+        titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
+        
+        JLabel titleBarLabel = new JLabel("📋 Current Task");
+        titleBarLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titleBarLabel.setForeground(TEXT_COLOR);
+        
+        JButton closeButton = new JButton("✕");
+        closeButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        closeButton.setForeground(TEXT_COLOR);
+        closeButton.setBackground(new Color(30, 35, 45));
+        closeButton.setBorderPainted(false);
+        closeButton.setFocusPainted(false);
+        closeButton.setPreferredSize(new Dimension(40, 30));
+        closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        closeButton.addActionListener(e -> {
+            if (uiTimer != null) uiTimer.stop();
+            dispose();
+        });
+        closeButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                closeButton.setBackground(new Color(220, 60, 60));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                closeButton.setBackground(new Color(30, 35, 45));
+            }
+        });
+        
+        titleBar.add(titleBarLabel, BorderLayout.WEST);
+        titleBar.add(closeButton, BorderLayout.EAST);
+        
+        // Make title bar draggable
+        final Point[] dragPoint = {null};
+        titleBar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                dragPoint[0] = e.getPoint();
+            }
+        });
+        titleBar.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (dragPoint[0] != null) {
+                    Point location = getLocation();
+                    setLocation(
+                        location.x + e.getX() - dragPoint[0].x,
+                        location.y + e.getY() - dragPoint[0].y
+                    );
+                }
+            }
+        });
+        
+        // Content panel
+        JPanel contentPanel = new JPanel(new BorderLayout(0, 20));
+        contentPanel.setBackground(BG_COLOR);
+        contentPanel.setBorder(new EmptyBorder(25, 30, 25, 30));
         
         // Header with timer
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -141,10 +203,14 @@ public class TaskPopupDialog extends JDialog {
         buttonsPanel.add(submitBtn);
         buttonsPanel.add(skipBtn);
         
-        // Assemble
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(taskCard, BorderLayout.CENTER);
-        mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        // Assemble content
+        contentPanel.add(headerPanel, BorderLayout.NORTH);
+        contentPanel.add(taskCard, BorderLayout.CENTER);
+        contentPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        
+        // Assemble main panel with title bar
+        mainPanel.add(titleBar, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
         setContentPane(mainPanel);
     }
