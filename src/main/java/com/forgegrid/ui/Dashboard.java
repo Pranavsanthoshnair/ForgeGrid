@@ -813,7 +813,8 @@ public class Dashboard extends JFrame {
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
         
         // Stat Cards: Total from current list, Completed, Skipped, Net XP
-        statsSection.add(createModernStatCard("Total Tasks", String.valueOf(totalTasks), "📋", new Color(147, 51, 234), 100));
+        // Show currently available tasks as the primary total user cares about
+        statsSection.add(createModernStatCard("Available Tasks", String.valueOf(availableTasks), "📋", new Color(147, 51, 234), 100));
         statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
         statsSection.add(createModernStatCard("Skipped", String.valueOf(skippedCount), "⏭", new Color(251, 191, 36), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0));
         statsSection.add(createModernStatCard("Net XP", String.valueOf(netXP), "⭐", new Color(234, 179, 8), 100));
