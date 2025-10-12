@@ -60,6 +60,7 @@ public class Dashboard extends JFrame {
     private static final String VIEW_PROFILE = "Profile";
     private static final String VIEW_SETTINGS = "Settings";
     private static final String VIEW_HELP = "Help";
+    private static final String VIEW_MOTIVATION = "Motivation";
     private static final String VIEW_ASSIGNED = "Assigned Tasks";
     private static final String VIEW_COMPLETED = "Completed Tasks";
     private static final String VIEW_SKIPPED = "Missed Tasks";
@@ -416,6 +417,8 @@ public class Dashboard extends JFrame {
         menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(createModernMenuItem("📋", VIEW_TASKS, false));
         menuPanel.add(Box.createVerticalStrut(4));
+        menuPanel.add(createModernMenuItem("💡", VIEW_MOTIVATION, false));
+        menuPanel.add(Box.createVerticalStrut(4));
         // Profile moved to footer avatar button
         // Settings moved to footer gear button
         
@@ -740,6 +743,8 @@ public class Dashboard extends JFrame {
             contentArea.add(buildSimpleProfileView());
         } else if (VIEW_SETTINGS.equals(viewName)) {
             contentArea.add(buildSettingsView());
+        } else if (VIEW_MOTIVATION.equals(viewName)) {
+            contentArea.add(new MotivationPanel());
         } else {
             JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
             placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
