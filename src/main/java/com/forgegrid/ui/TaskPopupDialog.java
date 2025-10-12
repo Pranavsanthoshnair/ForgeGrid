@@ -38,7 +38,10 @@ public class TaskPopupDialog extends JDialog {
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         // Ensure no white flash/background from the window itself
-        setBackground(BG_COLOR);
+        try {
+            // On some JVM/OS combos, setBackground on a window ignores alpha; we explicitly use dark color
+            setBackground(new Color(BG_COLOR.getRed(), BG_COLOR.getGreen(), BG_COLOR.getBlue()));
+        } catch (Exception ignore) {}
         getContentPane().setBackground(BG_COLOR);
         
         setupUI();
@@ -55,7 +58,7 @@ public class TaskPopupDialog extends JDialog {
         titleBar.setBackground(new Color(30, 35, 45));
         titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
         
-        JLabel titleBarLabel = new JLabel("📋 Current Task");
+        JLabel titleBarLabel = new JLabel(FontUtils.sanitizeEmoji("📋 Current Task"));
         try {
             titleBarLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 14));
         } catch (Exception ex) {
@@ -119,7 +122,7 @@ public class TaskPopupDialog extends JDialog {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
         
-        JLabel titleLabel = new JLabel("📋 Your Next Task");
+        JLabel titleLabel = new JLabel(FontUtils.sanitizeEmoji("📋 Your Next Task"));
         try {
             titleLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 20));
         } catch (Exception ex) {
@@ -127,7 +130,7 @@ public class TaskPopupDialog extends JDialog {
         }
         titleLabel.setForeground(ACCENT_COLOR);
         
-        timerLabel = new JLabel("⏱ 00:00");
+        timerLabel = new JLabel(FontUtils.sanitizeEmoji("⏱ 00:00"));
         try {
             timerLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 16));
         } catch (Exception ex) {

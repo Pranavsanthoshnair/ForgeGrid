@@ -29,6 +29,7 @@ public class Dashboard extends JFrame {
     private CardLayout centerLayout;
     private JLabel currentViewLabel;
     private JPanel customizeSection; // Reference to customize section for dynamic hiding
+    private JPanel modalOverlay; // Glass pane overlay for modals to avoid white flash
     
     // Lazy loading for views
     final java.util.Map<String, Boolean> loadedViews = new java.util.HashMap<>(); // Package-private for TaskPopupDialog access
@@ -135,6 +136,20 @@ public class Dashboard extends JFrame {
         mainPanel.add(centerContainer, BorderLayout.CENTER);
         
         setContentPane(mainPanel);
+
+        // Prepare a dark glass-pane overlay to mask any OS repaint/flash during dialogs
+        modalOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(new Color(0, 0, 0, 150));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        modalOverlay.setOpaque(false);
+        modalOverlay.setVisible(false);
+        setGlassPane(modalOverlay);
         
         // Check onboarding after UI is fully set up
         SwingUtilities.invokeLater(() -> {
@@ -170,7 +185,11 @@ public class Dashboard extends JFrame {
         
         // User icon
         JLabel userIcon = new JLabel("👤");
+        try {
         userIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 24));
+        } catch (Exception ex) {
+            userIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        }
         userIcon.setPreferredSize(new Dimension(30, 30));
         userIcon.setHorizontalAlignment(SwingConstants.CENTER);
         userIcon.setVerticalAlignment(SwingConstants.CENTER);
@@ -552,8 +571,12 @@ public class Dashboard extends JFrame {
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
         
         // Icon with better styling
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+        JLabel iconLabel = new JLabel(FontUtils.sanitizeEmoji(icon));
+        try {
+            iconLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 18));
+        } catch (Exception ex) {
+            iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+        }
         iconLabel.setForeground(selected ? ACCENT_COLOR : new Color(140, 150, 170));
         iconLabel.setPreferredSize(new Dimension(25, 25));
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1376,9 +1399,21 @@ public class Dashboard extends JFrame {
         // Start timer
         taskStartTime = System.currentTimeMillis();
         
-        // Create and show popup
+        // Show dark overlay to avoid any white flash while dialog initializes
+        if (getGlassPane() != null) {
+            getGlassPane().setVisible(true);
+        }
+        try {
         TaskPopupDialog dialog = new TaskPopupDialog(this, nextTask, taskStartTime);
+            dialog.getContentPane().setBackground(new Color(25, 30, 40));
+            dialog.pack();
+            dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
+        } finally {
+            if (getGlassPane() != null) {
+                getGlassPane().setVisible(false);
+            }
+        }
     }
     
     /**

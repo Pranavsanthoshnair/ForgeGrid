@@ -10,6 +10,11 @@ import javax.swing.*;
  */
 public class Main {
     public static void main(String[] args) {
+        // Reduce white flicker on some Windows/GPU combos
+        System.setProperty("sun.awt.noerasebackground", "true");
+        System.setProperty("swing.bufferPerWindow", "true");
+        // If flicker persists on some devices, uncomment next line to disable old DirectDraw pipeline
+        System.setProperty("sun.java2d.noddraw", "true");
         // Set system look and feel for native appearance
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

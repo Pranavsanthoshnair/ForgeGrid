@@ -103,6 +103,27 @@ public class FontUtils {
     }
     
     /**
+     * Sanitize emoji text to avoid tofu (hollow boxes) on systems lacking full emoji support.
+     * - Strips variation selectors (U+FE0F) and zero-width joiners (U+200D)
+     * - Maps a few commonly problematic symbols to broadly-supported glyphs
+     */
+    public static String sanitizeEmoji(String text) {
+        if (text == null) return null;
+        String sanitized = text
+            .replace("\uFE0F", "") // variation selector-16
+            .replace("\u200D", ""); // zero-width joiner
+        // Map some common symbols to plain equivalents
+        sanitized = sanitized
+            .replace("✅", "✓")
+            .replace("☑", "✓")
+            .replace("⏳", "⌛")
+            .replace("⭐", "★")
+            .replace("⚙", "⚙") // ensure no VS-16
+            .replace("📋", "☰");
+        return sanitized;
+    }
+    
+    /**
      * Create a label with emoji support
      */
     public static JLabel createEmojiLabel(String text) {
