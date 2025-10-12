@@ -126,12 +126,11 @@ public class Dashboard extends JFrame {
         mainPanel.setBackground(BG_COLOR);
         
         // Create the main sections
-        JPanel topPanel = createTopPanel();
         JPanel sidebarPanel = createSidebarPanel();
         JPanel centerContainer = createCenterContainer();
         
         // Add components to main panel
-        mainPanel.add(topPanel, BorderLayout.NORTH);
+        // Removed legacy top bar per new design
         mainPanel.add(sidebarPanel, BorderLayout.WEST);
         mainPanel.add(centerContainer, BorderLayout.CENTER);
         
@@ -151,18 +150,9 @@ public class Dashboard extends JFrame {
     private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(PANEL_COLOR);
-        topPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+        topPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
         
-        // LEFT: User Info Section with Level Badge
-        JPanel leftPanel = createUserInfoSection();
-        
-        // RIGHT: Customize Experience Button (only show if not completed)
-        customizeSection = createCustomizeSection();
-        
-        topPanel.add(leftPanel, BorderLayout.WEST);
-        topPanel.add(customizeSection, BorderLayout.EAST);
-        
-        return topPanel;
+        return topPanel; // No top bar content per new design
     }
     
     /**
@@ -407,7 +397,7 @@ public class Dashboard extends JFrame {
         menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(createModernMenuItem("📋", VIEW_TASKS, false));
         menuPanel.add(Box.createVerticalStrut(4));
-        menuPanel.add(createModernMenuItem("👤", VIEW_PROFILE, false));
+        // Profile moved to footer avatar button
         menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(createModernMenuItem("⚙️", VIEW_SETTINGS, false));
         
@@ -422,9 +412,73 @@ public class Dashboard extends JFrame {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(12);
         
-        // Assemble sidebar (no footer needed - user info is in top header now)
+        // Footer avatar button with username/level
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setOpaque(true);
+        footer.setBackground(new Color(24, 30, 40));
+        footer.setBorder(new EmptyBorder(10, 12, 12, 12));
+
+        JPanel avatarBtn = new JPanel(new BorderLayout());
+        avatarBtn.setOpaque(false);
+        avatarBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        avatarBtn.setBorder(new EmptyBorder(8, 8, 8, 8));
+
+        // Circle avatar
+        JLabel avatar = new JLabel("👤", SwingConstants.CENTER);
+        avatar.setFont(FontUtils.getEmojiFont(Font.PLAIN, 20));
+        avatar.setForeground(Color.WHITE);
+        avatar.setPreferredSize(new Dimension(36, 36));
+        avatar.setOpaque(true);
+        avatar.setBackground(new Color(50, 90, 220));
+        // We'll draw circle using custom component
+
+        JPanel circle = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(50, 90, 220));
+                g2.fillOval(0, 0, getWidth()-1, getHeight()-1);
+            }
+        };
+        circle.setOpaque(false);
+        circle.setPreferredSize(new Dimension(40, 40));
+        circle.setLayout(new BorderLayout());
+        circle.add(avatar, BorderLayout.CENTER);
+
+        JPanel info = new JPanel();
+        info.setOpaque(false);
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        JLabel uname = new JLabel(profile != null ? profile.getUsername() : "User");
+        uname.setForeground(Color.WHITE);
+        uname.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JLabel lvl = new JLabel("Level " + currentLevel);
+        lvl.setForeground(new Color(180, 190, 205));
+        lvl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        info.add(uname);
+        info.add(lvl);
+
+        avatarBtn.add(circle, BorderLayout.WEST);
+        avatarBtn.add(Box.createHorizontalStrut(10), BorderLayout.CENTER);
+        avatarBtn.add(info, BorderLayout.EAST);
+
+        // Hover effect
+        avatarBtn.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseEntered(MouseEvent e){ avatarBtn.setBackground(new Color(35,45,60)); avatarBtn.setOpaque(true); avatarBtn.repaint(); }
+            @Override
+            public void mouseExited(MouseEvent e){ avatarBtn.setOpaque(false); avatarBtn.repaint(); }
+            @Override
+            public void mouseClicked(MouseEvent e){ switchView(VIEW_PROFILE); }
+        });
+
+        footer.add(avatarBtn, BorderLayout.WEST);
+
+        // Assemble sidebar
         sidebarPanel.add(headerPanel, BorderLayout.NORTH);
         sidebarPanel.add(scrollPane, BorderLayout.CENTER);
+        sidebarPanel.add(footer, BorderLayout.SOUTH);
         
         return sidebarPanel;
     }
@@ -658,68 +712,70 @@ public class Dashboard extends JFrame {
         panel.setOpaque(false);
         panel.setLayout(new BorderLayout(0, 20));
         panel.setBorder(new EmptyBorder(0, 0, 0, 0));
-        
+
         // Main container with vertical layout
         JPanel mainContainer = new JPanel();
         mainContainer.setOpaque(false);
         mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
-        
+
         // ===== TOP: DYNAMIC STATS CARDS =====
         JPanel statsSection = new JPanel(new GridLayout(1, 4, 20, 0));
         statsSection.setOpaque(false);
         statsSection.setBorder(new EmptyBorder(0, 0, 20, 0));
         statsSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
-        
+
         // Refresh tasks and completed list from database for accurate stats
-        String language = (profile != null && profile.getOnboardingLanguage() != null) 
+        String language = (profile != null && profile.getOnboardingLanguage() != null)
             ? profile.getOnboardingLanguage() : "Java";
-        String skillLevel = (profile != null && profile.getOnboardingSkill() != null) 
+        String skillLevel = (profile != null && profile.getOnboardingSkill() != null)
             ? profile.getOnboardingSkill() : "Beginner";
         this.currentTasks = taskService.getTasksForUser(language, skillLevel);
         this.completedTaskNames = taskService.getCompletedTasks(profile != null ? profile.getUsername() : "");
-        
+
         // Get real-time stats from database
         int totalTasks = currentTasks != null ? currentTasks.size() : 0;
         int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
         int availableTasks = totalTasks - completedCount;
         if (availableTasks < 0) availableTasks = 0; // Ensure non-negative
         int totalXPEarned = taskService.getTotalXP(profile != null ? profile.getUsername() : "");
-        
+
         // Calculate percentages
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 100;
-        
-        // Stat Cards with animations
+
+        // Stat Cards
         statsSection.add(createModernStatCard("Total Tasks", String.valueOf(totalTasks), "📋", new Color(147, 51, 234), 100));
         statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
         statsSection.add(createModernStatCard("Available", String.valueOf(availableTasks), "⏳", new Color(251, 146, 60), availablePercentage));
         statsSection.add(createModernStatCard("Total XP", String.valueOf(totalXPEarned), "⭐", new Color(234, 179, 8), 100));
-        
+
         mainContainer.add(statsSection);
         mainContainer.add(Box.createVerticalStrut(15));
-        
+
         // ===== MIDDLE: LEVEL PROGRESS BAR =====
         JPanel levelProgressCard = createLevelProgressCard();
         levelProgressCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
         mainContainer.add(levelProgressCard);
         mainContainer.add(Box.createVerticalStrut(20));
-        
+
         // ===== BOTTOM: TWO COLUMNS =====
         JPanel bottomSection = new JPanel(new GridLayout(1, 2, 20, 0));
         bottomSection.setOpaque(false);
         bottomSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
-        
+
         // Left: Milestone Summary
         JPanel milestoneCard = createMilestoneSummaryCard();
         bottomSection.add(milestoneCard);
-        
+
         // Right: User Stats Snapshot
         JPanel statsSnapshotCard = createUserStatsSnapshot();
         bottomSection.add(statsSnapshotCard);
-        
+
         mainContainer.add(bottomSection);
-        mainContainer.add(Box.createVerticalStrut(20)); // Add some bottom padding
-        
+
+        // Bottom padding
+        mainContainer.add(Box.createVerticalStrut(20));
+
         // Wrap in scroll pane for scrollability
         JScrollPane scrollPane = new JScrollPane(mainContainer);
         scrollPane.setBorder(null);
@@ -728,9 +784,9 @@ public class Dashboard extends JFrame {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        
+
         panel.add(scrollPane, BorderLayout.CENTER);
-        
+
         return panel;
     }
     
@@ -1104,9 +1160,8 @@ public class Dashboard extends JFrame {
     }
     
     private JComponent buildSimpleTasksView() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
-        panel.setLayout(new BorderLayout(0, 20));
         
         // Header with Start Task button
         JPanel header = new JPanel(new BorderLayout());
@@ -1131,6 +1186,7 @@ public class Dashboard extends JFrame {
         
         // Task History Card
         JPanel historyCard = createModernCard("Recent Task History");
+        historyCard.setPreferredSize(new Dimension(0, 0));
         
         // Get task history from database
         JPanel historyList = new JPanel();
@@ -1170,6 +1226,13 @@ public class Dashboard extends JFrame {
         
         panel.add(header, BorderLayout.NORTH);
         panel.add(historyCard, BorderLayout.CENTER);
+        panel.addComponentListener(new java.awt.event.ComponentAdapter(){
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e){
+                int w = panel.getWidth();
+                startTaskBtn.setPreferredSize(new Dimension(Math.max(140, Math.min(180, w/8)), 36));
+            }
+        });
         
         return panel;
     }
@@ -2935,7 +2998,7 @@ public class Dashboard extends JFrame {
         title.setForeground(ACCENT_COLOR);
         
         // Main content with GridLayout for two columns
-        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 20, 20));
         contentPanel.setOpaque(false);
         
         // Left Column - Preferences Card
@@ -3073,6 +3136,17 @@ public class Dashboard extends JFrame {
         
         panel.add(title, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Responsive stacking on smaller widths
+        panel.addComponentListener(new java.awt.event.ComponentAdapter(){
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e){
+                int w = panel.getWidth();
+                boolean twoCols = w >= 1050;
+                contentPanel.setLayout(new GridLayout(twoCols ? 1 : 2, twoCols ? 2 : 1, 20, 20));
+                contentPanel.revalidate();
+            }
+        });
         
         return panel;
     }
