@@ -415,7 +415,9 @@ public class Dashboard extends JFrame {
         // Add menu items with icons
         menuPanel.add(createModernMenuItem("🏠", VIEW_DASHBOARD, true));
         menuPanel.add(Box.createVerticalStrut(4));
-        menuPanel.add(createModernMenuItem("📋", VIEW_TASKS, false));
+        // Collapsible Tasks group with sub-items
+        JPanel tasksGroup = createTasksGroup();
+        menuPanel.add(tasksGroup);
         menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(createModernMenuItem("💡", VIEW_MOTIVATION, false));
         menuPanel.add(Box.createVerticalStrut(4));
@@ -536,6 +538,41 @@ public class Dashboard extends JFrame {
         sidebarPanel.add(footer, BorderLayout.SOUTH);
         
         return sidebarPanel;
+    }
+
+    private JPanel createTasksGroup() {
+        JPanel group = new JPanel();
+        group.setOpaque(false);
+        group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+
+        JPanel header = createModernMenuItem("📋", VIEW_TASKS, false);
+        header.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JPanel children = new JPanel();
+        children.setOpaque(false);
+        children.setLayout(new BoxLayout(children, BoxLayout.Y_AXIS));
+        children.setBorder(new EmptyBorder(4, 26, 4, 0));
+
+        JPanel allTasks = createModernMenuItem("•", VIEW_TASKS, false);
+        JPanel goated = createModernMenuItem("🐐", VIEW_GOATED, false);
+
+        children.add(allTasks);
+        children.add(Box.createVerticalStrut(4));
+        children.add(goated);
+
+        // Expand/Collapse
+        final boolean[] expanded = { true };
+        header.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                expanded[0] = !expanded[0];
+                children.setVisible(expanded[0]);
+                group.revalidate(); group.repaint();
+            }
+        });
+
+        group.add(header);
+        group.add(children);
+        return group;
     }
     
     /**
@@ -739,6 +776,8 @@ public class Dashboard extends JFrame {
             contentArea.add(buildSimpleDashboardView());
         } else if (VIEW_TASKS.equals(viewName)) {
             contentArea.add(buildSimpleTasksView());
+        } else if (VIEW_GOATED.equals(viewName)) {
+            contentArea.add(buildGoatedTasksView());
         } else if (VIEW_PROFILE.equals(viewName)) {
             contentArea.add(buildSimpleProfileView());
         } else if (VIEW_SETTINGS.equals(viewName)) {
@@ -1394,13 +1433,13 @@ public class Dashboard extends JFrame {
         }
         
         if (nextTask == null) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Congratulations! You've completed all tasks for your level!",
-                "All Tasks Complete",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            return;
+            // Don't block the user: cycle back to the first task to keep practicing
+            if (!currentTasks.isEmpty()) {
+                nextTask = currentTasks.get(0);
+                currentTaskIndex = 0;
+            } else {
+                return;
+            }
         }
         
         // Start timer
@@ -2358,82 +2397,201 @@ public class Dashboard extends JFrame {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        
-        JLabel title = new JLabel("Goated Tasks");
+
+        JLabel title = new JLabel("🐐 Goated Tasks");
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setForeground(TEXT_COLOR);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(title);
-        panel.add(Box.createVerticalStrut(20));
-        
-        // Motivational note
-        JPanel notePanel = new JPanel();
-        notePanel.setOpaque(true);
-        notePanel.setBackground(new Color(40, 60, 40)); // Dark green background
-        notePanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(100, 200, 100), 1),
-            new EmptyBorder(15, 20, 15, 20)
-        ));
-        
-        JLabel noteLabel = new JLabel("🚀 Ready to begin your productivity journey! Complete tasks to unlock achievements.");
-        noteLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        noteLabel.setForeground(new Color(150, 255, 150));
-        noteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        notePanel.add(noteLabel);
-        
-        panel.add(notePanel);
-        panel.add(Box.createVerticalStrut(20));
-        
-        // Goated tasks showcase
-        String[][] goatedTasks = {
-            {"", "No achievements yet - system not initialized", "Start completing tasks to unlock achievements", "Begin your journey to greatness!"}
-        };
-        
-        for (String[] task : goatedTasks) {
-            JPanel taskCard = new JPanel(new BorderLayout());
-            taskCard.setOpaque(true);
-            taskCard.setBackground(new Color(50, 45, 60)); // Dark purple background
-            taskCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 120, 200), 1),
-                new EmptyBorder(15, 20, 15, 20)
-            ));
-            
-            JPanel leftPanel = new JPanel();
-            leftPanel.setOpaque(false);
-            leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-            
-            JLabel starsLabel = new JLabel(task[0]);
-            starsLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-            starsLabel.setForeground(new Color(255, 215, 0)); // Gold color
-            leftPanel.add(starsLabel);
-            
-            JLabel taskNameLabel = new JLabel(task[1]);
-            taskNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            taskNameLabel.setForeground(TEXT_COLOR);
-            leftPanel.add(taskNameLabel);
-            
-            JLabel difficultyLabel = new JLabel(task[2]);
-            difficultyLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            difficultyLabel.setForeground(TEXT_SECONDARY);
-            leftPanel.add(difficultyLabel);
-            
-            JLabel impactLabel = new JLabel(task[3]);
-            impactLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            impactLabel.setForeground(new Color(100, 200, 220));
-            leftPanel.add(impactLabel);
-            
-            taskCard.add(leftPanel, BorderLayout.WEST);
-            
-            // Trophy icon
-            JLabel trophyLabel = new JLabel("🏆");
-            trophyLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 24));
-            taskCard.add(trophyLabel, BorderLayout.EAST);
-            
-            panel.add(taskCard);
-            panel.add(Box.createVerticalStrut(15));
+        panel.add(Box.createVerticalStrut(12));
+
+        // Add Custom Task button
+        JButton addBtn = new JButton("➕ Add Custom Task");
+        styleTaskButton(addBtn, new Color(60, 120, 200));
+        addBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        addBtn.addActionListener(e -> openAddGoatedTaskDialog());
+        panel.add(addBtn);
+        panel.add(Box.createVerticalStrut(16));
+
+        // List area
+        JPanel list = new JPanel();
+        list.setOpaque(false);
+        list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+        list.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        java.util.List<com.forgegrid.model.GoatedTask> goated = taskService.listGoatedTasks(profile.getUsername());
+        if (goated.isEmpty()) {
+            JLabel empty = new JLabel("No custom tasks yet. Click \"Add Custom Task\" to create one.");
+            empty.setForeground(TEXT_SECONDARY);
+            empty.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(empty);
+        } else {
+            for (com.forgegrid.model.GoatedTask t : goated) {
+                JPanel card = new JPanel(new BorderLayout());
+                card.setOpaque(true);
+                card.setBackground(new Color(35, 45, 60));
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(80, 100, 140), 1),
+                    new EmptyBorder(12, 14, 12, 14)
+                ));
+
+                JPanel left = new JPanel();
+                left.setOpaque(false);
+                left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+
+                JLabel tTitle = new JLabel(t.getTitle() != null ? t.getTitle() : "Custom Task");
+                tTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+                tTitle.setForeground(TEXT_COLOR);
+                left.add(tTitle);
+
+                String subtitle = (t.getDeadline() != null ? ("Due: " + t.getDeadline().toString()) : "No deadline") +
+                        "  •  XP: " + t.getXp();
+                JLabel tSub = new JLabel(subtitle);
+                tSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                tSub.setForeground(TEXT_SECONDARY);
+                left.add(tSub);
+
+                if (t.getDescription() != null && !t.getDescription().isBlank()) {
+                    JLabel tDesc = new JLabel("<html><body style='width: 500px'>" + t.getDescription() + "</body></html>");
+                    tDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                    tDesc.setForeground(TEXT_SECONDARY);
+                    left.add(Box.createVerticalStrut(4));
+                    left.add(tDesc);
+                }
+
+                card.add(left, BorderLayout.CENTER);
+
+                JPanel actions = new JPanel();
+                actions.setOpaque(false);
+                JButton done = new JButton(t.isCompleted() ? "Completed" : "Mark Complete");
+                styleTaskButton(done, t.isCompleted() ? new Color(60, 140, 90) : new Color(70, 160, 100));
+                done.setEnabled(!t.isCompleted());
+                int id = t.getId();
+                done.addActionListener(ev -> {
+                    if (taskService.markGoatedTaskComplete(profile.getUsername(), id)) {
+                        refreshGoatedTasksView();
+                        refreshHeaderAfterXPChange();
+                    }
+                });
+                actions.add(done);
+                card.add(actions, BorderLayout.EAST);
+
+                list.add(card);
+                list.add(Box.createVerticalStrut(10));
+            }
         }
-        
+
+        panel.add(list);
         return panel;
+    }
+
+    private void openAddGoatedTaskDialog() {
+        JDialog dlg = new JDialog(this, "Add Custom Task", true);
+        dlg.setUndecorated(true);
+        dlg.getContentPane().setBackground(new Color(25, 30, 40));
+        dlg.setLayout(new BorderLayout(10, 10));
+        dlg.getRootPane().setBorder(BorderFactory.createLineBorder(new Color(100, 110, 130), 2));
+
+        // Title bar similar to TaskPopupDialog
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setBackground(new Color(30, 35, 45));
+        titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
+        JLabel titleLb = new JLabel(FontUtils.sanitizeEmoji("🐐 New Goated Task"));
+        try { titleLb.setFont(FontUtils.getEmojiFont(Font.BOLD, 14)); } catch (Exception ex) { titleLb.setFont(new Font("Segoe UI", Font.BOLD, 14)); }
+        titleLb.setForeground(new Color(220, 225, 235));
+        JButton close = new JButton("✕");
+        close.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        close.setForeground(new Color(220, 225, 235));
+        close.setBackground(new Color(30, 35, 45));
+        close.setBorderPainted(false);
+        close.setFocusPainted(false);
+        close.setPreferredSize(new Dimension(40, 30));
+        close.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        close.addActionListener(ev -> dlg.dispose());
+        titleBar.add(titleLb, BorderLayout.WEST);
+        titleBar.add(close, BorderLayout.EAST);
+
+        // Make draggable
+        final java.awt.Point[] drag = { null };
+        titleBar.addMouseListener(new java.awt.event.MouseAdapter(){ @Override public void mousePressed(java.awt.event.MouseEvent e){ drag[0] = e.getPoint(); }});
+        titleBar.addMouseMotionListener(new java.awt.event.MouseAdapter(){ @Override public void mouseDragged(java.awt.event.MouseEvent e){ if (drag[0]!=null){ java.awt.Point loc = dlg.getLocation(); dlg.setLocation(loc.x + e.getX()-drag[0].x, loc.y + e.getY()-drag[0].y); }}});
+
+        JPanel form = new JPanel();
+        form.setOpaque(false);
+        form.setLayout(new GridBagLayout());
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(6, 6, 6, 6);
+        gc.anchor = GridBagConstraints.WEST;
+
+        JTextField titleField = new JTextField(24);
+        titleField.setForeground(new Color(220, 225, 235));
+        titleField.setBackground(new Color(40, 50, 65));
+        JTextArea descArea = new JTextArea(5, 24);
+        descArea.setForeground(new Color(220, 225, 235));
+        descArea.setBackground(new Color(40, 50, 65));
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+        JSpinner xpField = new JSpinner(new SpinnerNumberModel(50, 0, 500, 10));
+        ((JSpinner.DefaultEditor) xpField.getEditor()).getTextField().setBackground(new Color(40, 50, 65));
+        ((JSpinner.DefaultEditor) xpField.getEditor()).getTextField().setForeground(new Color(220, 225, 235));
+        JTextField deadlineField = new JTextField(24);
+        deadlineField.setForeground(new Color(220, 225, 235));
+        deadlineField.setBackground(new Color(40, 50, 65));
+        deadlineField.setToolTipText("YYYY-MM-DD HH:MM (24h)");
+
+        int r = 0;
+        gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Title"), gc);
+        gc.gridx = 1; form.add(titleField, gc);
+        r++;
+        gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Description"), gc);
+        gc.gridx = 1; form.add(new JScrollPane(descArea), gc);
+        r++;
+        gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Deadline"), gc);
+        gc.gridx = 1; form.add(deadlineField, gc);
+        r++;
+        gc.gridx = 0; gc.gridy = r; form.add(new JLabel("XP"), gc);
+        gc.gridx = 1; form.add(xpField, gc);
+
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttons.setOpaque(false);
+        JButton cancel = new JButton("Cancel");
+        JButton save = new JButton("Save");
+        styleTaskButton(cancel, new Color(90, 100, 120));
+        styleTaskButton(save, new Color(70, 160, 100));
+        buttons.add(cancel);
+        buttons.add(save);
+
+        cancel.addActionListener(e -> dlg.dispose());
+        save.addActionListener(e -> {
+            String title = titleField.getText();
+            String desc = descArea.getText();
+            Integer xp = (Integer) xpField.getValue();
+            java.time.LocalDateTime deadline = null;
+            try {
+                String txt = deadlineField.getText();
+                if (txt != null && !txt.isBlank()) {
+                    deadline = java.time.LocalDateTime.parse(txt.replace(' ', 'T'));
+                }
+            } catch (Exception ignore) {}
+            if (taskService.createGoatedTask(profile.getUsername(), title, desc, deadline, xp)) {
+                dlg.dispose();
+                refreshGoatedTasksView();
+            } else {
+                JOptionPane.showMessageDialog(dlg, "Failed to save task.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        dlg.add(titleBar, BorderLayout.NORTH);
+        dlg.add(form, BorderLayout.CENTER);
+        dlg.add(buttons, BorderLayout.SOUTH);
+        dlg.pack();
+        dlg.setLocationRelativeTo(this);
+        dlg.setVisible(true);
+    }
+
+    private void refreshGoatedTasksView() {
+        loadedViews.put(VIEW_GOATED, false);
+        switchView(VIEW_GOATED);
     }
     
     private void styleTaskButton(JButton button, Color color) {

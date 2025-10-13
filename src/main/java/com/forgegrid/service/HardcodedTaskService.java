@@ -32,6 +32,14 @@ public class HardcodedTaskService {
             "xp_earned INT, " +
             "status VARCHAR(50) DEFAULT 'assigned', " +
             "completed_at TIMESTAMP NULL, " +
+            // Goated tasks support
+            "type VARCHAR(20) DEFAULT 'regular', " +
+            "title VARCHAR(255) NULL, " +
+            "description TEXT NULL, " +
+            "deadline DATETIME NULL, " +
+            "xp INT NULL, " +
+            "is_completed TINYINT(1) DEFAULT 0, " +
+            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
             "INDEX idx_username (username), " +
             "INDEX idx_status (status)" +
             ")";
@@ -40,9 +48,143 @@ public class HardcodedTaskService {
              Statement stmt = conn.createStatement()) {
             stmt.execute(createTableSQL);
             System.out.println("✓ user_tasks table initialized");
+            migrateUserTasksForGoated(stmt);
         } catch (SQLException e) {
             System.err.println("Error creating user_tasks table: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Add columns for Goated Tasks if not present.
+     */
+    private void migrateUserTasksForGoated(Statement stmt) {
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN type VARCHAR(20) DEFAULT 'regular'"); } catch (SQLException ignored) {}
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN title VARCHAR(255) NULL"); } catch (SQLException ignored) {}
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN description TEXT NULL"); } catch (SQLException ignored) {}
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN deadline DATETIME NULL"); } catch (SQLException ignored) {}
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN xp INT NULL"); } catch (SQLException ignored) {}
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN is_completed TINYINT(1) DEFAULT 0"); } catch (SQLException ignored) {}
+        try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"); } catch (SQLException ignored) {}
+        try { stmt.execute("CREATE INDEX idx_user_tasks_type ON user_tasks(type)"); } catch (SQLException ignored) {}
+    }
+
+    /**
+     * Create a Goated Task for the user.
+     */
+    public boolean createGoatedTask(String username, String title, String description, java.time.LocalDateTime deadline, int xp) {
+        if (xp < 0) xp = 0;
+        if (xp > 500) xp = 500;
+        String sql = "INSERT INTO user_tasks (username, task_name, title, description, deadline, xp, status, type, is_completed, created_at) VALUES (?, ?, ?, ?, ?, ?, 'assigned', 'goated', 0, ?)";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String taskName = title != null && !title.isBlank() ? title : "Custom Task";
+            ps.setString(1, username);
+            ps.setString(2, taskName);
+            ps.setString(3, title);
+            ps.setString(4, description);
+            ps.setTimestamp(5, deadline != null ? java.sql.Timestamp.valueOf(deadline) : null);
+            ps.setInt(6, xp);
+            ps.setTimestamp(7, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error creating goated task: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * List all Goated Tasks for a user.
+     */
+    public java.util.List<com.forgegrid.model.GoatedTask> listGoatedTasks(String username) {
+        java.util.List<com.forgegrid.model.GoatedTask> list = new java.util.ArrayList<>();
+        String sql = "SELECT id, title, description, deadline, xp, is_completed, created_at FROM user_tasks WHERE username = ? AND type = 'goated' ORDER BY is_completed ASC, deadline IS NULL ASC, deadline ASC";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                com.forgegrid.model.GoatedTask t = new com.forgegrid.model.GoatedTask(
+                    rs.getInt("id"),
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    rs.getTimestamp("deadline"),
+                    rs.getInt("xp"),
+                    rs.getBoolean("is_completed"),
+                    rs.getTimestamp("created_at")
+                );
+                list.add(t);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error listing goated tasks: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /**
+     * Mark a Goated Task as completed and credit XP.
+     */
+    public boolean markGoatedTaskComplete(String username, int taskId) {
+        String select = "SELECT xp, is_completed FROM user_tasks WHERE id = ? AND username = ? AND type = 'goated'";
+        String update = "UPDATE user_tasks SET is_completed = 1, status = 'completed', xp_earned = COALESCE(xp, 0), completed_at = ? WHERE id = ? AND username = ?";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement sel = conn.prepareStatement(select);
+             PreparedStatement upd = conn.prepareStatement(update)) {
+            sel.setInt(1, taskId);
+            sel.setString(2, username);
+            ResultSet rs = sel.executeQuery();
+            if (!rs.next()) return false;
+            if (rs.getBoolean("is_completed")) return true;
+            int xp = rs.getInt("xp");
+            upd.setTimestamp(1, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            upd.setInt(2, taskId);
+            upd.setString(3, username);
+            int ok = upd.executeUpdate();
+            if (ok > 0) {
+                try {
+                    new com.forgegrid.service.LevelService().addXP(username, xp);
+                } catch (Exception ignored) {}
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error completing goated task: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Update a Goated Task.
+     */
+    public boolean updateGoatedTask(String username, int taskId, String title, String description, java.time.LocalDateTime deadline, Integer xp) {
+        String sql = "UPDATE user_tasks SET title = ?, description = ?, deadline = ?, xp = ? WHERE id = ? AND username = ? AND type = 'goated'";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, title);
+            ps.setString(2, description);
+            ps.setTimestamp(3, deadline != null ? java.sql.Timestamp.valueOf(deadline) : null);
+            ps.setInt(4, xp != null ? Math.max(0, Math.min(500, xp)) : 0);
+            ps.setInt(5, taskId);
+            ps.setString(6, username);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating goated task: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Delete a Goated Task.
+     */
+    public boolean deleteGoatedTask(String username, int taskId) {
+        String sql = "DELETE FROM user_tasks WHERE id = ? AND username = ? AND type = 'goated'";
+        try (Connection conn = dbHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, taskId);
+            ps.setString(2, username);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting goated task: " + e.getMessage());
+            return false;
         }
     }
     
