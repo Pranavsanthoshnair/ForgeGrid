@@ -19,11 +19,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 public class MotivationPanel extends JPanel {
 
     // Palette aligned with the rest of ForgeGrid
-    private static final Color BG_COLOR = new Color(25, 30, 40);
-    private static final Color PANEL_COLOR = new Color(40, 50, 65);
-    private static final Color ACCENT_COLOR = new Color(100, 180, 220);
-    private static final Color TEXT_COLOR = new Color(220, 225, 235);
-    private static final Color TEXT_SECONDARY = new Color(160, 170, 185);
+    // Using default Swing colors; keep minimal
 
     private final JLabel quoteLabel;
     private final JButton nextButton;
@@ -49,7 +45,7 @@ public class MotivationPanel extends JPanel {
         // Quote label (centered, wrapped via HTML)
         quoteLabel = new JLabel("", SwingConstants.CENTER);
         quoteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        quoteLabel.setForeground(TEXT_COLOR);
+        quoteLabel.setForeground(Color.DARK_GRAY);
         quoteLabel.setBorder(new EmptyBorder(20, 10, 20, 10));
         // Use app's emoji-capable font if available
         quoteLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -101,9 +97,7 @@ public class MotivationPanel extends JPanel {
         int index = ThreadLocalRandom.current().nextInt(quotes.size());
         String text = quotes.get(index);
         // Sanitize emojis to prevent hollow boxes on older environments
-        try {
-            text = FontUtils.sanitizeEmoji(text);
-        } catch (Throwable ignored) {}
+        // No emoji sanitization needed in basic Swing mode
         // HTML centers and wraps the text nicely inside a JLabel
         quoteLabel.setText("<html><div style='text-align:center;'>" + escapeHtml(text) + "</div></html>");
     }

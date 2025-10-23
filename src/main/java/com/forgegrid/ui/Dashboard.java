@@ -48,10 +48,11 @@ public class Dashboard extends JFrame {
     
     // Color scheme - subtle attractive theme
     private static final Color BG_COLOR = new Color(25, 30, 40);
-    private static final Color SIDEBAR_COLOR = new Color(20, 25, 35);
-    private static final Color PANEL_COLOR = new Color(40, 50, 65);
-    private static final Color ACCENT_COLOR = new Color(100, 180, 220);
-    private static final Color TEXT_COLOR = new Color(220, 225, 235);
+    // Use default Swing colors for a basic look
+    private static final Color SIDEBAR_COLOR = UIManager.getColor("Panel.background");
+    private static final Color PANEL_COLOR = UIManager.getColor("Panel.background");
+    private static final Color ACCENT_COLOR = UIManager.getColor("Button.background");
+    private static final Color TEXT_COLOR = UIManager.getColor("Label.foreground");
     private static final Color TEXT_SECONDARY = new Color(160, 170, 185);
     private static final Color HOVER_COLOR = new Color(55, 65, 80);
     
@@ -180,7 +181,7 @@ public class Dashboard extends JFrame {
         // User icon
         JLabel userIcon = new JLabel("👤");
         try {
-        userIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 24));
+        userIcon.setFont(new Font("SansSerif", Font.PLAIN, 24));
         } catch (Exception ex) {
             userIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
         }
@@ -194,12 +195,12 @@ public class Dashboard extends JFrame {
         userDetails.setLayout(new BoxLayout(userDetails, BoxLayout.Y_AXIS));
         
         JLabel userName = new JLabel(profile != null ? profile.getUsername() : "Guest");
-        userName.setFont(FontUtils.getEmojiFont(Font.BOLD, 14));
+        userName.setFont(new Font("SansSerif", Font.BOLD, 14));
         userName.setForeground(TEXT_COLOR);
         userName.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         levelLabel = new JLabel("Level " + (profile != null ? currentLevel : 1));
-        levelLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 11));
+        levelLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
         levelLabel.setForeground(TEXT_SECONDARY);
         levelLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
@@ -234,8 +235,8 @@ public class Dashboard extends JFrame {
         xpProgressBarBasic.setPreferredSize(new Dimension(300, 24));
         
         // RIGHT: Streak with fire icon
-        JLabel streakLabel = new JLabel("🔥 Streak: " + currentStreak);
-        streakLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 13));
+        JLabel streakLabel = new JLabel("Streak: " + currentStreak);
+        streakLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
         streakLabel.setForeground(new Color(255, 150, 100));
         
         panel.add(levelDisplayLabel, BorderLayout.WEST);
@@ -269,8 +270,8 @@ public class Dashboard extends JFrame {
         // Customization label
         JLabel customizeLabel = new JLabel("Customize your experience");
         customizeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        customizeLabel.setForeground(ACCENT_COLOR);
-        customizeLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // basic pointer behavior not required
         customizeLabel.setOpaque(false);
         
         // Red dot indicator replaced with simple static label
@@ -323,7 +324,7 @@ public class Dashboard extends JFrame {
             Image scaledLogo = logoIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(scaledLogo));
         } catch (Exception e) {
-            logoLabel.setText("🏗️");
+            logoLabel.setText("");
             logoLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
         }
         
@@ -386,31 +387,22 @@ public class Dashboard extends JFrame {
 
         JPanel avatarBtn = new JPanel(new BorderLayout());
         avatarBtn.setOpaque(false);
-        avatarBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         avatarBtn.setBorder(new EmptyBorder(8, 8, 8, 8));
 
         // Circle avatar
-        JLabel avatar = new JLabel("👤", SwingConstants.CENTER);
-        avatar.setFont(FontUtils.getEmojiFont(Font.PLAIN, 20));
+        JLabel avatar = new JLabel("U", SwingConstants.CENTER);
+        avatar.setFont(new Font("SansSerif", Font.PLAIN, 20));
         avatar.setForeground(Color.WHITE);
         avatar.setPreferredSize(new Dimension(36, 36));
         avatar.setOpaque(true);
         avatar.setBackground(new Color(50, 90, 220));
         // We'll draw circle using custom component
 
-        JPanel circle = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(50, 90, 220));
-                g2.fillOval(0, 0, getWidth()-1, getHeight()-1);
-            }
-        };
-        circle.setOpaque(false);
+        JPanel circle = new JPanel(new BorderLayout());
+        circle.setOpaque(true);
+        circle.setBackground(new Color(50, 90, 220));
         circle.setPreferredSize(new Dimension(40, 40));
-        circle.setLayout(new BorderLayout());
         circle.add(avatar, BorderLayout.CENTER);
 
         JPanel info = new JPanel();
@@ -442,13 +434,9 @@ public class Dashboard extends JFrame {
         gearButton.setOpaque(true);
         gearButton.setBackground(new Color(40, 50, 70));
         gearButton.setPreferredSize(new Dimension(40, 40));
-        gearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        JLabel gearIcon = new JLabel("⚙️", SwingConstants.CENTER);
-        try {
-            gearIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 18));
-        } catch (Exception ex) {
-            gearIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
-        }
+        
+        JLabel gearIcon = new JLabel("⚙", SwingConstants.CENTER);
+        gearIcon.setFont(new Font("SansSerif", Font.PLAIN, 18));
         gearIcon.setForeground(Color.WHITE);
         gearButton.add(gearIcon, BorderLayout.CENTER);
         gearButton.setToolTipText("Settings");
@@ -471,8 +459,8 @@ public class Dashboard extends JFrame {
         group.setOpaque(false);
         group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
 
-        JPanel header = createModernMenuItem("📋", VIEW_TASKS, false);
-        header.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JPanel header = createModernMenuItem("T", VIEW_TASKS, false);
+        
 
         JPanel children = new JPanel();
         children.setOpaque(false);
@@ -480,7 +468,7 @@ public class Dashboard extends JFrame {
         children.setBorder(new EmptyBorder(4, 26, 4, 0));
 
         JPanel allTasks = createModernMenuItem("•", VIEW_TASKS, false);
-        JPanel goated = createModernMenuItem("🐐", VIEW_GOATED, false);
+        JPanel goated = createModernMenuItem("G", VIEW_GOATED, false);
 
         children.add(allTasks);
         children.add(Box.createVerticalStrut(4));
@@ -515,17 +503,13 @@ public class Dashboard extends JFrame {
         item.setOpaque(true);
         item.setBackground(SIDEBAR_COLOR);
         item.setBorder(new EmptyBorder(10, 12, 10, 12));
-        item.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
         
         // Icon with better styling
-        JLabel iconLabel = new JLabel(FontUtils.sanitizeEmoji(icon));
-        try {
-            iconLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 18));
-        } catch (Exception ex) {
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
-        }
-        iconLabel.setForeground(selected ? ACCENT_COLOR : new Color(140, 150, 170));
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        
         iconLabel.setPreferredSize(new Dimension(25, 25));
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
         iconLabel.setVerticalAlignment(SwingConstants.CENTER);
@@ -689,10 +673,10 @@ public class Dashboard extends JFrame {
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
         
         // Stat Cards: Total tasks done, Completed, Skipped, Net XP
-        statsSection.add(createModernStatCard("Total Tasks", String.valueOf(availableTasks), "📋", new Color(147, 51, 234), 100));
+        statsSection.add(createModernStatCard("Total Tasks", String.valueOf(availableTasks), "T", new Color(147, 51, 234), 100));
         statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
-        statsSection.add(createModernStatCard("Skipped", String.valueOf(skippedCount), "⏭", new Color(251, 191, 36), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0));
-        statsSection.add(createModernStatCard("Net XP", String.valueOf(netXP), "⭐", new Color(234, 179, 8), 100));
+        statsSection.add(createModernStatCard("Skipped", String.valueOf(skippedCount), "S", new Color(251, 191, 36), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0));
+        statsSection.add(createModernStatCard("Net XP", String.valueOf(netXP), "XP", new Color(234, 179, 8), 100));
         
         mainContainer.add(statsSection);
         mainContainer.add(Box.createVerticalStrut(15));
@@ -756,7 +740,7 @@ public class Dashboard extends JFrame {
         
         JLabel levelLabel = new JLabel("Level " + levelInfo.level);
         levelLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        levelLabel.setForeground(ACCENT_COLOR);
+        
         
         JLabel xpLabel = new JLabel(levelInfo.currentLevelXP + " / " + levelInfo.requiredForNextLevel + " XP");
         xpLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -905,13 +889,13 @@ public class Dashboard extends JFrame {
         String timeStr = hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
         
         // Stat rows
-        content.add(createStatRow("⏱ Total Time", timeStr, new Color(100, 180, 220)));
+        content.add(createStatRow("Total Time", timeStr, new Color(100, 180, 220)));
         content.add(Box.createVerticalStrut(12));
-        content.add(createStatRow("🔥 Streak", currentStreak + " days", new Color(251, 146, 60)));
+        content.add(createStatRow("Streak", currentStreak + " days", new Color(251, 146, 60)));
         content.add(Box.createVerticalStrut(12));
-        content.add(createStatRow("📈 Avg XP/Task", avgXP + " XP", new Color(34, 197, 94)));
+        content.add(createStatRow("Avg XP/Task", avgXP + " XP", new Color(34, 197, 94)));
         content.add(Box.createVerticalStrut(12));
-        content.add(createStatRow("✅ Completion Rate", 
+        content.add(createStatRow("Completion Rate", 
             taskCount > 0 ? ((taskCount * 100) / (currentTasks != null ? currentTasks.size() : 1)) + "%" : "0%",
             new Color(234, 179, 8)));
         
@@ -960,7 +944,7 @@ public class Dashboard extends JFrame {
         topSection.setOpaque(false);
         
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(FontUtils.getEmojiFont(Font.PLAIN, 32));
+        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 32));
         iconLabel.setForeground(accentColor);
         
         JLabel valueLabel = new JLabel(value);
@@ -1001,19 +985,15 @@ public class Dashboard extends JFrame {
      */
     private JPanel createModernCard(String title) {
         JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(PANEL_COLOR);
+        card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
-            new EmptyBorder(20, 20, 20, 20)
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            new EmptyBorder(16, 16, 16, 16)
         ));
-        
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titleLabel.setForeground(TEXT_COLOR);
-        titleLabel.setBorder(new EmptyBorder(0, 0, 15, 0));
-        
+        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        titleLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
         card.add(titleLabel, BorderLayout.NORTH);
-        
         return card;
     }
     
@@ -1044,18 +1024,13 @@ public class Dashboard extends JFrame {
      */
     private JButton createActionButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(FontUtils.getEmojiFont(Font.PLAIN, 13));
+        button.setFont(new Font("SansSerif", Font.PLAIN, 13));
         button.setForeground(Color.WHITE);
         button.setBackground(bgColor);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setAlignmentX(Component.LEFT_ALIGNMENT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        button.setPreferredSize(new Dimension(0, 40));
-        
-        // No hover effect
-        
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setPreferredSize(new Dimension(150, 36));
         return button;
     }
     
@@ -1063,26 +1038,24 @@ public class Dashboard extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
         
-        // Header with Start Task button
-        JPanel header = new JPanel(new BorderLayout());
+        // Centered header
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         header.setOpaque(false);
         
         JLabel title = new JLabel("Task Center");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setForeground(ACCENT_COLOR);
+        title.setFont(new Font("SansSerif", Font.BOLD, 16));
         
-        JButton startTaskBtn = new JButton("▶ Start Next Task");
-        startTaskBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        JButton startTaskBtn = new JButton("Start Next Task");
+        startTaskBtn.setFont(new Font("SansSerif", Font.BOLD, 13));
         startTaskBtn.setForeground(Color.WHITE);
         startTaskBtn.setBackground(new Color(34, 139, 230));
         startTaskBtn.setFocusPainted(false);
         startTaskBtn.setBorderPainted(false);
-        startTaskBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        startTaskBtn.setPreferredSize(new Dimension(160, 38));
+        startTaskBtn.setPreferredSize(new Dimension(150, 36));
         startTaskBtn.addActionListener(e -> showTaskPopup());
         
-        header.add(title, BorderLayout.WEST);
-        header.add(startTaskBtn, BorderLayout.EAST);
+        header.add(title);
+        header.add(startTaskBtn);
         
         // Task History Card
         JPanel historyCard = createModernCard("Recent Task History");
@@ -1126,13 +1099,7 @@ public class Dashboard extends JFrame {
         
         panel.add(header, BorderLayout.NORTH);
         panel.add(historyCard, BorderLayout.CENTER);
-        panel.addComponentListener(new java.awt.event.ComponentAdapter(){
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent e){
-                int w = panel.getWidth();
-                startTaskBtn.setPreferredSize(new Dimension(Math.max(140, Math.min(180, w/8)), 36));
-            }
-        });
+        // No resize handling needed
         
         return panel;
     }
@@ -1170,7 +1137,7 @@ public class Dashboard extends JFrame {
         
         leftPanel.add(Box.createVerticalStrut(5));
         
-        JLabel timeLabel = new JLabel("⏱ " + entry.timeTaken + " min | " + entry.timestamp);
+        JLabel timeLabel = new JLabel(entry.timeTaken + " min | " + entry.timestamp);
         timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         timeLabel.setForeground(TEXT_SECONDARY);
         timeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1186,13 +1153,9 @@ public class Dashboard extends JFrame {
         xpLabel.setForeground(entry.xpEarned > 0 ? new Color(74, 222, 128) : new Color(239, 68, 68));
         rightPanel.add(xpLabel);
         
-        String statusEmoji = isSkipped ? "⏭" : isCompleted ? "✓" : "○";
-        JLabel statusLabel = new JLabel(statusEmoji);
-        try {
-            statusLabel.setFont(com.forgegrid.ui.FontUtils.getEmojiFont().deriveFont(16f));
-        } catch (Exception e) {
-            statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        }
+        String statusSymbol = isSkipped ? "SKIP" : isCompleted ? "DONE" : "PEND";
+        JLabel statusLabel = new JLabel(statusSymbol);
+        statusLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
         statusLabel.setForeground(
             isSkipped ? new Color(251, 191, 36) :
             isCompleted ? new Color(74, 222, 128) : TEXT_SECONDARY
@@ -1279,7 +1242,7 @@ public class Dashboard extends JFrame {
             BorderFactory.createLineBorder(isCompleted ? new Color(74, 222, 128, 100) : new Color(50, 60, 75), 1),
             new EmptyBorder(15, 15, 15, 15)
         ));
-        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         
         // Left panel: Task details
         JPanel leftPanel = new JPanel();
@@ -1287,7 +1250,7 @@ public class Dashboard extends JFrame {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         
         // Task name
-        JLabel nameLabel = new JLabel(task.getTaskName() + (isCompleted ? " ✓" : ""));
+        JLabel nameLabel = new JLabel(task.getTaskName() + (isCompleted ? " [Done]" : ""));
         nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
         nameLabel.setForeground(isCompleted ? new Color(180, 190, 200) : TEXT_COLOR);
         if (isCompleted) {
@@ -1312,17 +1275,17 @@ public class Dashboard extends JFrame {
         metaPanel.setOpaque(false);
         metaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        JLabel xpLabel = new JLabel("⭐ " + task.getXpReward() + " XP");
+        JLabel xpLabel = new JLabel(task.getXpReward() + " XP");
         xpLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         xpLabel.setForeground(new Color(251, 191, 36));
         metaPanel.add(xpLabel);
         
-        JLabel timeLabel = new JLabel("⏱ " + task.getEstimatedMinutes() + " min");
+        JLabel timeLabel = new JLabel(task.getEstimatedMinutes() + " min");
         timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         timeLabel.setForeground(new Color(100, 180, 220));
         metaPanel.add(timeLabel);
         
-        JLabel levelLabel = new JLabel("📚 " + task.getLevel());
+        JLabel levelLabel = new JLabel(task.getLevel());
         levelLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         levelLabel.setForeground(new Color(147, 51, 234));
         metaPanel.add(levelLabel);
@@ -1406,7 +1369,7 @@ public class Dashboard extends JFrame {
         actionBtn.setForeground(Color.WHITE);
         actionBtn.setFocusPainted(false);
         actionBtn.setBorderPainted(false);
-        actionBtn.setCursor(isCompleted ? Cursor.getDefaultCursor() : new Cursor(Cursor.HAND_CURSOR));
+        
         actionBtn.setPreferredSize(new Dimension(130, 35));
         rightPanel.add(actionBtn, BorderLayout.NORTH);
         
@@ -1495,11 +1458,11 @@ public class Dashboard extends JFrame {
         statsPanel.add(levelCard);
         
         // XP Card
-        JPanel xpCard = createProfileStatCard("Total XP", String.valueOf(currentXP) + " / " + maxXP, "⭐", new Color(255, 215, 0));
+        JPanel xpCard = createProfileStatCard("Total XP", String.valueOf(currentXP) + " / " + maxXP, "XP", new Color(255, 215, 0));
         statsPanel.add(xpCard);
         
         // Streak Card
-        JPanel streakCard = createProfileStatCard("Streak", currentStreak + " days", "🔥", new Color(251, 191, 36));
+        JPanel streakCard = createProfileStatCard("Streak", currentStreak + " days", "S", new Color(251, 191, 36));
         statsPanel.add(streakCard);
         
         contentPanel.add(statsPanel);
@@ -1580,7 +1543,7 @@ public class Dashboard extends JFrame {
         saveButton.setBackground(ACCENT_COLOR);
         saveButton.setFocusPainted(false);
         saveButton.setBorderPainted(false);
-        saveButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         saveButton.setPreferredSize(new Dimension(150, 40));
         saveButton.setMaximumSize(new Dimension(150, 40));
         saveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -2151,7 +2114,7 @@ public class Dashboard extends JFrame {
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JLabel title = new JLabel("🐐 Goated Tasks");
+        JLabel title = new JLabel("Custom Tasks");
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setForeground(TEXT_COLOR);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -2159,7 +2122,7 @@ public class Dashboard extends JFrame {
         panel.add(Box.createVerticalStrut(12));
 
         // Add Custom Task button
-        JButton addBtn = new JButton("➕ Add Custom Task");
+        JButton addBtn = new JButton("Add Custom Task");
         styleTaskButton(addBtn, new Color(60, 120, 200));
         addBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         addBtn.addActionListener(e -> openAddGoatedTaskDialog());
@@ -2249,8 +2212,8 @@ public class Dashboard extends JFrame {
         JPanel titleBar = new JPanel(new BorderLayout());
         titleBar.setBackground(new Color(30, 35, 45));
         titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
-        JLabel titleLb = new JLabel(FontUtils.sanitizeEmoji("🐐 New Goated Task"));
-        try { titleLb.setFont(FontUtils.getEmojiFont(Font.BOLD, 14)); } catch (Exception ex) { titleLb.setFont(new Font("Segoe UI", Font.BOLD, 14)); }
+        JLabel titleLb = new JLabel("New Custom Task");
+        titleLb.setFont(new Font("SansSerif", Font.BOLD, 14));
         titleLb.setForeground(new Color(220, 225, 235));
         JButton close = new JButton("✕");
         close.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -2259,7 +2222,7 @@ public class Dashboard extends JFrame {
         close.setBorderPainted(false);
         close.setFocusPainted(false);
         close.setPreferredSize(new Dimension(40, 30));
-        close.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         close.addActionListener(ev -> dlg.dispose());
         titleBar.add(titleLb, BorderLayout.WEST);
         titleBar.add(close, BorderLayout.EAST);
@@ -2353,7 +2316,7 @@ public class Dashboard extends JFrame {
         button.setFont(new Font("Segoe UI", Font.BOLD, 12));
         button.setBorderPainted(false);
         button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         button.setPreferredSize(new Dimension(120, 30));
     }
     
@@ -2463,7 +2426,7 @@ public class Dashboard extends JFrame {
         titleLabel.setForeground(new Color(255, 215, 0)); // Gold color
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        JLabel streakLabel = new JLabel("🔥 7-Day Streak");
+        JLabel streakLabel = new JLabel("7-Day Streak");
         streakLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         streakLabel.setForeground(new Color(255, 150, 100));
         streakLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -2592,8 +2555,8 @@ public class Dashboard extends JFrame {
             {"⚡", "Deadline Hero", "Never miss a deadline for a week", "false"},
             {"🚀", "Fast Finisher", "Complete 5 tasks in one day", "false"},
             {"💎", "Perfectionist", "100% success rate for a month", "false"},
-            {"🔥", "Streak Master", "30-day completion streak", "false"},
-            {"⭐", "Task Legend", "Complete 100 total tasks", "false"}
+            {"S", "Streak Master", "30-day completion streak", "false"},
+            {"XP", "Task Legend", "Complete 100 total tasks", "false"}
         };
         
         JPanel badgesGrid = new JPanel(new GridLayout(2, 3, 15, 15));
@@ -2769,7 +2732,7 @@ public class Dashboard extends JFrame {
         ));
         timerPanel.setLayout(new BoxLayout(timerPanel, BoxLayout.Y_AXIS));
         
-        JLabel timerTitle = new JLabel("⏰ Next Deadline");
+        JLabel timerTitle = new JLabel("Next Deadline");
         timerTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
         timerTitle.setForeground(TEXT_COLOR);
         timerTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -2803,7 +2766,7 @@ public class Dashboard extends JFrame {
         ));
         remindersPanel.setLayout(new BoxLayout(remindersPanel, BoxLayout.Y_AXIS));
         
-        JLabel remindersTitle = new JLabel("🔔 Reminders");
+        JLabel remindersTitle = new JLabel("Reminders");
         remindersTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         remindersTitle.setForeground(TEXT_COLOR);
         remindersTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -2839,7 +2802,7 @@ public class Dashboard extends JFrame {
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             rightPanel.setOpaque(false);
             
-            JButton snoozeBtn = new JButton("⏰");
+            JButton snoozeBtn = new JButton("Snooze");
             snoozeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 10));
             snoozeBtn.setPreferredSize(new Dimension(25, 20));
             snoozeBtn.setBackground(new Color(100, 180, 220));
@@ -2925,7 +2888,7 @@ public class Dashboard extends JFrame {
         button.setBorderPainted(false);
         button.setFocusPainted(false);
         button.setPreferredSize(new Dimension(180, 50));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         
         // Add glow effect
         // No hover changes
@@ -2942,8 +2905,8 @@ public class Dashboard extends JFrame {
             new EmptyBorder(15, 15, 15, 15)
         ));
         
-        JLabel syncIcon = new JLabel("☁️");
-        syncIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 20));
+        JLabel syncIcon = new JLabel("Cloud");
+        syncIcon.setFont(new Font("SansSerif", Font.PLAIN, 20));
         syncIcon.setForeground(new Color(100, 180, 220));
         
         JPanel statusPanel = new JPanel();
@@ -3012,7 +2975,7 @@ public class Dashboard extends JFrame {
         preferencesCard.add(Box.createVerticalStrut(15));
         
         // Notifications setting
-        JPanel notificationsPanel = createEnhancedToggleSetting("🔔", "Notifications", "Show alerts and reminders", true);
+        JPanel notificationsPanel = createEnhancedToggleSetting("N", "Notifications", "Show alerts and reminders", true);
         preferencesCard.add(notificationsPanel);
         preferencesCard.add(Box.createVerticalStrut(15));
         
@@ -3052,7 +3015,7 @@ public class Dashboard extends JFrame {
         
         JLabel usernameInfo = new JLabel("👤 " + profile.getUsername());
         try {
-        usernameInfo.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
+        usernameInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
         } catch (Exception ex) {
             usernameInfo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
         }
@@ -3061,7 +3024,7 @@ public class Dashboard extends JFrame {
         
         JLabel levelInfo = new JLabel("🏆 Level " + currentLevel);
         try {
-        levelInfo.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
+        levelInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
         } catch (Exception ex) {
             levelInfo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
         }
@@ -3082,7 +3045,7 @@ public class Dashboard extends JFrame {
         logoutButton.setBackground(new Color(220, 60, 60));
         logoutButton.setFocusPainted(false);
         logoutButton.setBorderPainted(false);
-        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         logoutButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         logoutButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         logoutButton.setPreferredSize(new Dimension(0, 40));
@@ -3265,7 +3228,7 @@ public class Dashboard extends JFrame {
         toggleLabel.setForeground(enabled ? new Color(80, 200, 120) : new Color(150, 150, 150));
         toggleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        JButton toggleBtn = new JButton(enabled ? "●" : "○");
+        JButton toggleBtn = new JButton(enabled ? "ON" : "OFF");
         toggleBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
         toggleBtn.setForeground(enabled ? new Color(80, 200, 120) : new Color(150, 150, 150));
         toggleBtn.setBackground(new Color(50, 60, 75));
@@ -3327,7 +3290,7 @@ public class Dashboard extends JFrame {
         JPanel helpGrid = new JPanel(new GridLayout(2, 2, 15, 15));
         helpGrid.setOpaque(false);
         
-        helpGrid.add(createHelpCard("📚", "Documentation", "User guides and tutorials", "View Docs"));
+        helpGrid.add(createHelpCard("D", "Documentation", "User guides and tutorials", "View Docs"));
         helpGrid.add(createHelpCard("💬", "Live Chat", "Get instant support", "Start Chat"));
         helpGrid.add(createHelpCard("❓", "FAQs", "Frequently asked questions", "Browse FAQs"));
         helpGrid.add(createHelpCard("📧", "Contact Support", "Email support team", "Send Message"));
@@ -3454,8 +3417,8 @@ public class Dashboard extends JFrame {
         exitPanel.setPreferredSize(new Dimension(400, 250));
         
         // Exit icon and title
-        JLabel exitIcon = new JLabel("⚠️");
-        exitIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 32));
+        JLabel exitIcon = new JLabel("!");
+        exitIcon.setFont(new Font("SansSerif", Font.PLAIN, 32));
         exitIcon.setForeground(new Color(255, 150, 100));
         exitIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
         
@@ -3479,7 +3442,7 @@ public class Dashboard extends JFrame {
         saveExitBtn.setForeground(Color.WHITE);
         saveExitBtn.setBorderPainted(false);
         saveExitBtn.setPreferredSize(new Dimension(140, 40));
-        saveExitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         
         JButton cancelBtn = new JButton("Cancel");
         cancelBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -3487,7 +3450,7 @@ public class Dashboard extends JFrame {
         cancelBtn.setForeground(Color.WHITE);
         cancelBtn.setBorderPainted(false);
         cancelBtn.setPreferredSize(new Dimension(100, 40));
-        cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         
         buttonsPanel.add(saveExitBtn);
         buttonsPanel.add(cancelBtn);
@@ -3559,8 +3522,8 @@ public class Dashboard extends JFrame {
         levelBadge.setBorder(new EmptyBorder(4, 8, 4, 8));
         levelBadge.setLayout(new BoxLayout(levelBadge, BoxLayout.X_AXIS));
         
-        JLabel levelIcon = new JLabel("⭐");
-        levelIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 12));
+        JLabel levelIcon = new JLabel("LV");
+        levelIcon.setFont(new Font("SansSerif", Font.PLAIN, 12));
         levelIcon.setForeground(Color.WHITE);
         
         JLabel levelLabel = new JLabel("Level " + currentLevel);
@@ -3640,7 +3603,7 @@ public class Dashboard extends JFrame {
         rankCard.setLayout(new BoxLayout(rankCard, BoxLayout.X_AXIS));
         
         JLabel rankIcon = new JLabel("🏆");
-        rankIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
+        rankIcon.setFont(new Font("SansSerif", Font.PLAIN, 14));
         
         JLabel rankLabel = new JLabel("Novice");
         rankLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -3657,8 +3620,8 @@ public class Dashboard extends JFrame {
         streakCard.setBorder(new EmptyBorder(6, 12, 6, 12));
         streakCard.setLayout(new BoxLayout(streakCard, BoxLayout.X_AXIS));
         
-        JLabel streakIcon = new JLabel("🔥");
-        streakIcon.setFont(FontUtils.getEmojiFont(Font.PLAIN, 14));
+        JLabel streakIcon = new JLabel("ST");
+        streakIcon.setFont(new Font("SansSerif", Font.PLAIN, 14));
         
         JLabel streakLabel = new JLabel("0");
         streakLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -3717,7 +3680,7 @@ public class Dashboard extends JFrame {
         headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         
         JLabel titleLabel = new JLabel("🎯 Customize Your Experience");
-        titleLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 20));
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
         titleLabel.setForeground(TEXT_COLOR);
         
         JLabel descLabel = new JLabel("Help us personalize your ForgeGrid experience");
@@ -3784,7 +3747,7 @@ public class Dashboard extends JFrame {
         saveBtn.setForeground(Color.WHITE);
         saveBtn.setBorderPainted(false);
         saveBtn.setPreferredSize(new Dimension(180, 40));
-        saveBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         saveBtn.addActionListener(e -> {
             saveCustomizationData(responses);
             // Hide the customize section after saving
@@ -3799,7 +3762,7 @@ public class Dashboard extends JFrame {
         cancelBtn.setForeground(Color.WHITE);
         cancelBtn.setBorderPainted(false);
         cancelBtn.setPreferredSize(new Dimension(100, 40));
-        cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         cancelBtn.addActionListener(e -> {
             // Switch back to dashboard view
             centerLayout.show(centerPanel, VIEW_DASHBOARD);
@@ -3925,7 +3888,7 @@ public class Dashboard extends JFrame {
         b.setBorderPainted(false);
         b.setOpaque(false);
         b.setForeground(ACCENT_COLOR);
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         b.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
     

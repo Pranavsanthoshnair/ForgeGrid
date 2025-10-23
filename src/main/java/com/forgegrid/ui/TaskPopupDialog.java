@@ -173,11 +173,7 @@ public class TaskPopupDialog extends JDialog {
         panel.setOpaque(false);
         
         JLabel emojiLabel = new JLabel(emoji);
-        try {
-            emojiLabel.setFont(com.forgegrid.ui.FontUtils.getEmojiFont().deriveFont(16f));
-        } catch (Exception e) {
-            emojiLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        }
+        emojiLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
         
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
