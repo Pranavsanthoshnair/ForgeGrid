@@ -24,7 +24,7 @@ public class AuthUI extends JFrame {
     private JButton backButton;
     private JPanel cardPanel;
     private CardLayout cardLayout;
-    private final Map<String, FadeInPanel> cardFades = new HashMap<>();
+    private final Map<String, JPanel> cardFades = new HashMap<>();
     private AuthService authService;
     private UserService userService;
     private UserPreferences userPreferences;
@@ -126,35 +126,22 @@ public class AuthUI extends JFrame {
         playFade("WELCOME");
         updateBackButtonVisibility("WELCOME");
         
-        // Add component listener to handle window resizing
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent e) {
-                refreshComponentSizes();
-            }
-        });
-        
-        // Apply custom styling
-        applyCustomStyling();
+        // No dynamic resize or global font overrides; keep it basic
     }
 
     private void addWithFade(JComponent comp, String name) {
-        FadeInPanel wrapper = new FadeInPanel(new BorderLayout());
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
         wrapper.add(comp, BorderLayout.CENTER);
         cardPanel.add(wrapper, name);
         cardFades.put(name, wrapper);
     }
 
-    private void playFade(String name) {
-        FadeInPanel f = cardFades.get(name);
-        if (f != null) f.play();
-    }
+    private void playFade(String name) { /* removed */ }
 
     private void showCard(String name) {
         cardLayout.show(cardPanel, name);
-        if (!"LOGIN".equals(name)) {
-            playFade(name);
-        }
+        // no animations
         updateBackButtonVisibility(name);
     }
 
@@ -285,14 +272,15 @@ public class AuthUI extends JFrame {
         loginButton.setForeground(Color.WHITE);
         loginButton.setBorderPainted(false);
         loginButton.setFocusPainted(false);
-        // Ensure identical dimensions to signup button
-        loginButton.setMaximumSize(new Dimension(520, 70));
-        loginButton.setPreferredSize(new Dimension(520, 70));
+        // Make login same compact size as "New User? Sign Up"
+        Dimension primaryBtnSize = new Dimension(520, 40);
+        loginButton.setPreferredSize(primaryBtnSize);
+        loginButton.setMaximumSize(primaryBtnSize); // prevent BoxLayout expansion
+        loginButton.setFont(new Font("SansSerif", Font.BOLD, 16));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         JComponent loginGradientWrap = loginButton; // use plain button for basic Swing look
         JButton switchToSignupButton = new JButton("New User? Sign Up");
-        switchToSignupButton.setMaximumSize(new Dimension(520, 70));
-        switchToSignupButton.setPreferredSize(new Dimension(520, 70));
+        switchToSignupButton.setPreferredSize(new Dimension(520, 40));
         switchToSignupButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Add arrow key navigation to login button
@@ -311,7 +299,14 @@ public class AuthUI extends JFrame {
         loginButton.addActionListener(e -> handleLogin());
         switchToSignupButton.addActionListener(e -> showSignup());
         // Build card container to hold form content
-        CardContainerPanel card = new CardContainerPanel();
+        JPanel card = new JPanel();
+        card.setOpaque(true);
+        card.setBackground(Color.WHITE);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(16, 20, 16, 20)
+        ));
         card.setAlignmentX(Component.CENTER_ALIGNMENT);
         int cardMaxW = Math.max(600, (int)(600 * calculateProportionalScale()));
         card.setMaximumSize(new Dimension(cardMaxW, Integer.MAX_VALUE));
@@ -474,11 +469,13 @@ public class AuthUI extends JFrame {
         signupButton.setForeground(Color.WHITE);
         signupButton.setBorderPainted(false);
         signupButton.setFocusPainted(false);
-        // Ensure identical dimensions to login button
-        signupButton.setMaximumSize(new Dimension(520, 70));
-        signupButton.setPreferredSize(new Dimension(520, 70));
+        // Match login button size
+        Dimension primaryBtnSize2 = new Dimension(480, 44);
+        signupButton.setPreferredSize(primaryBtnSize2);
+        signupButton.setMaximumSize(primaryBtnSize2);
+        signupButton.setFont(new Font("SansSerif", Font.BOLD, 16));
         JComponent signupGradientWrap = signupButton;
-        JButton switchToLoginButton = createGlassButton("Already have an account? Login");
+        JButton switchToLoginButton = new JButton("Already have an account? Login");
         
         // Add arrow key navigation to signup button
         signupButton.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -497,7 +494,14 @@ public class AuthUI extends JFrame {
         switchToLoginButton.addActionListener(e -> showLogin());
         
         // Layout inside a card container
-        CardContainerPanel signupCard = new CardContainerPanel();
+        JPanel signupCard = new JPanel();
+        signupCard.setOpaque(true);
+        signupCard.setBackground(Color.WHITE);
+        signupCard.setLayout(new BoxLayout(signupCard, BoxLayout.Y_AXIS));
+        signupCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(16, 20, 16, 20)
+        ));
         signupCard.setAlignmentX(Component.CENTER_ALIGNMENT);
         int signupCardMaxW = Math.max(520, (int)(520 * calculateProportionalScale()));
         signupCard.setMaximumSize(new Dimension(signupCardMaxW, Integer.MAX_VALUE));
@@ -525,13 +529,9 @@ public class AuthUI extends JFrame {
     private JTextField createModernTextField(String placeholder) {
         JTextField field = new JTextField();
         
-        // Use fixed dimensions for consistent sizing
-        int fieldWidth = 520;
-        int fieldHeight = 70;
-        
-        field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
-        field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        // Simple sizing
+        field.setPreferredSize(new Dimension(520, 40));
+        field.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		field.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(new Color(180, 180, 180)),
 			BorderFactory.createEmptyBorder(10, 12, 10, 12)
@@ -577,13 +577,9 @@ public class AuthUI extends JFrame {
     private JPasswordField createModernPasswordField(String placeholder) {
         JPasswordField field = new JPasswordField();
         
-        // Use fixed dimensions for consistent sizing
-        int fieldWidth = 520;
-        int fieldHeight = 70;
-        
-        field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
-        field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        // Simple sizing
+        field.setPreferredSize(new Dimension(520, 40));
+        field.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		field.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(new Color(180, 180, 180)),
 			BorderFactory.createEmptyBorder(10, 12, 10, 12)
@@ -662,156 +658,16 @@ public class AuthUI extends JFrame {
     
     
     
-    private JButton createGlassButton(String text) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                
-                // Modern outlined button with subtle background
-                Color bg = getModel().isRollover() ? new Color(255, 255, 255, 12) : new Color(255, 255, 255, 5);
-                g2d.setColor(bg);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                
-                // Border with gradient effect
-                g2d.setColor(getModel().isRollover() ? new Color(255, 255, 255, 70) : new Color(255, 255, 255, 40));
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
-                
-                // Inner highlight
-                g2d.setColor(getModel().isRollover() ? new Color(255, 255, 255, 20) : new Color(255, 255, 255, 10));
-                g2d.setStroke(new BasicStroke(1));
-                g2d.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 16, 16);
-                
-                g2d.setColor(getForeground());
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                g2d.drawString(getText(), x, y);
-                
-                g2d.dispose();
-            }
-        };
-        
-        // Use fixed dimensions for consistent button sizing
-        int buttonWidth = 520;
-        int buttonHeight = 70;
-        
-        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));
-        button.setForeground(Color.BLACK);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        // Enable rollover for hover visuals
-        button.setRolloverEnabled(true);
-        // Disable hover effect
-        
-        return button;
-    }
+    // Removed custom glass button to keep Swing usage minimal
 
     // Google OAuth methods removed - using MySQL authentication only
 
 
-    private JButton createSolidButton(String text, Color backgroundColor, Color foregroundColor) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color base;
-                boolean isWhiteBtn = Boolean.TRUE.equals(getClientProperty("isWhiteButton"));
-                if (isWhiteBtn) {
-                    base = getModel().isRollover() ? new Color(242, 242, 242) : Color.WHITE;
-                } else {
-                    base = backgroundColor;
-                    if (getModel().isRollover()) {
-                        base = new Color(
-                            Math.min(255, backgroundColor.getRed() + 25),
-                            Math.min(255, backgroundColor.getGreen() + 25),
-                            Math.min(255, backgroundColor.getBlue() + 25)
-                        );
-                    }
-                }
-                g2d.setColor(base);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-
-                // Respect per-button override for text color when requested
-                Color textColor = getForeground();
-                Object forceWhite = getClientProperty("forceWhiteText");
-                if (Boolean.TRUE.equals(forceWhite)) {
-                    textColor = Color.WHITE;
-                }
-                g2d.setColor(textColor);
-                g2d.setFont(getFont());
-                FontMetrics fm = g2d.getFontMetrics();
-                int textW = fm.stringWidth(getText());
-                int centerX = getWidth() / 2;
-                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                // Optional left icon
-                Object iconObj = getClientProperty("leftIcon");
-                int gap = 8;
-                Object gapObj = getClientProperty("leftIconGap");
-                if (gapObj instanceof Integer) gap = (Integer) gapObj;
-                int leftIconW = 0;
-                if (iconObj instanceof Icon) {
-                    Icon icon = (Icon) iconObj;
-                    leftIconW = icon.getIconWidth() + gap;
-                    int iconX = centerX - (textW + leftIconW) / 2;
-                    int iconY = (getHeight() - icon.getIconHeight()) / 2;
-                    // Backdrop circle for icon visibility on colored backgrounds
-                    if (!isWhiteBtn) {
-                        int d = Math.max(icon.getIconWidth(), icon.getIconHeight()) + 6;
-                        int cx = iconX + icon.getIconWidth() / 2;
-                        int cy = iconY + icon.getIconHeight() / 2;
-                        g2d.setColor(Color.WHITE);
-                        g2d.fillOval(cx - d / 2, cy - d / 2, d, d);
-                        g2d.setColor(new Color(0, 0, 0, 30));
-                        g2d.setStroke(new BasicStroke(1f));
-                        g2d.drawOval(cx - d / 2, cy - d / 2, d, d);
-                    }
-                    // Paint the actual icon on top
-                    icon.paintIcon(this, g2d, iconX, iconY);
-                }
-                int textX = centerX - (textW - (leftIconW > 0 ? -leftIconW : 0)) / 2;
-                if (leftIconW > 0) {
-                    textX = centerX - (textW + leftIconW) / 2 + leftIconW;
-                }
-                g2d.drawString(getText(), textX, y);
-
-                g2d.dispose();
-            }
-        };
-
-        // Use fixed dimensions for consistent button sizing
-        int buttonWidth = 520;
-        int buttonHeight = 70;
-        
-        button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setFont(new Font("Trebuchet MS", Font.BOLD, 22));
-        button.setForeground(foregroundColor);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        // No rollover/hover effects needed
-        
-        return button;
-    }
+    // Removed custom solid button painter to keep things basic
 
     // Removed custom GradientPanel in favor of shared components
 
-    // Removed inner GradientTextLabel; using shared com.forgegrid.ui.GradientTextLabel
+    // GradientTextLabel no longer used
 
     private void handleLogin() {
         // Normalize placeholders just in case flags are stale
@@ -1411,8 +1267,13 @@ public class AuthUI extends JFrame {
         subtitle.setForeground(new Color(200, 200, 220));
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton yesBtn = createSolidButton("Yes, start onboarding", PRIMARY_COLOR, Color.BLACK);
-        JButton skipBtn = createGlassButton("Skip for now – go to dashboard");
+        JButton yesBtn = new JButton("Yes, start onboarding");
+        yesBtn.setUI(new BasicButtonUI());
+        yesBtn.setBackground(PRIMARY_COLOR);
+        yesBtn.setForeground(Color.BLACK);
+        yesBtn.setBorderPainted(false);
+        yesBtn.setFocusPainted(false);
+        JButton skipBtn = new JButton("Skip for now – go to dashboard");
 
         yesBtn.addActionListener(e -> {
             // Create new user onboarding panel

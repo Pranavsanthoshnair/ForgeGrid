@@ -9,17 +9,14 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * Dialog that shows a single task with timer and completion options
  */
 public class TaskPopupDialog extends JDialog {
     
-    private static final Color BG_COLOR = new Color(25, 30, 40);
-    private static final Color PANEL_COLOR = new Color(40, 50, 65);
-    private static final Color ACCENT_COLOR = new Color(100, 180, 220);
-    private static final Color TEXT_COLOR = new Color(220, 225, 235);
-    private static final Color TEXT_SECONDARY = new Color(160, 170, 185);
+    // Basic colors removed; rely on defaults
     
     private HardcodedTask task;
     private long startTime;
@@ -34,119 +31,49 @@ public class TaskPopupDialog extends JDialog {
         this.task = task;
         this.startTime = startTime;
         
-        setUndecorated(true); // Remove default white title bar
-        setSize(600, 550); // Slightly taller for custom title bar
+        setUndecorated(false);
+        setSize(520, 500);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        // Ensure no white flash/background from the window itself
-        try {
-            // On some JVM/OS combos, setBackground on a window ignores alpha; we explicitly use dark color
-            setBackground(new Color(BG_COLOR.getRed(), BG_COLOR.getGreen(), BG_COLOR.getBlue()));
-        } catch (Exception ignore) {}
-        getContentPane().setBackground(BG_COLOR);
+        getContentPane().setBackground(new Color(238, 238, 238));
         
         setupUI();
         startUITimer();
     }
     
     private void setupUI() {
-        JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
-        mainPanel.setBackground(BG_COLOR);
-        mainPanel.setBorder(BorderFactory.createLineBorder(new Color(100, 110, 130), 2));
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(new Color(238, 238, 238));
         
-        // Custom title bar
-        JPanel titleBar = new JPanel(new BorderLayout());
-        titleBar.setBackground(new Color(30, 35, 45));
-        titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
-        
-        JLabel titleBarLabel = new JLabel(FontUtils.sanitizeEmoji("📋 Current Task"));
-        try {
-            titleBarLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 14));
-        } catch (Exception ex) {
-            titleBarLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        }
-        titleBarLabel.setForeground(TEXT_COLOR);
-        
-        JButton closeButton = new JButton("✕");
-        closeButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        closeButton.setForeground(TEXT_COLOR);
-        closeButton.setBackground(new Color(30, 35, 45));
-        closeButton.setBorderPainted(false);
-        closeButton.setFocusPainted(false);
-        closeButton.setPreferredSize(new Dimension(40, 30));
-        closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        closeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        
-        titleBar.add(titleBarLabel, BorderLayout.WEST);
-        titleBar.add(closeButton, BorderLayout.EAST);
-        
-        // Make title bar draggable
-        final Point[] dragPoint = {null};
-        titleBar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                dragPoint[0] = e.getPoint();
-            }
-        });
-        titleBar.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (dragPoint[0] != null) {
-                    Point location = getLocation();
-                    setLocation(
-                        location.x + e.getX() - dragPoint[0].x,
-                        location.y + e.getY() - dragPoint[0].y
-                    );
-                }
-            }
-        });
+        // Simple title via dialog title
+        setTitle("Task");
         
         // Content panel
-        JPanel contentPanel = new JPanel(new BorderLayout(0, 20));
-        contentPanel.setBackground(BG_COLOR);
-        contentPanel.setBorder(new EmptyBorder(25, 30, 25, 30));
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         
         // Header with timer
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setOpaque(false);
-        
-        JLabel titleLabel = new JLabel(FontUtils.sanitizeEmoji("📋 Your Next Task"));
-        try {
-            titleLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 20));
-        } catch (Exception ex) {
-            titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        }
-        titleLabel.setForeground(ACCENT_COLOR);
-        
-        timerLabel = new JLabel(FontUtils.sanitizeEmoji("⏱ 00:00"));
-        try {
-            timerLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 16));
-        } catch (Exception ex) {
-            timerLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        }
-        timerLabel.setForeground(new Color(251, 191, 36));
-        
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(timerLabel, BorderLayout.EAST);
+        JLabel titleLabel = new JLabel("Task");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+        titleLabel.setForeground(Color.BLACK);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        timerLabel = new JLabel("00:00");
+        timerLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        timerLabel.setForeground(Color.DARK_GRAY);
+        timerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         // Task details card
         JPanel taskCard = new JPanel();
         taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS));
-        taskCard.setBackground(PANEL_COLOR);
-        taskCard.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(100, 110, 130), 1),
-            new EmptyBorder(20, 20, 20, 20)
-        ));
+        taskCard.setBackground(Color.WHITE);
+        taskCard.setBorder(new EmptyBorder(10, 10, 10, 10));
         
         // Task name
         JLabel nameLabel = new JLabel(task.getTaskName());
-        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        nameLabel.setForeground(TEXT_COLOR);
+        nameLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+        nameLabel.setForeground(Color.BLACK);
         nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         taskCard.add(nameLabel);
         
@@ -154,9 +81,9 @@ public class TaskPopupDialog extends JDialog {
         
         // Description
         JTextArea descArea = new JTextArea(task.getDescription());
-        descArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        descArea.setForeground(TEXT_SECONDARY);
-        descArea.setBackground(PANEL_COLOR);
+        descArea.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        descArea.setForeground(Color.DARK_GRAY);
+        descArea.setBackground(Color.WHITE);
         descArea.setLineWrap(true);
         descArea.setWrapStyleWord(true);
         descArea.setEditable(false);
@@ -181,9 +108,9 @@ public class TaskPopupDialog extends JDialog {
         
         // Warning label
         taskCard.add(Box.createVerticalStrut(15));
-        JLabel warningLabel = new JLabel("<html><i>⚠ Timer is tracking your work. Submit only after completing the task!</i></html>");
-        warningLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-        warningLabel.setForeground(new Color(251, 191, 36));
+        JLabel warningLabel = new JLabel("Timer is tracking your work. Submit only after completing the task.");
+        warningLabel.setFont(new Font("SansSerif", Font.ITALIC, 11));
+        warningLabel.setForeground(Color.GRAY);
         warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         taskCard.add(warningLabel);
         
@@ -191,14 +118,14 @@ public class TaskPopupDialog extends JDialog {
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         buttonsPanel.setOpaque(false);
         
-        JButton submitBtn = new JButton("✓ Submit Task");
-        submitBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        JButton submitBtn = new JButton("Submit Task");
+        submitBtn.setUI(new BasicButtonUI());
+        submitBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
         submitBtn.setForeground(Color.WHITE);
         submitBtn.setBackground(new Color(34, 197, 94));
-        submitBtn.setFocusPainted(false);
         submitBtn.setBorderPainted(false);
-        submitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        submitBtn.setPreferredSize(new Dimension(160, 45));
+        submitBtn.setFocusPainted(false);
+        submitBtn.setPreferredSize(new Dimension(140, 36));
         submitBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -206,14 +133,14 @@ public class TaskPopupDialog extends JDialog {
             }
         });
         
-        JButton skipBtn = new JButton("⏭ Skip Task");
-        skipBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        JButton skipBtn = new JButton("Skip Task");
+        skipBtn.setUI(new BasicButtonUI());
+        skipBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
         skipBtn.setForeground(Color.WHITE);
         skipBtn.setBackground(new Color(251, 146, 60));
-        skipBtn.setFocusPainted(false);
         skipBtn.setBorderPainted(false);
-        skipBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        skipBtn.setPreferredSize(new Dimension(160, 45));
+        skipBtn.setFocusPainted(false);
+        skipBtn.setPreferredSize(new Dimension(140, 36));
         skipBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -224,14 +151,19 @@ public class TaskPopupDialog extends JDialog {
         buttonsPanel.add(submitBtn);
         buttonsPanel.add(skipBtn);
         
-        // Assemble content
-        contentPanel.add(headerPanel, BorderLayout.NORTH);
-        contentPanel.add(taskCard, BorderLayout.CENTER);
-        contentPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        // Assemble content (vertical order)
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createVerticalStrut(6));
+        contentPanel.add(timerLabel);
+        contentPanel.add(Box.createVerticalStrut(12));
+        contentPanel.add(taskCard);
+        contentPanel.add(Box.createVerticalStrut(12));
+        contentPanel.add(buttonsPanel);
         
-        // Assemble main panel with title bar
-        mainPanel.add(titleBar, BorderLayout.NORTH);
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        // Assemble main panel
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
+        mainPanel.add(contentPanel, gbc);
         
         setContentPane(mainPanel);
     }
@@ -252,12 +184,12 @@ public class TaskPopupDialog extends JDialog {
         textPanel.setOpaque(false);
         
         JLabel labelText = new JLabel(label);
-        labelText.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        labelText.setForeground(TEXT_SECONDARY);
+        labelText.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        labelText.setForeground(Color.GRAY);
         
         JLabel valueText = new JLabel(value);
-        valueText.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        valueText.setForeground(TEXT_COLOR);
+        valueText.setFont(new Font("SansSerif", Font.BOLD, 13));
+        valueText.setForeground(Color.BLACK);
         
         textPanel.add(labelText);
         textPanel.add(valueText);

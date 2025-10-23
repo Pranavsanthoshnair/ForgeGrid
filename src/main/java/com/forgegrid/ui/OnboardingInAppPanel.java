@@ -2,6 +2,7 @@ package com.forgegrid.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * In-app onboarding panel (same window) replicating OnboardingWizard steps.
@@ -51,111 +52,92 @@ public class OnboardingInAppPanel extends JPanel {
 		}
 	}
 
-	private JPanel buildWelcomeBackPanel(Runnable continueAction) {
+    private JPanel buildWelcomeBackPanel(Runnable continueAction) {
+        // Basic light background like other screens
         JPanel bg = new JPanel(new GridBagLayout());
         bg.setOpaque(true);
-        bg.setBackground(new Color(25, 35, 55));
-		
-		JPanel center = new CardContainerPanel();
-		center.setOpaque(false);
-		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-		center.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        bg.setBackground(new Color(238, 238, 238));
 
-		// Welcome back title
-		GradientTextLabel welcomeTitle = new GradientTextLabel("Welcome back, " + (username != null ? username : "User") + "!");
-		welcomeTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-		welcomeTitle.setForeground(Theme.TEXT_PRIMARY);
-		welcomeTitle.setGradient(Theme.BRAND_BLUE, Theme.BRAND_PINK);
-		welcomeTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
-		center.add(welcomeTitle);
-		
-		center.add(Box.createRigidArea(new Dimension(0, 20)));
+        // Simple white card container
+        JPanel card = new JPanel();
+        card.setOpaque(true);
+        card.setBackground(Color.WHITE);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(24, 32, 24, 32)
+        ));
 
-		// Welcome message
-		JLabel welcomeMessage = new JLabel("<html><div style='text-align: center;'>" +
-			"<p style='font-size: 16px; color: #B4B8C8; margin: 10px 0;'>" +
-			"Great to see you again! Your personalized dashboard is ready.</p>" +
-			"<p style='font-size: 14px; color: #8A8FA3; margin: 10px 0;'>" +
-			"Let's continue your journey on ForgeGrid.</p>" +
-			"</div></html>");
-		welcomeMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
-		center.add(welcomeMessage);
-		
-		center.add(Box.createRigidArea(new Dimension(0, 30)));
+        // Title
+        JLabel title = new JLabel("Welcome back, " + (username != null ? username : "User") + "!");
+        title.setFont(new Font("SansSerif", Font.BOLD, 22));
+        title.setForeground(Color.BLACK);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        card.add(title);
+        card.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// Continue button
-		JButton continueBtn = createContinueButton();
-		continueBtn.setText("Continue to Dashboard");
-		continueBtn.addActionListener(e -> continueAction.run());
-		
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setOpaque(false);
-		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-		
-		JPanel continueWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)) {
-			@Override
-			public Dimension getMaximumSize() {
-				return getPreferredSize();
-			}
-		};
-		continueWrap.setOpaque(false);
-		continueBtn.setPreferredSize(new Dimension(280, 40));
-		continueBtn.setMaximumSize(new Dimension(280, 40));
-		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
-		
-        JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 20);
-		Dimension contSize = new Dimension(280, 40);
-		gradientButton.setPreferredSize(contSize);
-		gradientButton.setMinimumSize(contSize);
-		gradientButton.setMaximumSize(contSize);
-		continueWrap.setPreferredSize(contSize);
-		continueWrap.setMinimumSize(contSize);
-		continueWrap.setMaximumSize(contSize);
-		continueWrap.add(gradientButton);
-		buttonPanel.add(continueWrap);
-		
-		center.add(buttonPanel);
-		
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
-		bg.add(center, gbc);
-		return bg;
-	}
+        // Message
+        JLabel msg1 = new JLabel("Great to see you again! Your personalized dashboard is ready.");
+        msg1.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        msg1.setForeground(Color.DARK_GRAY);
+        msg1.setAlignmentX(Component.CENTER_ALIGNMENT);
+        card.add(msg1);
+
+        JLabel msg2 = new JLabel("Let's continue your journey on ForgeGrid.");
+        msg2.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        msg2.setForeground(Color.GRAY);
+        msg2.setAlignmentX(Component.CENTER_ALIGNMENT);
+        card.add(msg2);
+
+        card.add(Box.createRigidArea(new Dimension(0, 18)));
+
+        // Continue button (plain pink)
+        JButton continueBtn = new JButton("Continue to Dashboard");
+        continueBtn.setUI(new BasicButtonUI());
+        continueBtn.setBackground(Theme.BRAND_PINK);
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBorderPainted(false);
+        continueBtn.setFocusPainted(false);
+        Dimension btnSize = new Dimension(320, 40);
+        continueBtn.setPreferredSize(btnSize);
+        continueBtn.setMaximumSize(btnSize);
+        continueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        continueBtn.addActionListener(e -> continueAction.run());
+        card.add(continueBtn);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
+        bg.add(card, gbc);
+        return bg;
+    }
 
 	private JPanel buildCompletionPanel(Runnable continueAction) {
         JPanel bg = new JPanel(new GridBagLayout());
         bg.setOpaque(true);
         bg.setBackground(new Color(25, 35, 55));
 		
-		JPanel center = new CardContainerPanel();
-		center.setOpaque(false);
-		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-		center.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        JPanel center = new JPanel();
+        center.setOpaque(true);
+        center.setBackground(Color.WHITE);
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+        center.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(24, 32, 24, 32)
+        ));
 
 		// Completion title with username
-		GradientTextLabel completionTitle = new GradientTextLabel("Hi " + (username != null ? username : "there") + "!");
-		completionTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-		completionTitle.setForeground(Theme.TEXT_PRIMARY);
-		completionTitle.setGradient(Theme.BRAND_BLUE, Theme.BRAND_PINK);
-		completionTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
-		center.add(completionTitle);
+        JLabel completionTitle = new JLabel("Hi " + (username != null ? username : "there") + "!");
+        completionTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        completionTitle.setForeground(Color.BLACK);
+        completionTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
+        center.add(completionTitle);
 		
 		center.add(Box.createRigidArea(new Dimension(0, 25)));
 
 		// Motivational message
-		JLabel motivationalMessage = new JLabel("<html><div style='text-align: center;'>" +
-			"<p style='font-size: 18px; color: #B4B8C8; margin: 15px 0; font-weight: bold;'>" +
-			"🎉 Welcome to ForgeGrid! 🎉</p>" +
-			"<p style='font-size: 16px; color: #A0A8B8; margin: 12px 0;'>" +
-			"Your journey to becoming a coding champion starts now!</p>" +
-			"<p style='font-size: 15px; color: #8A8FA3; margin: 12px 0;'>" +
-			"With your " + (selectedGoal != null ? selectedGoal.toLowerCase() : "chosen path") + " focus and " + 
-			(selectedLanguage != null ? selectedLanguage : "programming") + " skills,</p>" +
-			"<p style='font-size: 15px; color: #8A8FA3; margin: 12px 0;'>" +
-			"you're ready to tackle any challenge that comes your way.</p>" +
-			"<p style='font-size: 16px; color: #46C4B6; margin: 15px 0; font-weight: bold;'>" +
-			"Let's build something amazing together! 💪</p>" +
-			"</div></html>");
+        JLabel motivationalMessage = new JLabel("Welcome to ForgeGrid! Let's get started.", SwingConstants.CENTER);
+        motivationalMessage.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        motivationalMessage.setForeground(Color.DARK_GRAY);
 		motivationalMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
 		center.add(motivationalMessage);
 		
@@ -222,8 +204,9 @@ public class OnboardingInAppPanel extends JPanel {
 	}
 
 	private JPanel buildQ2(Runnable next) {
-		NeonBackgroundPanel bg = new NeonBackgroundPanel();
-		bg.setLayout(new GridBagLayout());
+        JPanel bg = new JPanel(new GridBagLayout());
+        bg.setOpaque(true);
+        bg.setBackground(new Color(238, 238, 238));
 		JPanel center = buildQuestionPanel(
 			"Q2. What's your preferred programming language?",
 			new String[]{"Java", "Python", "C", "JavaScript"},
@@ -237,8 +220,9 @@ public class OnboardingInAppPanel extends JPanel {
 	}
 
 	private JPanel buildQ3(Runnable finish) {
-		NeonBackgroundPanel bg = new NeonBackgroundPanel();
-		bg.setLayout(new GridBagLayout());
+        JPanel bg = new JPanel(new GridBagLayout());
+        bg.setOpaque(true);
+        bg.setBackground(new Color(238, 238, 238));
 		JPanel center = buildQuestionPanel(
 			"Q3. What best describes your current coding skill level?",
 			new String[]{
@@ -262,22 +246,21 @@ public class OnboardingInAppPanel extends JPanel {
 		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 		center.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-		GradientTextLabel heading = new GradientTextLabel(title);
-		heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-		heading.setForeground(Theme.TEXT_PRIMARY);
-		heading.setGradient(Theme.BRAND_BLUE, Theme.BRAND_PINK);
-		heading.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        JLabel heading = new JLabel(title);
+        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
+        heading.setForeground(Color.BLACK);
+        heading.setFont(new Font("SansSerif", Font.BOLD, 16));
 		center.add(heading);
 		center.add(Box.createRigidArea(new Dimension(0, 18)));
 
-		JPanel optionsWrap = new JPanel();
-		optionsWrap.setOpaque(false);
+        JPanel optionsWrap = new JPanel();
+        optionsWrap.setOpaque(false);
 		optionsWrap.setLayout(new BoxLayout(optionsWrap, BoxLayout.Y_AXIS));
 		optionsWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		ButtonGroup group = new ButtonGroup();
+        ButtonGroup group = new ButtonGroup();
         for (String opt : options) {
-			JToggleButton btn = createOptionButton(opt);
+            JToggleButton btn = createOptionButton(opt);
 			group.add(btn);
 			btn.setAlignmentX(Component.CENTER_ALIGNMENT);
             btn.setMaximumSize(new Dimension(460, 36));

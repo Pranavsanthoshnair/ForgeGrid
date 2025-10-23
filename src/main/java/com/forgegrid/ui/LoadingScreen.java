@@ -2,6 +2,7 @@ package com.forgegrid.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * Static loading screen with brand and tagline. No animations or sounds.
@@ -15,38 +16,54 @@ public class LoadingScreen extends JPanel {
     }
 
     private void initializeUI() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(25, 35, 55));
+        setLayout(new GridBagLayout());
+        setBackground(new Color(238, 238, 238));
 
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setOpaque(false);
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(80, 50, 80, 50));
+        JPanel card = new JPanel();
+        card.setOpaque(true);
+        card.setBackground(Color.WHITE);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(24, 32, 24, 32)
+        ));
 
-        GradientTextLabel brand = new GradientTextLabel("ForgeGrid");
-        brand.setFont(new Font("Trebuchet MS", Font.BOLD, 48));
-        brand.setGradient(Theme.BRAND_YELLOW, Theme.BRAND_GOLD);
+        JLabel brand = new JLabel("ForgeGrid");
+        brand.setFont(new Font("SansSerif", Font.BOLD, 24));
+        brand.setForeground(Color.BLACK);
         brand.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel taglineLabel = new JLabel("where coding challenges become milestones", JLabel.CENTER);
-        taglineLabel.setFont(new Font("Trebuchet MS", Font.ITALIC, 16));
-        taglineLabel.setForeground(new Color(135, 206, 250));
+        JLabel taglineLabel = new JLabel("ForgeGrid – Where coding challenges become milestones.");
+        taglineLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        taglineLabel.setForeground(Color.DARK_GRAY);
         taglineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        taglineLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 40, 0));
+        taglineLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 12, 0));
 
-        statusLabel = new JLabel("Initializing ForgeGrid...", JLabel.CENTER);
-        statusLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 18));
-        statusLabel.setForeground(new Color(200, 200, 200));
+        statusLabel = new JLabel("Loading...", JLabel.CENTER);
+        statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.GRAY);
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        statusLabel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
 
-        centerPanel.add(Box.createVerticalGlue());
-        centerPanel.add(brand);
-        centerPanel.add(taglineLabel);
-        centerPanel.add(statusLabel);
-        centerPanel.add(Box.createVerticalGlue());
+        JButton continueBtn = new JButton("Continue");
+        continueBtn.setUI(new BasicButtonUI());
+        continueBtn.setBackground(Theme.BRAND_PINK);
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBorderPainted(false);
+        continueBtn.setFocusPainted(false);
+        Dimension btn = new Dimension(160, 36);
+        continueBtn.setPreferredSize(btn);
+        continueBtn.setMaximumSize(btn);
+        continueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        add(centerPanel, BorderLayout.CENTER);
+        card.add(brand);
+        card.add(taglineLabel);
+        card.add(statusLabel);
+        card.add(Box.createRigidArea(new Dimension(0, 12)));
+        card.add(continueBtn);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
+        add(card, gbc);
     }
 }
 

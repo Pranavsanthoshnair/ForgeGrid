@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * Minimal, dark-themed panel that displays random motivational tips/quotes
@@ -29,21 +30,21 @@ public class MotivationPanel extends JPanel {
     private final List<String> quotes;
 
     public MotivationPanel() {
-        setLayout(new BorderLayout());
-        setBackground(BG_COLOR);
+        setLayout(new GridBagLayout());
+        setBackground(new Color(238, 238, 238));
 
-        // Container card
+        // White card container
         JPanel card = new JPanel();
         card.setOpaque(true);
-        card.setBackground(PANEL_COLOR);
-        card.setBorder(new EmptyBorder(30, 30, 30, 30));
+        card.setBackground(Color.WHITE);
+        card.setBorder(new EmptyBorder(20, 24, 20, 24));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        // Title (subtle)
+        // Title
         JLabel title = new JLabel("Motivation");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setForeground(TEXT_SECONDARY);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        title.setForeground(Color.BLACK);
+        title.setFont(new Font("SansSerif", Font.BOLD, 16));
 
         // Quote label (centered, wrapped via HTML)
         quoteLabel = new JLabel("", SwingConstants.CENTER);
@@ -51,23 +52,20 @@ public class MotivationPanel extends JPanel {
         quoteLabel.setForeground(TEXT_COLOR);
         quoteLabel.setBorder(new EmptyBorder(20, 10, 20, 10));
         // Use app's emoji-capable font if available
-        try {
-            quoteLabel.setFont(FontUtils.getEmojiFont(Font.BOLD, 18));
-        } catch (Throwable t) {
-            quoteLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        }
+        quoteLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
 
         // Next button (hand cursor on hover)
-        nextButton = new JButton("Next Tip →");
+        nextButton = new JButton("Next Tip");
         nextButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        nextButton.setUI(new BasicButtonUI());
         nextButton.setForeground(Color.WHITE);
-        nextButton.setBackground(ACCENT_COLOR);
+        nextButton.setBackground(Theme.BRAND_PINK);
         nextButton.setFocusPainted(false);
         nextButton.setBorderPainted(false);
-        nextButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        nextButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        nextButton.setPreferredSize(new Dimension(140, 40));
-        nextButton.setMaximumSize(new Dimension(180, 40));
+        nextButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        Dimension btn = new Dimension(140, 36);
+        nextButton.setPreferredSize(btn);
+        nextButton.setMaximumSize(btn);
         nextButton.addActionListener(this::handleNext);
 
         // Build vertical layout
@@ -80,12 +78,9 @@ public class MotivationPanel extends JPanel {
         card.add(Box.createVerticalGlue());
 
         // Slight outer padding
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setOpaque(false);
-        wrapper.setBorder(new EmptyBorder(20, 30, 20, 30));
-        wrapper.add(card, BorderLayout.CENTER);
-
-        add(wrapper, BorderLayout.CENTER);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;
+        add(card, gbc);
 
         quotes = defaultQuotes();
         showRandomQuote();
