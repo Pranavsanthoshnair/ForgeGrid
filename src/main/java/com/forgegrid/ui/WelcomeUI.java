@@ -116,23 +116,7 @@ public class WelcomeUI extends JPanel {
         startButton.addActionListener(l);
     }
 
-    // Removed advanced helpers; keep minimal API footprint
-    private JPanel createLogoPanel(double multiplier) { return new JPanel(); }
-
-    // Minimal font selection for basic Swing
-    private Font getStylishFont(String primary, int style, int size, String[] fallbacks) { return new Font("SansSerif", style, size); }
-
-    private double calculateProportionalScale() { return 1.0; }
-    
-    /**
-     * Static quotes panel; shows a single quote without rotation or fades.
-     */
-    private class RotatingQuotesPanel extends JPanel { }
-    
-    /**
-     * Custom label with subtle glow effect for quotes
-     */
-    private static class GlowingQuotesLabel extends JLabel { public GlowingQuotesLabel(String t, int a){ super(t,a);} }
+    // No extra helpers
 }
 
 

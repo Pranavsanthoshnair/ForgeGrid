@@ -14,7 +14,6 @@ import java.util.Map;
 public class AuthUI extends JFrame {
     // Color scheme
     private static final Color PRIMARY_COLOR = new Color(0xffcc4d); // #ffcc4d - Golden yellow
-    private static final Color SECONDARY_COLOR = new Color(0x3a6ea5); // #3a6ea5 - Blue
     
     private JTextField emailField;
     private JPasswordField passwordField;
@@ -333,116 +332,7 @@ public class AuthUI extends JFrame {
         emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
         emailContainer.add(emailField);
         
-        // Add dropdown suggestion for last username if available
-        String lastUsername = userPreferences.getLastUsername();
-        if (lastUsername != null && !lastUsername.isEmpty()) {
-            // Create dropdown panel
-            JPanel dropdownPanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    Graphics2D g2d = (Graphics2D) g.create();
-                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    
-                    // Dropdown background
-                    g2d.setColor(new Color(30, 40, 60));
-                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-                    
-                    // Border
-                    g2d.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 100));
-                    g2d.setStroke(new BasicStroke(1.5f));
-                    g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 10, 10);
-                    
-                    g2d.dispose();
-                }
-            };
-            dropdownPanel.setOpaque(false);
-            dropdownPanel.setLayout(new BorderLayout());
-            dropdownPanel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
-            dropdownPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            dropdownPanel.setVisible(false); // Hidden by default
-            
-            // Suggestion label inside dropdown
-            JLabel suggestionLabel = new JLabel(lastUsername);
-            suggestionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            suggestionLabel.setForeground(new Color(220, 220, 240));
-            suggestionLabel.setIcon(new javax.swing.ImageIcon() {
-                @Override
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 150));
-                    g2.fillOval(x, y + 2, 8, 8);
-                    g2.dispose();
-                }
-                @Override
-                public int getIconWidth() { return 8; }
-                @Override
-                public int getIconHeight() { return 12; }
-            });
-            suggestionLabel.setIconTextGap(8);
-            
-            dropdownPanel.add(suggestionLabel, BorderLayout.CENTER);
-            
-            // Calculate dropdown size to match email field
-            double dropdownScale = calculateProportionalScale();
-            int fieldWidth = (int) (520 * dropdownScale);
-            fieldWidth = Math.max(250, fieldWidth);
-            dropdownPanel.setMaximumSize(new Dimension(fieldWidth, 40));
-            dropdownPanel.setPreferredSize(new Dimension(fieldWidth, 40));
-            dropdownPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-        // Remove hover/animation effects
-        dropdownPanel.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseEntered(java.awt.event.MouseEvent e) {
-                    // no-op
-                }
-                
-                @Override
-                public void mouseExited(java.awt.event.MouseEvent e) {
-                    // no-op
-                }
-                
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent e) {
-                    // Fill the email field with the suggested username
-                    emailField.setText(lastUsername);
-                    emailField.setForeground(Color.BLACK);
-                    emailField.putClientProperty("placeholderActive", Boolean.FALSE);
-                    // Hide the dropdown after clicking
-                    dropdownPanel.setVisible(false);
-                    // Focus on password field
-                    passwordField.requestFocus();
-                }
-            });
-            
-            // Show dropdown when email field is focused or clicked
-            emailField.addFocusListener(new java.awt.event.FocusAdapter() {
-                @Override
-                public void focusGained(java.awt.event.FocusEvent e) {
-                    Object placeholderActive = emailField.getClientProperty("placeholderActive");
-                    if (Boolean.TRUE.equals(placeholderActive) || emailField.getText().trim().isEmpty()) {
-                        dropdownPanel.setVisible(true);
-                    }
-                }
-                
-                @Override
-                public void focusLost(java.awt.event.FocusEvent e) {
-                    // Hide dropdown when focus is lost (with delay to allow clicking)
-                    Timer hideTimer = new Timer(150, evt -> {
-                        if (!dropdownPanel.isAncestorOf(e.getOppositeComponent())) {
-                            dropdownPanel.setVisible(false);
-                        }
-                    });
-                    hideTimer.setRepeats(false);
-                    hideTimer.start();
-                }
-            });
-            
-            emailContainer.add(Box.createRigidArea(new Dimension(0, 4)));
-            emailContainer.add(dropdownPanel);
-        }
+        // No extra suggestion UI; 'Remember Me' handles prefill
         
         card.add(emailContainer);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -642,7 +532,10 @@ public class AuthUI extends JFrame {
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
         field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        field.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+		field.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(new Color(180, 180, 180)),
+			BorderFactory.createEmptyBorder(10, 12, 10, 12)
+		));
         field.setBackground(Color.WHITE);
         field.setForeground(new Color(220, 220, 240));
         field.setCaretColor(PRIMARY_COLOR);
@@ -691,7 +584,10 @@ public class AuthUI extends JFrame {
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
         field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        field.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+		field.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(new Color(180, 180, 180)),
+			BorderFactory.createEmptyBorder(10, 12, 10, 12)
+		));
         field.setBackground(Color.WHITE);
         field.setForeground(new Color(220, 220, 240));
         field.setCaretColor(PRIMARY_COLOR);
@@ -908,10 +804,7 @@ public class AuthUI extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Enable rollover for hover visuals
-        button.setRolloverEnabled(true);
-        // Add subtle hover effect
-        addButtonHoverEffect(button);
+        // No rollover/hover effects needed
         
         return button;
     }
@@ -1301,55 +1194,7 @@ public class AuthUI extends JFrame {
     /**
      * Simplified button hover effect
      */
-    private void addButtonHoverEffect(JButton button) {
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                // Set hover state for gradient buttons
-                if (button.getClass().getSimpleName().contains("$")) {
-                    try {
-                        java.lang.reflect.Method setHovered = button.getClass().getMethod("setHovered", boolean.class);
-                        setHovered.invoke(button, true);
-                    } catch (Exception ex) {
-                        // Fallback for regular buttons
-                        Color currentColor = button.getBackground();
-                        if (currentColor != null) {
-                            Color hoverColor = new Color(
-                                Math.min(255, currentColor.getRed() + 30),
-                                Math.min(255, currentColor.getGreen() + 30),
-                                Math.min(255, currentColor.getBlue() + 30)
-                            );
-                            button.setBackground(hoverColor);
-                        }
-                    }
-                }
-                button.repaint();
-            }
-            
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                // Reset hover state for gradient buttons
-                if (button.getClass().getSimpleName().contains("$")) {
-                    try {
-                        java.lang.reflect.Method setHovered = button.getClass().getMethod("setHovered", boolean.class);
-                        setHovered.invoke(button, false);
-                    } catch (Exception ex) {
-                        // Fallback for regular buttons
-                        Color currentColor = button.getBackground();
-                        if (currentColor != null) {
-                            Color originalColor = new Color(
-                                Math.max(0, currentColor.getRed() - 30),
-                                Math.max(0, currentColor.getGreen() - 30),
-                                Math.max(0, currentColor.getBlue() - 30)
-                            );
-                            button.setBackground(originalColor);
-                        }
-                    }
-                }
-                button.repaint();
-            }
-        });
-    }
+    // Removed hover helpers
     
     /**
      * Simplified link hover animation
