@@ -322,6 +322,156 @@ public class HardcodedTaskService {
                 "Create a class Rectangle to calculate area and perimeter",
                 "Java", "Beginner", 25, 25
             ));
+        } else if (language.contains("javascript") || language.contains("js")) {
+            // JavaScript Basics Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Hello World Program",
+                "Write a JavaScript program to print 'Hello, World!'",
+                "JavaScript", "Beginner", 10, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Personal Information Display",
+                "Display your name, age, and department in the browser console",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Basic Calculator",
+                "Perform addition, subtraction, multiplication, and division of two numbers",
+                "JavaScript", "Beginner", 20, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Variable Swapping",
+                "Swap two variables without using a third variable",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Positive/Negative/Zero Check",
+                "Check whether a number is positive, negative, or zero",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            // JavaScript Control Statements Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Print Numbers 1-10",
+                "Print numbers from 1 to 10 using a for loop",
+                "JavaScript", "Beginner", 10, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Multiplication Table",
+                "Display the multiplication table of a given number",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum of Natural Numbers",
+                "Calculate the sum of natural numbers up to n",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Reverse Number with While Loop",
+                "Reverse a number using a while loop",
+                "JavaScript", "Beginner", 25, 25
+            ));
+            // JavaScript Arrays Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Create and Display Array",
+                "Create an array and display its elements",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Largest and Smallest",
+                "Find the largest and smallest elements in an array",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Sum Calculator",
+                "Calculate the sum of array elements",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            // JavaScript Strings Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "String Length Finder",
+                "Find the length of a string",
+                "JavaScript", "Beginner", 10, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Case Conversion",
+                "Convert a string to uppercase and lowercase",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Vowel and Consonant Counter",
+                "Count the number of vowels and consonants in a string",
+                "JavaScript", "Beginner", 25, 25
+            ));
+            // JavaScript Functions Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Add Two Numbers Function",
+                "Write a function to add two numbers",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Factorial Function",
+                "Write a function to calculate the factorial of a number",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Reverse String Function",
+                "Write a function to reverse a string",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            // JavaScript Objects Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Student Object Creation",
+                "Create an object student with properties name, age, and grade",
+                "JavaScript", "Beginner", 25, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Object Property Operations",
+                "Access, add, and delete object properties",
+                "JavaScript", "Beginner", 30, 30
+            ));
+            // JavaScript DOM Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Change HTML Content",
+                "Change the content of an HTML element using JavaScript",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Change Element Colors",
+                "Change the color and background of a paragraph",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Button Click Alert",
+                "Display an alert when a button is clicked",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            // JavaScript Events Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Button Click Message",
+                "Display a message when a button is clicked",
+                "JavaScript", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Mouse Hover Effect",
+                "Change the background color when the mouse hovers over an element",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Current Date Display",
+                "Display the current date when a button is clicked",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            // JavaScript Math/Date Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Math Functions Usage",
+                "Use Math functions like Math.sqrt(), Math.pow(), and Math.round()",
+                "JavaScript", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Random Number Generator",
+                "Generate a random number between 1 and 100",
+                "JavaScript", "Beginner", 15, 15
+            ));
         } else if (language.contains("c")) {
             // Comprehensive C Programming Beginner Tasks
             tasks.add(new HardcodedTask(
@@ -759,6 +909,230 @@ public class HardcodedTaskService {
                 "Runnable Interface Demo",
                 "Create and start a thread using Runnable interface",
                 "Java", "Intermediate", 40, 50
+            ));
+        } else if (language.contains("javascript") || language.contains("js")) {
+            // JavaScript Basics Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Largest of Three Numbers",
+                "Find the largest among three numbers",
+                "JavaScript", "Intermediate", 20, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Even or Odd Checker",
+                "Check whether a number is even or odd",
+                "JavaScript", "Intermediate", 15, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Leap Year Checker",
+                "Check whether a given year is a leap year",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Factorial with Loops",
+                "Find the factorial of a number using loops",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Temperature Converter",
+                "Convert temperature from Celsius to Fahrenheit",
+                "JavaScript", "Intermediate", 20, 25
+            ));
+            // JavaScript Control Statements Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Prime Number Checker",
+                "Check whether a number is prime",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Even and Odd Numbers Range",
+                "Display all even and odd numbers between 1 and 100",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Fibonacci Series Generator",
+                "Generate Fibonacci series up to n terms",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Count Digits in Number",
+                "Count the number of digits in a number",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            // JavaScript Functions Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Palindrome Number Check",
+                "Write a function to check whether a number is palindrome",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Anagram String Check",
+                "Write a function to check whether a string is an anagram",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Largest Element in Array",
+                "Write a function to find the largest element in an array",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Function Expressions and Arrow Functions",
+                "Demonstrate function expressions and arrow functions",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            // JavaScript Arrays Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Reverse Array Without Reverse",
+                "Reverse an array without using reverse() method",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Sorting",
+                "Sort an array in ascending or descending order",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Remove Duplicates from Array",
+                "Remove duplicates from an array",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Merge Two Arrays",
+                "Merge two arrays",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            // JavaScript Strings Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Reverse String Without Built-in",
+                "Reverse a string without using built-in functions",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "String Palindrome Check",
+                "Check whether a string is palindrome",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Replace All Occurrences",
+                "Replace all occurrences of a substring",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            // JavaScript Objects Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Loop Through Object",
+                "Loop through an object using for...in",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Merge Two Objects",
+                "Merge two objects",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Count Object Properties",
+                "Count the number of properties in an object",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            // JavaScript DOM Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Form Validation",
+                "Create a simple form and validate it using JavaScript",
+                "JavaScript", "Intermediate", 40, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "Dynamic Elements",
+                "Add and remove elements dynamically",
+                "JavaScript", "Intermediate", 35, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Image Source Change",
+                "Change the image source on a button click",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            // JavaScript Events Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Form Validation on Submit",
+                "Validate form fields on submit event",
+                "JavaScript", "Intermediate", 35, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Character Count on Keyup",
+                "Use onkeyup event to count characters in a textbox",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Multiple Events Handler",
+                "Handle multiple events on the same element",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            // JavaScript Advanced Arrays/Objects Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Sort Array of Objects",
+                "Sort an array of objects by a property (e.g., age)",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Filter Array of Objects",
+                "Filter an array of objects based on a condition",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum Prices in Objects",
+                "Find the sum of all prices in an array of objects",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            // JavaScript Math/Date Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Current Date and Time",
+                "Display current date and time using the Date object",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Date Formatting",
+                "Format date as DD/MM/YYYY",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Date Difference Calculator",
+                "Calculate the difference between two dates",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            // JavaScript Error Handling Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Try-Catch Error Handling",
+                "Use try...catch to handle errors",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Custom Error Messages",
+                "Throw custom error messages",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            // JavaScript ES6 Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Let, Const, and Template Literals",
+                "Demonstrate use of let, const, and template literals",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Destructuring Assignment",
+                "Use destructuring for arrays and objects",
+                "JavaScript", "Intermediate", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Default Parameters",
+                "Use default parameters in functions",
+                "JavaScript", "Intermediate", 25, 30
+            ));
+            // JavaScript Async Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "setTimeout Demonstration",
+                "Demonstrate asynchronous execution using setTimeout()",
+                "JavaScript", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Callback Functions",
+                "Explain and use callbacks with examples",
+                "JavaScript", "Intermediate", 35, 40
             ));
         } else if (language.contains("c")) {
             // Comprehensive C Programming Intermediate Tasks
@@ -1326,6 +1700,209 @@ public class HardcodedTaskService {
                 "Inventory Management System",
                 "Build a mini project (Inventory System)",
                 "Java", "Expert", 110, 160
+            ));
+        } else if (language.contains("javascript") || language.contains("js")) {
+            // JavaScript Control Statements Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Pattern Programs with Nested Loops",
+                "Print patterns using nested loops (triangle, pyramid)",
+                "JavaScript", "Expert", 50, 60
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum of Digits Calculator",
+                "Find the sum of digits of a number",
+                "JavaScript", "Expert", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Prime Numbers in Range",
+                "Display all prime numbers between two intervals",
+                "JavaScript", "Expert", 45, 50
+            ));
+            // JavaScript Functions Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Recursive Power Function",
+                "Write a recursive function to calculate power (xⁿ)",
+                "JavaScript", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Closure Implementation",
+                "Implement a function that returns another function (closure)",
+                "JavaScript", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Callback Functions Demo",
+                "Demonstrate callback functions with an example",
+                "JavaScript", "Expert", 35, 40
+            ));
+            // JavaScript Arrays Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Second Largest Element",
+                "Find the second largest element in an array",
+                "JavaScript", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Separate Even and Odd Numbers",
+                "Separate even and odd numbers from an array",
+                "JavaScript", "Expert", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Methods Usage",
+                "Use map(), filter(), and reduce() to perform operations on arrays",
+                "JavaScript", "Expert", 40, 45
+            ));
+            // JavaScript Strings Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Character Frequency Counter",
+                "Count the frequency of each character in a string",
+                "JavaScript", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Remove Spaces from String",
+                "Remove spaces from a string",
+                "JavaScript", "Expert", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Anagram String Checker",
+                "Check if two strings are anagrams",
+                "JavaScript", "Expert", 40, 45
+            ));
+            // JavaScript Objects Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Constructor Functions",
+                "Create a constructor function and instantiate multiple objects",
+                "JavaScript", "Expert", 45, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "Object Methods Usage",
+                "Demonstrate use of Object.keys(), Object.values(), and Object.entries()",
+                "JavaScript", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Nested Objects Access",
+                "Create nested objects and access their values",
+                "JavaScript", "Expert", 35, 40
+            ));
+            // JavaScript DOM Expert Tasks
+            tasks.add(new HardcodedTask(
+                "To-Do List App",
+                "Implement a simple to-do list using DOM methods",
+                "JavaScript", "Expert", 60, 80
+            ));
+            tasks.add(new HardcodedTask(
+                "Dynamic Table Builder",
+                "Build a dynamic table that adds rows on button click",
+                "JavaScript", "Expert", 50, 65
+            ));
+            tasks.add(new HardcodedTask(
+                "Live Search/Filter",
+                "Implement live search/filter functionality on a list",
+                "JavaScript", "Expert", 55, 70
+            ));
+            // JavaScript Events Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Event Delegation",
+                "Implement event delegation",
+                "JavaScript", "Expert", 45, 55
+            ));
+            tasks.add(new HardcodedTask(
+                "Digital Clock with setInterval",
+                "Create a digital clock using setInterval()",
+                "JavaScript", "Expert", 40, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "Keyboard Key Detection",
+                "Detect keyboard key presses and display key codes",
+                "JavaScript", "Expert", 35, 40
+            ));
+            // JavaScript Advanced Arrays/Objects Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Group Data by Property",
+                "Group data by property (e.g., group students by grade)",
+                "JavaScript", "Expert", 45, 55
+            ));
+            tasks.add(new HardcodedTask(
+                "Deep Clone Object",
+                "Clone an object deeply (deep copy vs shallow copy)",
+                "JavaScript", "Expert", 40, 50
+            ));
+            // JavaScript Error Handling Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Finally Block Usage",
+                "Demonstrate finally block usage",
+                "JavaScript", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Input Validation Errors",
+                "Handle input validation errors with custom logic",
+                "JavaScript", "Expert", 40, 50
+            ));
+            // JavaScript ES6 Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Spread and Rest Operators",
+                "Demonstrate spread and rest operators",
+                "JavaScript", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Arrow Functions and Higher-Order",
+                "Use arrow functions and higher-order functions",
+                "JavaScript", "Expert", 45, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "Promises Usage",
+                "Work with promises (then, catch)",
+                "JavaScript", "Expert", 50, 60
+            ));
+            // JavaScript Async Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Promises and Async/Await",
+                "Demonstrate Promises and async/await",
+                "JavaScript", "Expert", 55, 65
+            ));
+            tasks.add(new HardcodedTask(
+                "Fetch API Usage",
+                "Fetch data from a public API using fetch()",
+                "JavaScript", "Expert", 60, 75
+            ));
+            tasks.add(new HardcodedTask(
+                "API Error Handling",
+                "Handle API errors using try-catch",
+                "JavaScript", "Expert", 50, 60
+            ));
+            // JavaScript Mini Projects Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Calculator App",
+                "Calculator using HTML, CSS, and JavaScript",
+                "JavaScript", "Expert", 80, 100
+            ));
+            tasks.add(new HardcodedTask(
+                "To-Do List Application",
+                "To-Do list app using DOM",
+                "JavaScript", "Expert", 70, 90
+            ));
+            tasks.add(new HardcodedTask(
+                "Digital Clock and Stopwatch",
+                "Digital clock and stopwatch",
+                "JavaScript", "Expert", 60, 80
+            ));
+            tasks.add(new HardcodedTask(
+                "Quiz Game",
+                "Quiz game using arrays and events",
+                "JavaScript", "Expert", 80, 100
+            ));
+            tasks.add(new HardcodedTask(
+                "Weather App",
+                "Weather app using an API",
+                "JavaScript", "Expert", 90, 120
+            ));
+            tasks.add(new HardcodedTask(
+                "Form Validation System",
+                "Form validation system",
+                "JavaScript", "Expert", 70, 90
+            ));
+            tasks.add(new HardcodedTask(
+                "Image Slider/Carousel",
+                "Image slider or carousel",
+                "JavaScript", "Expert", 75, 95
             ));
         } else if (language.contains("c")) {
             // Comprehensive C Programming Expert/Advanced Tasks
