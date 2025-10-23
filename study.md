@@ -21,7 +21,7 @@ Directory highlights:
 ---
 
 ## 2) High-level flow
-1. App starts at `com.forgegrid.app.Main` → sets Look & Feel, emoji fonts, shows `AuthUI` on EDT.
+1. App starts at `com.forgegrid.app.Main` → sets system Look & Feel and shows `AuthUI` on EDT.
 2. `AuthUI` handles login/signup and onboarding prompt. After success, it opens `Dashboard` in the same window.
 3. `Dashboard` renders the main app: navigation, player stats (level/XP), hardcoded tasks, “Goated Tasks,” history, and customization entry.
 4. Services (`AuthService`, `UserService`, `LevelService`, `HardcodedTaskService`) talk to MySQL through `DatabaseHelper`.
@@ -34,10 +34,10 @@ Directory highlights:
   - Card-based navigation (`CardLayout`) for: WELCOME, LOGIN, SIGNUP, ONBOARDING_PROMPT, LOADING.
   - Uses custom panels/components:
     - `WelcomeUI`, `LoadingScreen`, `OnboardingInAppPanel` (new/returning flows)
-    - `NeonBackgroundPanel`: static dark background
+    - (Removed legacy custom background components)
     - `CardContainerPanel`: layout helper for consistent card look
-    - `GradientTextLabel`, `Theme`: brand styling and gradient buttons
-  - Login/Signup fields are modern-styled Swing inputs with placeholder and effects.
+    - `Theme`: brand colors (no gradients)
+  - Login/Signup fields are basic Swing inputs (simple borders, placeholders handled inline).
   - After login, either:
     - Shows `ONBOARDING_PROMPT` → in-app onboarding (`OnboardingInAppPanel`) → saves onboarding to DB → opens `Dashboard` in-card; or
     - If already onboarded → shows welcome-back → `Dashboard`.
@@ -50,12 +50,12 @@ Directory highlights:
     - Hardcoded task list based on onboarding language/skill using `HardcodedTaskService#getTasksForUser`
     - Completion/skip log writes into `user_tasks`, and XP updates via `LevelService#addXP`
     - Goated Tasks: CRUD UI hooks that call `HardcodedTaskService` methods
-  - Overlays: glass pane for modal fade to avoid white flash.
+  - Overlays removed; plain card switches (CardLayout).
 
 - Shared UI utilities
-  - `Theme`: brand colors and `asGradientButton` wrapper
-  - `FontUtils`: emoji/font helpers
-  - `NeonBackgroundPanel`, `FadeInPanel`, `MotivationPanel`, `TaskPopupDialog`, `LoadingScreen` (prize wheel loading), etc.
+- `Theme`: brand colors; gradients removed
+ 
+- `TaskPopupDialog`, `LoadingScreen` (simplified), `CardContainerPanel`
 
 Layouts used (selection):
 - `BorderLayout`, `BoxLayout`, `CardLayout`, `FlowLayout`, and custom-painted panels.
@@ -184,7 +184,7 @@ Notes:
 ## 11) Quick file map
 - Entry: `app/Main.java`
 - Auth/UI: `ui/AuthUI.java`, `ui/WelcomeUI.java`, `ui/LoadingScreen.java`, `ui/OnboardingInAppPanel.java`
-- Main UI: `ui/Dashboard.java`, shared: `ui/Theme.java`, `ui/NeonBackgroundPanel.java`, `ui/GradientTextLabel.java`, `ui/CardContainerPanel.java`
+- Main UI: `ui/Dashboard.java`, shared: `ui/Theme.java`, `ui/CardContainerPanel.java`
 - Services: `auth/AuthService.java`, `service/UserService.java`, `service/LevelService.java`, `service/HardcodedTaskService.java`
 - DB: `db/DatabaseHelper.java`
 - Models: `model/PlayerProfile.java`, `model/HardcodedTask.java`, `model/GoatedTask.java`, `model/TaskHistoryEntry.java`
@@ -340,8 +340,8 @@ Tables auto-created:
   - `ui/AuthUI.java` (flows), `ui/OnboardingInAppPanel.java` (Q1/2/3 UI)
   - `service/UserService.java` (save/get onboarding)
 - Dashboard:
-  - `ui/Dashboard.java` (views, XP panel, calls to services)
-  - `ui/Theme.java`, `ui/NeonBackgroundPanel.java`, `ui/GradientTextLabel.java`
+  - `ui/Dashboard.java` (views, calls to controllers/services)
+  - `ui/Theme.java`
 - Tasks and XP:
   - `service/HardcodedTaskService.java` (assignment, complete/skip, goated, history)
   - `service/LevelService.java` (XP curve and updates)
@@ -709,4 +709,312 @@ SwingUtilities.invokeLater(() -> {
     authUI.setVisible(true);
 });
 ```
+
+## 15) Component inventory (Swing) by file [post-simplification]
+- **ui/WelcomeUI.java**: `JPanel`, `JLabel`, `JButton`, `FlowLayout`, `BoxLayout`, `BorderLayout`, `BasicButtonUI`.
+- **ui/AuthUI.java**: `JFrame`, `JPanel`, `JLabel`, `JTextField`, `JPasswordField`, `JCheckBox`, `JButton`, `CardLayout`, `BoxLayout`, `FlowLayout`, `BorderLayout`, `BasicButtonUI`, `SwingWorker`, `JOptionPane`.
+- **ui/OnboardingInAppPanel.java**: `JPanel`, `CardLayout`, `JLabel`, `JToggleButton`, `ButtonGroup`, `JButton`, `BoxLayout`, `FlowLayout`, `BorderLayout`, `GridBagLayout`, `BasicButtonUI`.
+- **ui/Dashboard.java**: `JFrame`, `JPanel`, `JLabel`, `JButton`, `JList`, `JTable`, `JScrollPane`, `JProgressBar` (custom-painted/standard), layouts: `BorderLayout`, `FlowLayout`, `BoxLayout`, plus basic borders. All text uses black; backgrounds use default `UIManager` panel color.
+- **ui/TaskPopupDialog.java**: `JDialog`, `JPanel`, `JLabel`, `JButton`, `JTextArea`, `JScrollPane`.
+- **ui/CardContainerPanel.java**: `JPanel` with simple line border; basic white background.
+- **ui/LoadingScreen.java**: `JPanel`, `JLabel`; simple white card.
+- **ui/Theme.java**: Brand color constants.
+
+## 16) Button click flows (what happens)
+- **WelcomeUI → Start**: Triggers listener → `AuthUI` shows `LOGIN` card.
+- **AuthUI → Login**: Placeholder normalize → disable → `AuthController.login` → on success, check onboarding via controller → show `LOADING` → either show onboarding prompt or open `Dashboard` (embedding its content pane in same frame).
+- **AuthUI → Sign Up**: Validate → `AuthController.register` → on success, show success dialog and switch to `LOGIN`.
+- **Onboarding Prompt (Yes)**: Build `OnboardingInAppPanel` and show it.
+- **Onboarding Prompt (Skip)**: `AuthController.saveOnboardingData("Skipped", "Not specified", "Not specified")` → open dashboard.
+- **OnboardingInAppPanel → Continue**: Store selections (goal, language, skill) → final Continue calls listener → `OnboardingController.saveOnboardingData(username, ...)` → `AuthUI` opens dashboard.
+- **Dashboard actions**: Start/Done/Skip wire to services via controller: `recordAssignedTask`, `saveCompletedTask` + `LevelService.addXP(+xp)`, `saveSkippedTask` + `LevelService.addXP(-xp)`.
+
+## 17) Railway MySQL integration and JDBC steps (where located)
+- **Register driver & open connection**:
+```125:126:src/main/java/com/forgegrid/db/DatabaseHelper.java
+Class.forName("com.mysql.cj.jdbc.Driver");
+connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+```
+- **Central connection getter**:
+```113:117:src/main/java/com/forgegrid/db/DatabaseHelper.java
+public Connection getConnection() throws SQLException {
+    if (connection == null || connection.isClosed()) {
+        connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+    }
+    return connection;
+}
+```
+- **Create statement / prepared statements**:
+```47:53:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+try (Connection conn = dbHelper.getConnection();
+     Statement stmt = conn.createStatement()) {
+    stmt.execute(createTableSQL);
+}
+```
+```109:116:src/main/java/com/forgegrid/auth/AuthService.java
+try (Connection conn = dbHelper.getConnection();
+     PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+    // set params ...
+}
+```
+- **Execute query/update examples**:
+```115:121:src/main/java/com/forgegrid/auth/AuthService.java
+pstmt.setString(1, usernameOrEmail.trim());
+pstmt.setString(2, usernameOrEmail.trim());
+pstmt.setString(3, hashedPassword);
+try (ResultSet rs = pstmt.executeQuery()) {
+    if (rs.next()) { /* build profile */ }
+}
+```
+- **Close connection**: try-with-resources auto-closes; optional explicit:
+```262:270:src/main/java/com/forgegrid/db/DatabaseHelper.java
+public void closeConnection() {
+    try {
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+        }
+    } catch (SQLException e) { }
+}
+```
+
+### Where Railway settings are configured
+- `config/EnvironmentConfig.java`: Reads `.env`/env, can convert `RAILWAY_MYSQL_URL` to JDBC.
+- `db/DatabaseHelper.java`: Builds JDBC URL, registers driver, initializes tables and indexes.
+
+## 18) Query map (SQL locations)
+- **auth/AuthService.java**: `INSERT users` (register), `SELECT users` (login), `UPDATE users` (reset password), existence checks (`COUNT(*)`).
+- **service/UserService.java**: `SELECT/UPDATE users` for onboarding; `INSERT/UPSERT user_preferences`; reads preferences/profile details; existence checks.
+- **service/HardcodedTaskService.java**: `CREATE TABLE user_tasks`, migrations (`ALTER`/`CREATE INDEX`), task writes (`INSERT completed|skipped|assigned`), reads (`SELECT history/aggregates`), `UPDATE` for auto-skip, CRUD for goated.
+- **service/LevelService.java**: Reads XP/level (`SELECT`), writes updated totals (`UPDATE`).
+- **db/DatabaseHelper.java**: `CREATE TABLE users`, `CREATE TABLE user_preferences`, index creation.
+
+## 19) GUI file responsibilities (concise)
+- **app/Main.java**: Starts UI on EDT.
+- **ui/WelcomeUI.java**: Landing card; Start → login.
+- **ui/AuthUI.java**: Manages cards: WELCOME, LOGIN, SIGNUP, ONBOARDING_PROMPT, LOADING; delegates to controllers/services; swaps in `Dashboard` content.
+- **ui/OnboardingInAppPanel.java**: Q1/Q2/Q3 or Welcome Back; emits completion to caller.
+- **ui/Dashboard.java**: Simplified main UI; sidebar, center cards, task actions, stats; basic Swing colors; text black.
+- **ui/TaskPopupDialog.java**: Minimal dialog for task actions wired to services.
+- **ui/CardContainerPanel.java**: Simple white bordered card.
+- **ui/LoadingScreen.java**: Minimal loading view.
+- **ui/Theme.java**: Brand colors (pink/yellow/blue/gold).
+
+## 20) Tasks according to onboarding
+- Onboarding fields stored on `users` table drive catalogs.
+- Flow: `AuthUI` → (maybe) `OnboardingInAppPanel` → persist via `UserService` → `Dashboard` loads tasks using `HardcodedTaskService.getTasksForUser(language, level)` selecting beginner/intermediate/advanced lists; penalties for auto-skip use same catalog to compute XP.
+
+### Code references
+```194:214:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+public List<HardcodedTask> getTasksForUser(String language, String level) { /* ... */ }
+```
+```599:627:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+public void autoSkipExpiredAssignedTasks(String username, String language, String level) { /* ... */ }
+```
+
+## 21) End-to-end button→DB trace (Login → Dashboard)
+1) `ui/AuthUI` Login button → `AuthController.login` → `auth/AuthService.login` (SELECT with username/email OR + hashed password).
+2) On success, `UserService.hasCompletedOnboardingByUsername` check.
+3) If new user → `OnboardingInAppPanel` → `UserService.saveOnboardingDataByUsername`.
+4) `AuthUI` embeds `Dashboard` content; `Dashboard` uses `HardcodedTaskService.getTasksForUser` per onboarding.
+
+## 22) Code walkthrough snippets (concise)
+
+- AuthUI: Login button wiring
+```299:301:src/main/java/com/forgegrid/ui/AuthUI.java
+loginButton.addActionListener(e -> handleLogin());
+```
+
+- AuthUI: Embed Dashboard content
+```166:173:src/main/java/com/forgegrid/ui/AuthUI.java
+Container dashboardContent = dashboard.getContentPane();
+setContentPane(dashboardContent);
+setTitle("ForgeGrid");
+```
+
+- AuthUI: Onboarding prompt Skip → save + open dashboard
+```1269:1277:src/main/java/com/forgegrid/ui/AuthUI.java
+skipBtn.addActionListener(e -> {
+    if (currentProfile != null) {
+        controller.saveOnboardingData(currentProfile.getUsername(), "Skipped", "Not specified", "Not specified");
+    }
+});
+```
+
+- WelcomeUI: Start button hook
+```115:117:src/main/java/com/forgegrid/ui/WelcomeUI.java
+public void addStartActionListener(ActionListener l) { startButton.addActionListener(l); }
+```
+
+- DatabaseHelper: Driver registration
+```125:126:src/main/java/com/forgegrid/db/DatabaseHelper.java
+Class.forName("com.mysql.cj.jdbc.Driver");
+connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+```
+
+- AuthService: Login WHERE clause
+```102:107:src/main/java/com/forgegrid/auth/AuthService.java
+WHERE (username = ? OR email = ?) AND password = ?
+```
+
+- UserService: Save onboarding by username
+```108:117:src/main/java/com/forgegrid/service/UserService.java
+UPDATE users SET onboarding_completed = 1, onboarding_goal = ?,
+onboarding_language = ?, onboarding_skill = ?, updated_at = ? WHERE username = ?
+```
+
+- HardcodedTaskService: Select tasks based on onboarding
+```198:205:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+if (lvl.contains("beginner")) tasks = getBeginnerTasks(lang);
+else if (lvl.contains("intermediate")) tasks = getIntermediateTasks(lang);
+else if (lvl.contains("advanced") || lvl.contains("expert")) tasks = getAdvancedTasks(lang);
+```
+
+- HardcodedTaskService: Auto-skip penalty outline
+```611:616:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+int reward = getXpRewardForTaskName(taskName, language, level);
+int penalty = -(Math.max(1, reward / 2));
+upd.setInt(1, penalty);
+```
+
+- LevelService: Update XP/level
+```109:116:src/main/java/com/forgegrid/service/LevelService.java
+String updateSQL = "UPDATE users SET total_xp = ?, level = ?, updated_at = ? WHERE username = ?";
+pstmt.executeUpdate();
+```
+
+- Dashboard: Start Next Task button wiring
+```1051:1059:src/main/java/com/forgegrid/ui/Dashboard.java
+JButton startTaskBtn = new JButton("Start Next Task");
+startTaskBtn.setBackground(Theme.BRAND_PINK);
+startTaskBtn.addActionListener(e -> showTaskPopup());
+```
+
+## 23) Controllers (aligned with simplified GUI)
+
+- Purpose: Move logic out of UI (Swing) into a thin controller layer that delegates to services and preferences. The facelift kept controllers unchanged; only UI styling/layout was simplified.
+
+- AuthController (`controller/AuthController.java`)
+  - Responsibilities: registration, login, password reset, onboarding checks/saves, remember‑me.
+  - Used by: `ui/AuthUI.java` for all auth/onboarding actions.
+  - Key APIs:
+```20:26:src/main/java/com/forgegrid/controller/AuthController.java
+public PlayerProfile login(String u, String p) { return authService.login(u, p); }
+public boolean register(String n, String e, String p) { return authService.register(n, e, p); }
+public boolean hasCompletedOnboarding(String u) { return userService.hasCompletedOnboardingByUsername(u); }
+public boolean saveOnboardingData(String u, String g, String l, String s) { return userService.saveOnboardingDataByUsername(u, g, l, s); }
+```
+
+- OnboardingController (`controller/OnboardingController.java`)
+  - Responsibilities: read/write onboarding fields by username.
+  - Used by: `ui/AuthUI.java`, `ui/OnboardingInAppPanel.java`.
+  - Key APIs:
+```17:23:src/main/java/com/forgegrid/controller/OnboardingController.java
+public String[] getOnboardingData(String username) { return userService.getOnboardingDataByUsername(username); }
+public boolean saveOnboardingData(String u, String g, String l, String s) { return userService.saveOnboardingDataByUsername(u, g, l, s); }
+```
+
+- DashboardController (`controller/DashboardController.java`)
+  - Responsibilities: glue for tasks and levels; fetch lists/stats, record assigned/completed/skipped, Goated CRUD.
+  - Used by: `ui/Dashboard.java`, `ui/TaskPopupDialog.java`.
+  - Key APIs:
+```21:33:src/main/java/com/forgegrid/controller/DashboardController.java
+public LevelService.LevelInfo getLevelInfo(String username)
+public List<TaskHistoryEntry> getTaskHistory(String username, int limit)
+public List<HardcodedTask> getTasksFor(String language, String level)
+public void recordAssignedTask(String username, String taskName)
+public boolean saveCompletedTask(String username, String taskName, int timeTaken, int xpEarned)
+```
+
+- Facelift alignment notes:
+  - UI files only layout Swing and wire listeners; they no longer reach directly into services or DB.
+  - Controllers encapsulate all business operations; the simplified visuals (black text, default backgrounds, plain buttons) do not affect controller contracts.
+  - Dashboard actions (Start/Done/Skip/Goated) invoke controller methods; tables/labels are populated from controller data.
+
+## 24) Scenario flows and expected behavior (test cases)
+
+- Invalid login (wrong username/password)
+  - Flow: AuthUI → controller.login returns null → show error dialog → stay on LOGIN.
+  - Expected: No DB writes; no controller state changes; fields remain.
+  - Snippet:
+```736:738:src/main/java/com/forgegrid/ui/AuthUI.java
+JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+showCard("LOGIN");
+```
+
+- Login error (DB/connection issue)
+  - Flow: Exception thrown in login path → show error dialog → remain on LOGIN.
+  - Snippet:
+```742:744:src/main/java/com/forgegrid/ui/AuthUI.java
+JOptionPane.showMessageDialog(this, "Authentication error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+showCard("LOGIN");
+```
+
+- Valid login + onboarding already completed
+  - Flow: controller.login → profile; `hasCompletedOnboarding=true` → show LOADING → show welcome back → embed Dashboard.
+  - Snippet:
+```727:733:src/main/java/com/forgegrid/ui/AuthUI.java
+boolean hasCompletedOnboarding = controller.hasCompletedOnboarding(profile.getUsername());
+if (hasCompletedOnboarding) { createWelcomeBackOnboarding(profile.getUsername()); }
+else { showCard("ONBOARDING_PROMPT"); }
+```
+
+- Valid login + new user (not onboarded)
+  - Flow: controller.login → profile; `hasCompletedOnboarding=false` → show `ONBOARDING_PROMPT`.
+  - Expected: No Dashboard until onboarding is saved or skipped.
+
+- Onboarding: choose Yes (complete onboarding)
+  - Flow: Build `OnboardingInAppPanel` → after Q1/Q2/Q3 → `OnboardingController.saveOnboardingData` → open Dashboard.
+
+- Onboarding: Skip
+  - Flow: Save “Skipped/Not specified/Not specified” for user → open Dashboard.
+  - Snippet:
+```1269:1277:src/main/java/com/forgegrid/ui/AuthUI.java
+controller.saveOnboardingData(currentProfile.getUsername(), "Skipped", "Not specified", "Not specified");
+openDashboardInCard(goal, language, skill);
+```
+
+- Signup validation: empty fields
+  - Flow: Any field empty/placeholder → error dialog → remain on SIGNUP.
+  - Snippet:
+```807:810:src/main/java/com/forgegrid/ui/AuthUI.java
+JOptionPane.showMessageDialog(this, "Please fill in all fields: " + sb.toString() + ".", "Error", JOptionPane.ERROR_MESSAGE);
+```
+
+- Signup validation: username equals email
+  - Flow: Show error dialog; no registration attempt.
+  - Snippet:
+```812:818:src/main/java/com/forgegrid/ui/AuthUI.java
+"Username and Email cannot be the same.\nPlease use different values."
+```
+
+- Signup success
+  - Flow: controller.register returns true → success dialog → switch to LOGIN; placeholders reset.
+  - Snippet:
+```832:839:src/main/java/com/forgegrid/ui/AuthUI.java
+JOptionPane.showMessageDialog(this, "Account created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+showLogin();
+```
+
+- Dashboard: Start Next Task
+  - Flow: Click button → controller.recordAssignedTask(username, taskName) → open task popup.
+  - Snippet:
+```1051:1059:src/main/java/com/forgegrid/ui/Dashboard.java
+JButton startTaskBtn = new JButton("Start Next Task");
+startTaskBtn.addActionListener(e -> showTaskPopup());
+```
+
+- Task completion
+  - Flow: Submit in dialog → controller.saveCompletedTask(...) → LevelService.addXP(+xp) internally via service → UI refresh.
+
+- Task skip
+  - Flow: Skip in dialog → controller.saveSkippedTask(...) (via service) → LevelService.addXP(-xp) → UI refresh.
+
+- Auto-skip expired assigned tasks
+  - Flow: On dashboard refresh/tick → controller.autoSkipExpired(username, language, level) → converts to skipped and applies penalty.
+  - Snippet:
+```599:616:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+int reward = getXpRewardForTaskName(taskName, language, level);
+int penalty = -(Math.max(1, reward / 2));
+```
+
 
