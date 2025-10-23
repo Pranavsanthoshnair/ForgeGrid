@@ -221,30 +221,106 @@ public class HardcodedTaskService {
         List<HardcodedTask> tasks = new ArrayList<>();
         
         if (language.contains("java")) {
+            // Java Basics Beginner Tasks
             tasks.add(new HardcodedTask(
                 "Hello World Program",
-                "Write a simple Java program that prints 'Hello World' to the console",
+                "Write a Java program to print 'Hello, World!'",
                 "Java", "Beginner", 10, 10
             ));
             tasks.add(new HardcodedTask(
-                "Print Numbers 1-10",
-                "Use a loop to print numbers from 1 to 10",
+                "Personal Information Display",
+                "Write a program to print your name, age, and city",
                 "Java", "Beginner", 15, 15
             ));
             tasks.add(new HardcodedTask(
-                "Simple Calculator",
-                "Create a calculator that can add, subtract, multiply, and divide two numbers",
-                "Java", "Beginner", 20, 30
+                "Basic Calculator",
+                "Write a program to perform addition, subtraction, multiplication, and division of two numbers",
+                "Java", "Beginner", 20, 25
             ));
             tasks.add(new HardcodedTask(
-                "Temperature Converter",
-                "Write a program to convert Celsius to Fahrenheit",
-                "Java", "Beginner", 15, 20
+                "Number Swapping with Third Variable",
+                "Write a program to swap two numbers using a third variable",
+                "Java", "Beginner", 15, 15
             ));
             tasks.add(new HardcodedTask(
-                "Even or Odd Checker",
-                "Create a program that checks if a number is even or odd",
-                "Java", "Beginner", 10, 15
+                "Largest of Two Numbers",
+                "Write a program to find the largest of two numbers",
+                "Java", "Beginner", 15, 15
+            ));
+            // Java Control Statements Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Print Numbers 1-10",
+                "Print numbers from 1 to 10 using a for loop",
+                "Java", "Beginner", 10, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Even Numbers 1-50",
+                "Print all even numbers between 1 and 50",
+                "Java", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum of Natural Numbers",
+                "Calculate the sum of first n natural numbers",
+                "Java", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Multiplication Table",
+                "Display multiplication table of a given number",
+                "Java", "Beginner", 20, 20
+            ));
+            // Java Arrays Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Array Read and Display",
+                "Read and display elements of an array",
+                "Java", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Largest and Smallest",
+                "Find the largest and smallest element in an array",
+                "Java", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Sum and Average",
+                "Calculate sum and average of array elements",
+                "Java", "Beginner", 20, 20
+            ));
+            // Java Strings Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "String Input and Display",
+                "Read a string and print it",
+                "Java", "Beginner", 10, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "String Length Calculator",
+                "Find length of a string without using length() method",
+                "Java", "Beginner", 20, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Vowel and Consonant Counter",
+                "Count vowels and consonants in a string",
+                "Java", "Beginner", 25, 25
+            ));
+            // Java Methods Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Add Two Numbers Function",
+                "Write a method to add two numbers",
+                "Java", "Beginner", 15, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Factorial Function",
+                "Write a method to calculate factorial",
+                "Java", "Beginner", 20, 20
+            ));
+            // Java OOP Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Student Class",
+                "Create a class Student with data members name, rollNo, and a method to display details",
+                "Java", "Beginner", 30, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Rectangle Class",
+                "Create a class Rectangle to calculate area and perimeter",
+                "Java", "Beginner", 25, 25
             ));
         } else if (language.contains("c")) {
             // Comprehensive C Programming Beginner Tasks
@@ -509,30 +585,180 @@ public class HardcodedTaskService {
         List<HardcodedTask> tasks = new ArrayList<>();
         
         if (language.contains("java")) {
+            // Java Basics Intermediate Tasks
             tasks.add(new HardcodedTask(
-                "OOP Class Structure",
-                "Implement a basic class with constructors, getters, and setters",
-                "Java", "Intermediate", 30, 45
+                "Even or Odd Checker",
+                "Write a program to check whether a number is even or odd",
+                "Java", "Intermediate", 15, 20
             ));
             tasks.add(new HardcodedTask(
-                "ArrayList Student Database",
-                "Use ArrayList to store and manage student data",
-                "Java", "Intermediate", 35, 60
+                "Largest of Three Numbers",
+                "Write a program to find the largest of three numbers",
+                "Java", "Intermediate", 20, 25
             ));
             tasks.add(new HardcodedTask(
-                "File Read/Write",
-                "Read from and write to a text file using Java I/O",
-                "Java", "Intermediate", 40, 60
+                "Leap Year Checker",
+                "Write a program to check whether a given year is a leap year",
+                "Java", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "ASCII Value Finder",
+                "Write a program to find the ASCII value of a character",
+                "Java", "Intermediate", 15, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Quadratic Equation Solver",
+                "Write a program to find the roots of a quadratic equation",
+                "Java", "Intermediate", 35, 40
+            ));
+            // Java Control Statements Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Prime Number Checker",
+                "Check whether a number is prime",
+                "Java", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Factorial Calculator",
+                "Find factorial of a number",
+                "Java", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Number Reverser",
+                "Reverse a number",
+                "Java", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Palindrome Checker",
+                "Check whether a number is palindrome",
+                "Java", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Fibonacci Series Generator",
+                "Generate Fibonacci series up to n terms",
+                "Java", "Intermediate", 35, 40
+            ));
+            // Java Arrays Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Array Sorting",
+                "Sort an array in ascending/descending order",
+                "Java", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Linear Search in Array",
+                "Search an element in an array (linear search)",
+                "Java", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Matrix Addition and Subtraction",
+                "Perform matrix addition and subtraction",
+                "Java", "Intermediate", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Count Even and Odd Numbers",
+                "Count even and odd numbers in an array",
+                "Java", "Intermediate", 25, 30
+            ));
+            // Java Strings Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "String Palindrome Checker",
+                "Check whether a string is palindrome",
+                "Java", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "String Reverser",
+                "Reverse a string",
+                "Java", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "String Comparison",
+                "Compare two strings without using equals()",
+                "Java", "Intermediate", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Case Conversion",
+                "Convert string to uppercase and lowercase",
+                "Java", "Intermediate", 25, 30
+            ));
+            // Java Methods Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Prime Number Function",
+                "Write a method to check prime number",
+                "Java", "Intermediate", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "String Reverse Function",
+                "Write a method to reverse a string",
+                "Java", "Intermediate", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Recursive Fibonacci",
+                "Write a recursive method to calculate Fibonacci",
+                "Java", "Intermediate", 35, 40
+            ));
+            // Java OOP Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "BankAccount Class",
+                "Create a class BankAccount with deposit and withdraw methods",
+                "Java", "Intermediate", 40, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "Employee Class",
+                "Create a class Employee with constructors and method overloading",
+                "Java", "Intermediate", 45, 55
+            ));
+            tasks.add(new HardcodedTask(
+                "Inheritance Demo",
+                "Demonstrate inheritance using Animal → Dog example",
+                "Java", "Intermediate", 50, 60
+            ));
+            // Java Exception Handling Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Try-Catch-Finally Demo",
+                "Demonstrate try-catch-finally block",
+                "Java", "Intermediate", 30, 35
             ));
             tasks.add(new HardcodedTask(
                 "Exception Handling",
-                "Implement proper try-catch blocks and custom exceptions",
-                "Java", "Intermediate", 30, 45
+                "Handle ArrayIndexOutOfBoundsException and ArithmeticException",
+                "Java", "Intermediate", 35, 40
             ));
             tasks.add(new HardcodedTask(
-                "Collections Framework",
-                "Use HashMap and TreeSet to solve a practical problem",
-                "Java", "Intermediate", 35, 60
+                "Multiple Catch Blocks",
+                "Use multiple catch blocks",
+                "Java", "Intermediate", 30, 35
+            ));
+            // Java File Handling Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "File Read/Write",
+                "Write a program to read and write text files using FileReader and FileWriter",
+                "Java", "Intermediate", 40, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "File Statistics Counter",
+                "Count number of words, lines, and characters in a file",
+                "Java", "Intermediate", 45, 55
+            ));
+            // Java Collections Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "ArrayList Student Names",
+                "Use ArrayList to store and print student names",
+                "Java", "Intermediate", 35, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "HashMap Student Records",
+                "Use HashMap to store and display student roll numbers and names",
+                "Java", "Intermediate", 40, 50
+            ));
+            // Java Multithreading Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Thread Class Demo",
+                "Create and start a thread using Thread class",
+                "Java", "Intermediate", 40, 50
+            ));
+            tasks.add(new HardcodedTask(
+                "Runnable Interface Demo",
+                "Create and start a thread using Runnable interface",
+                "Java", "Intermediate", 40, 50
             ));
         } else if (language.contains("c")) {
             // Comprehensive C Programming Intermediate Tasks
@@ -906,30 +1132,200 @@ public class HardcodedTaskService {
         List<HardcodedTask> tasks = new ArrayList<>();
         
         if (language.contains("java")) {
+            // Java Control Statements Expert Tasks
             tasks.add(new HardcodedTask(
-                "Multithreading Application",
-                "Create a producer-consumer application using threads",
-                "Java", "Advanced", 60, 120
+                "Prime Numbers in Range",
+                "Display all prime numbers between two intervals",
+                "Java", "Expert", 45, 50
             ));
             tasks.add(new HardcodedTask(
-                "REST API Client",
-                "Build a client that consumes a REST API using HttpURLConnection",
-                "Java", "Advanced", 70, 150
+                "Sum of Digits Calculator",
+                "Find the sum of digits of a number using while loop",
+                "Java", "Expert", 30, 35
             ));
             tasks.add(new HardcodedTask(
-                "Design Patterns",
-                "Implement Singleton, Factory, and Observer patterns",
-                "Java", "Advanced", 80, 180
+                "GCD and LCM Calculator",
+                "Find GCD and LCM of two numbers",
+                "Java", "Expert", 40, 45
             ));
             tasks.add(new HardcodedTask(
-                "JDBC Database App",
-                "Create a full CRUD application with MySQL integration",
-                "Java", "Advanced", 100, 240
+                "Pattern Programs",
+                "Print pattern programs (triangle, pyramid, diamond)",
+                "Java", "Expert", 50, 60
+            ));
+            // Java Arrays Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Merge Two Arrays",
+                "Merge two arrays",
+                "Java", "Expert", 35, 40
             ));
             tasks.add(new HardcodedTask(
-                "Lambda and Streams",
-                "Use Java 8+ features for functional programming",
-                "Java", "Advanced", 60, 120
+                "Second Largest Element",
+                "Find the second largest element in an array",
+                "Java", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Matrix Multiplication",
+                "Perform matrix multiplication",
+                "Java", "Expert", 50, 60
+            ));
+            tasks.add(new HardcodedTask(
+                "Binary Search Implementation",
+                "Implement binary search",
+                "Java", "Expert", 45, 50
+            ));
+            // Java Strings Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Character Frequency Counter",
+                "Count occurrences of each character in a string",
+                "Java", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Remove Duplicate Characters",
+                "Remove duplicate characters from a string",
+                "Java", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "First Non-Repeated Character",
+                "Find the first non-repeated character",
+                "Java", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Anagram Checker",
+                "Check whether two strings are anagrams",
+                "Java", "Expert", 45, 50
+            ));
+            // Java Methods Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Recursive GCD Function",
+                "Write a recursive method to find GCD",
+                "Java", "Expert", 40, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Armstrong Number Checker",
+                "Write a method to check Armstrong number",
+                "Java", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Recursive Power Function",
+                "Write a method to calculate power (x^n) using recursion",
+                "Java", "Expert", 30, 35
+            ));
+            // Java OOP Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Method Overriding Demo",
+                "Demonstrate method overriding and dynamic method dispatch",
+                "Java", "Expert", 50, 60
+            ));
+            tasks.add(new HardcodedTask(
+                "Abstract Class Implementation",
+                "Implement an abstract class and interface example",
+                "Java", "Expert", 60, 70
+            ));
+            tasks.add(new HardcodedTask(
+                "Multiple Inheritance with Interfaces",
+                "Implement multiple inheritance using interfaces",
+                "Java", "Expert", 55, 65
+            ));
+            tasks.add(new HardcodedTask(
+                "Encapsulation Demo",
+                "Demonstrate encapsulation and data hiding",
+                "Java", "Expert", 45, 55
+            ));
+            // Java Exception Handling Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Custom Exception Class",
+                "Create a custom exception class",
+                "Java", "Expert", 45, 55
+            ));
+            tasks.add(new HardcodedTask(
+                "Exception Chaining Demo",
+                "Demonstrate exception chaining",
+                "Java", "Expert", 50, 60
+            ));
+            tasks.add(new HardcodedTask(
+                "Throw and Rethrow Exceptions",
+                "Throw and rethrow exceptions between methods",
+                "Java", "Expert", 45, 55
+            ));
+            // Java File Handling Expert Tasks
+            tasks.add(new HardcodedTask(
+                "File Copy Program",
+                "Copy contents from one file to another",
+                "Java", "Expert", 30, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "File Append Operations",
+                "Append data to a file",
+                "Java", "Expert", 25, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Object Serialization",
+                "Serialize and deserialize an object using ObjectOutputStream and ObjectInputStream",
+                "Java", "Expert", 60, 70
+            ));
+            // Java Collections Expert Tasks
+            tasks.add(new HardcodedTask(
+                "List Sorting with Comparator",
+                "Sort a list using Comparator and Comparable",
+                "Java", "Expert", 50, 60
+            ));
+            tasks.add(new HardcodedTask(
+                "HashSet Remove Duplicates",
+                "Use HashSet to remove duplicates",
+                "Java", "Expert", 35, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Student Record Management",
+                "Implement a mini project using Collections (e.g., student record management)",
+                "Java", "Expert", 80, 100
+            ));
+            // Java Multithreading Expert Tasks
+            tasks.add(new HardcodedTask(
+                "Thread Synchronization",
+                "Synchronize multiple threads accessing shared data",
+                "Java", "Expert", 60, 70
+            ));
+            tasks.add(new HardcodedTask(
+                "Inter-Thread Communication",
+                "Demonstrate inter-thread communication using wait() and notify()",
+                "Java", "Expert", 65, 75
+            ));
+            tasks.add(new HardcodedTask(
+                "Producer-Consumer Problem",
+                "Create a producer-consumer problem using threads",
+                "Java", "Expert", 70, 80
+            ));
+            // Java Advanced Expert Tasks
+            tasks.add(new HardcodedTask(
+                "JDBC CRUD Operations",
+                "Implement simple CRUD operations using JDBC",
+                "Java", "Expert", 80, 100
+            ));
+            tasks.add(new HardcodedTask(
+                "Swing Calculator",
+                "Create a GUI calculator using Swing",
+                "Java", "Expert", 90, 120
+            ));
+            tasks.add(new HardcodedTask(
+                "Socket Chat System",
+                "Implement a chat system using Sockets",
+                "Java", "Expert", 100, 150
+            ));
+            tasks.add(new HardcodedTask(
+                "Library Management System",
+                "Build a mini project (Library Management System)",
+                "Java", "Expert", 120, 180
+            ));
+            tasks.add(new HardcodedTask(
+                "ATM Simulation",
+                "Build a mini project (ATM Simulation)",
+                "Java", "Expert", 100, 150
+            ));
+            tasks.add(new HardcodedTask(
+                "Inventory Management System",
+                "Build a mini project (Inventory System)",
+                "Java", "Expert", 110, 160
             ));
         } else if (language.contains("c")) {
             // Comprehensive C Programming Expert/Advanced Tasks
