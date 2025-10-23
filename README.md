@@ -1,133 +1,44 @@
-# ForgeGrid 🔥
+# ForgeGrid
 
-**ForgeGrid** is a **gamified Java desktop application** that transforms coding practice into an RPG-style, task-based leveling journey for learners. Users complete challenges, earn XP, level up, and track their skill progression — all while staying engaged with daily tasks.
+ForgeGrid is a minimal Java Swing desktop app that turns coding practice into a simple, XP‑based journey. The UI is intentionally basic (no gradients/animations), and responsibilities are cleanly separated using MVC: Views (Swing), Controllers (app logic), and Services (database operations).
 
----
+## Overview
+- UI: basic Swing screens using `JFrame`/`JPanel` with `CardLayout` for screen switching
+- Controllers: thin layer invoked by UI; no DB logic in views
+- Services: JDBC to Railway MySQL for auth, onboarding, tasks, and leveling
 
-## Project Overview
+## Main Features
+- Authentication (login/signup/reset)
+- One‑time onboarding (goal, language, skill) → drives task sets
+- Dashboard with simple task actions: Start Next Task, Complete, Skip
+- Goated Tasks: create/list/update/delete custom tasks
+- XP and Level progression
 
-ForgeGrid is built with **Java Swing** and follows a modular architecture to provide a smooth user experience. The app assigns coding tasks based on the player’s current level and enforces **timed challenges**. Completing tasks rewards XP, while skipping or missing deadlines may reduce XP. Users can also create custom challenges (“Goated Tasks”) with self-set deadlines.
+## Tech Stack
+- Java 17+
+- Swing (JFrame, JPanel, JLabel, JTextField, JPasswordField, JButton, JTable, JScrollPane)
+- Railway MySQL via JDBC (MySQL Connector/J)
 
-ForgeGrid combines **progression, gamification, and engagement** into a single platform that encourages daily learning.
+## Architecture
+- Views: `ui/AuthUI`, `ui/WelcomeUI`, `ui/OnboardingInAppPanel`, `ui/Dashboard`, `ui/TaskPopupDialog`
+- Controllers: `controller/AuthController`, `controller/OnboardingController`, `controller/DashboardController`
+- Services: `auth/AuthService`, `service/UserService`, `service/LevelService`, `service/HardcodedTaskService`
+- DB Helper: `db/DatabaseHelper`
+- Models: `model/PlayerProfile`, `model/HardcodedTask`, `model/GoatedTask`, `model/TaskHistoryEntry`
 
----
+## Build & Run
+1) Ensure Java 17+ is installed
+2) Provide Railway MySQL credentials via `.env` (see Technical Setup)
+3) Build: `build.bat` (Windows) or `build.sh` (macOS/Linux)
+4) Run: `run.bat` (Windows) or run `com.forgegrid.app.Main`
 
-## Key Features
+## How screens switch
+- A single `JFrame` hosts a `CardLayout`; buttons switch cards like `LOGIN`, `SIGNUP`, `ONBOARDING_PROMPT`, `ONBOARDING`.
+- After login/onboarding, the Dashboard’s content pane is embedded into the same frame (no new window).
 
-### Player System
-- Tracks: **Name, Level, XP, Rank, Streak**
-- Automatically updates stats as tasks are completed
-
-### Task System
-- **Assign Tasks**: Auto-assigned based on level
-- **Submit / Skip Tasks**: Track progress and XP changes
-- **Custom Tasks**: Add personal “Goated Tasks” with deadlines
-
-### Timed Challenges
-- Each task has a **deadline**
-- Early completion unlocks the next challenge immediately
-
-### XP & Leveling
-- Gain XP for completed tasks
-- Lose XP for skipped/missed tasks
-- Level up to unlock harder challenges
-
-### Persistent Data
-- Save/load player progress using **Railway MySQL Database** (cloud-hosted)
-
-### GUI (Swing)
-- **Top Panel**: Player stats (Name, Level, XP bar, Rank, Deadline timer)
-- **Center Panel**: Current task details and status
-- **Bottom Panel**: Action buttons (Submit Task, Skip Task, Add Custom Task, Save & Exit)
-
----
-
-## Class Structure
-
-```text
-+---------------+         +-------------+
-|    Player     |         |    Task     |
-+---------------+         +-------------+
-| - name: String|         | - title: String
-| - level: int  |         | - description: String
-| - xp: int     |         | - deadline: LocalDateTime
-| - rank: String|         | - completed: boolean
-| - streak: int |         +-------------+
-+---------------+         | + getters/setters |
-| + gainXp()    |         +-------------+
-| + loseXp()    |
-| + levelUp()   |
-| + updateStreak()|
-+---------------+
-        ^
-        |
-        | uses
-        |
-+-----------------+
-|   TaskManager   |
-+-----------------+
-| + getNextTask() |
-| + addTask()     |
-| + skipTask()    |
-| + checkDeadline()|
-+-----------------+
-        ^
-        |
-        | manages
-        |
-+-----------------+
-|   GameManager   |
-+-----------------+
-| + saveData()    |
-| + loadData()    |
-| + updateState() |
-+-----------------+
-```
-
----
-
-## Technology Stack
-- **Java JDK 17+**
-- **Swing GUI**: JFrame, JTable, JButton, JLabel, JProgressBar
-- **MySQL Database** for data persistence
-- **Collections**: ArrayList, HashMap for task management
-
----
-
-## Installation & Setup
-1. Install **Java JDK 17 or higher** (recommended: Java 17 LTS for best compatibility)
-2. **Setup Railway MySQL Database**: 
-   - Create a Railway account and MySQL service
-   - Copy Railway credentials to `.env` file (see `RAILWAY_MIGRATION_GUIDE.md`)
-3. **Build & Run**: Use `build.bat` and `run.bat` scripts
-4. **First Launch**: The application will automatically create database tables
-5. **IDE Setup**: Open in VS Code/IntelliJ/Eclipse for development
-6. Progress is automatically saved to the Railway MySQL database
-
----
-
-## Usage Instructions
-1. **Start App** → View player stats and current task
-2. **Complete Task** → Submit task to gain XP and unlock the next challenge
-3. **Skip Task** → Lose XP but move to next task
-4. **Add Custom Task** → Create personal “Goated Task” with a custom deadline
-5. **Save & Exit** → Save all progress and close the app
-
----
-
-## Future Enhancements
-- **AI Screenshot Verification**: Validate task completion automatically
-- **Online Task Pool**: Download community challenges via API
-- **Achievements & Badges**: Reward milestones
-- **Leaderboards**: Compare progress with other users
-- **Multiple Skill Tracks**: DSA, Web, AI, DBMS
-- **Animations & Sounds**: Level-up effects for engagement
-
----
+## Notes
+- UI is kept intentionally minimal for clarity and maintainability.
+- All business logic lives in controllers/services; views only wire listeners and lay out components.
 
 ## License
-ForgeGrid is **open-source** and free for educational purposes.
-
----
-
-**Forge your coding skills into legendary strength — with ForgeGrid!**
+ForgeGrid is open‑source and free for educational purposes.

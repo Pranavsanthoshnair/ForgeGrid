@@ -1017,4 +1017,80 @@ int reward = getXpRewardForTaskName(taskName, language, level);
 int penalty = -(Math.max(1, reward / 2));
 ```
 
+## 25) HardcodedTaskService – core snippets
+
+- Select tasks by onboarding (language + level)
+```198:205:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+if (lvl.contains("beginner")) tasks = getBeginnerTasks(lang);
+else if (lvl.contains("intermediate")) tasks = getIntermediateTasks(lang);
+else if (lvl.contains("advanced") || lvl.contains("expert")) tasks = getAdvancedTasks(lang);
+```
+
+- Record a task as assigned (first time only)
+```2391:2396:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String existsSQL = "SELECT 1 FROM user_tasks WHERE username = ? AND task_name = ? LIMIT 1";
+String insertSQL = "INSERT INTO user_tasks (username, task_name, time_taken, xp_earned, status, completed_at) VALUES (?, ?, NULL, 0, 'assigned', ?)";
+```
+
+- Save completed task
+```2275:2281:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String insertSQL =
+    "INSERT INTO user_tasks (username, task_name, time_taken, xp_earned, status, completed_at) " +
+    "VALUES (?, ?, ?, ?, 'completed', ?)";
+```
+
+- Save skipped task (negative XP)
+```2503:2511:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String insertSQL =
+    "INSERT INTO user_tasks (username, task_name, time_taken, xp_earned, status, completed_at) " +
+    "VALUES (?, ?, ?, ?, 'skipped', ?)";
+```
+
+- Auto‑skip expired assigned tasks (24h) with 50% penalty
+```2417:2421:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String selectExpired = "SELECT task_name FROM user_tasks WHERE username = ? AND status = 'assigned' AND completed_at < (NOW() - INTERVAL 24 HOUR)";
+String updateSQL = "UPDATE user_tasks SET status='skipped', xp_earned=?, time_taken=?, completed_at=? WHERE username=? AND task_name=? AND status='assigned'";
+```
+```2427:2431:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+int reward = getXpRewardForTaskName(taskName, language, level);
+int penalty = -(Math.max(1, reward / 2));
+upd.setInt(1, penalty);
+```
+
+- History and aggregates
+```2530:2537:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String selectSQL =
+    "SELECT task_name, time_taken, xp_earned, status, completed_at " +
+    "FROM user_tasks WHERE username = ? ORDER BY completed_at DESC LIMIT ?";
+```
+```2351:2356:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String selectSQL = "SELECT COALESCE(SUM(xp_earned), 0) as total FROM user_tasks WHERE username = ?";
+```
+
+- Goated tasks – create example
+```78:86:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+String sql = "INSERT INTO user_tasks (username, task_name, title, description, deadline, xp, status, type, is_completed, created_at) VALUES (?, ?, ?, ?, ?, ?, 'assigned', 'goated', 0, ?)";
+```
+
+### XP updates (where addXP is invoked)
+- After completing a regular task (UI applies XP)
+```254:255:src/main/java/com/forgegrid/ui/TaskPopupDialog.java
+com.forgegrid.service.LevelService.LevelUpResult result = new com.forgegrid.service.LevelService().addXP(profile.getUsername(), task.getXpReward());
+```
+
+- After skipping a task (UI applies XP penalty)
+```347:347:src/main/java/com/forgegrid/ui/TaskPopupDialog.java
+new com.forgegrid.service.LevelService().addXP(profile.getUsername(), xpPenalty);
+```
+
+- Auto‑skip expired (service applies penalty)
+```2438:2438:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+new com.forgegrid.service.LevelService().addXP(username, penalty);
+```
+
+- Goated task completion (service credits XP)
+```1445:145:src/main/java/com/forgegrid/service/HardcodedTaskService.java
+new com.forgegrid.service.LevelService().addXP(username, xp);
+```
+
 

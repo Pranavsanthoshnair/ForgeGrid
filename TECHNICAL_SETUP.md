@@ -10,11 +10,11 @@ javac -version
 - On Windows, PowerShell/CMD; on macOS/Linux, a shell.
 
 ### Project Layout (key paths)
-- `src/main/java` — source code
+- `src/main/java` — source code (views, controllers, services, models, db)
 - `src/main/resources` — resources (icons, config)
-- `lib/` — third‑party jars (MySQL JDBC connector)
-- `build.sh` and `build.bat` — helpers to compile
-- `run.bat` — run helper for Windows
+- `lib/` — MySQL JDBC connector (`mysql-connector-j-8.0.33.jar`)
+- `build.sh` and `build.bat` — compile helpers
+- `run.bat` — Windows run helper
 
 ### Build (from source)
 Windows (PowerShell/CMD):
@@ -29,9 +29,9 @@ chmod +x build.sh
 ```
 
 What the build does
-- Compiles sources under `src/main/java` to `bin/`.
-- Copies resources to the classpath.
-- Ensures the required `lib/*.jar` (MySQL JDBC connector) are available.
+- Compiles sources under `src/main/java` to `bin/` with `--release 17`.
+- Copies resources to `bin/` so classpath can resolve icons/config.
+- Uses `lib/mysql-connector-j-8.0.33.jar` for JDBC driver.
 
 ### Run
 Windows:
@@ -49,39 +49,37 @@ Entry Point
 - Main class: `com.forgegrid.app.Main`
 
 ### Database
-- **Railway MySQL Database**: Cloud-hosted MySQL database
-- **JDBC Driver**: `lib/mysql-connector-j-8.0.33.jar` for MySQL connectivity
-- **Configuration**: Railway credentials stored in `.env` file (gitignored)
-- **Connection**: Automatic SSL-enabled connection to Railway MySQL
+- Railway MySQL (cloud-hosted)
+- JDBC Driver: `lib/mysql-connector-j-8.0.33.jar`
+- Configuration: `.env` or environment variables
+- Connection: SSL-enabled; URL built from `.env` via `config/EnvironmentConfig` and `db/DatabaseHelper`
 
 ### Environment Configuration
-- **Credentials**: Stored securely in `.env` file
-- **Fallback**: Defaults to localhost for development (if no Railway config)
-- **Security**: All sensitive data excluded from version control
+- `.env` keys (examples):
+  - `RAILWAY_MYSQL_URL` (preferred, e.g., `mysql://user:pass@host:port/db`)
+  - or individual: `RAILWAY_MYSQL_HOST`, `RAILWAY_MYSQL_PORT`, `RAILWAY_MYSQL_DATABASE`, `RAILWAY_MYSQL_USERNAME`, `RAILWAY_MYSQL_PASSWORD`
+- `EnvironmentConfig` parses these and `DatabaseHelper` constructs an SSL JDBC URL.
 
 ### Logging
-- **Console Logging**: Comprehensive migration and connection logging
-- **Success Indicators**: Clear ✅/❌ status messages for Railway connection
-- **Debug Info**: Detailed connection URL parsing and credential extraction
+- Console logs indicate table creation/migrations and connection success/fail.
 
 ### Packaging (optional)
-If you want a runnable fat‑jar (manual example):
+Example:
 ```bash
 jar --create --file forgegrid.jar -C bin .
-# run with external libs on classpath
 java -cp "forgegrid.jar:lib/*" com.forgegrid.app.Main
 ```
 
 ### Common Issues
-- **Railway Connection**: Ensure Railway MySQL service is running and credentials are correct
-- **Environment Variables**: Check `.env` file exists and contains valid Railway credentials
-- **Classpath**: Ensure `lib/mysql-connector-j-8.0.33.jar` is included in classpath
-- **Java Version**: Use JDK 17+; older JDKs may fail to compile
-- **SSL Issues**: Railway requires SSL connections; ensure `useSSL=true` in connection string
+- Railway connection: verify service status and credentials
+- Environment: `.env` exists with correct keys
+- Classpath: ensure `lib/mysql-connector-j-8.0.33.jar` is present
+- Java version: use JDK 17+
+- SSL: connection string uses `useSSL=true`
 
 ### Development Tips
-- Use an IDE (IntelliJ/Eclipse/VS Code) and set the project SDK to Java 17+.
-- Mark `src/main/resources` as resources folder to include icons/config on classpath.
+- Use an IDE with Java 17+ SDK.
+- Mark `src/main/resources` as resources folder.
 - Run `com.forgegrid.app.Main` directly from the IDE.
 
 
