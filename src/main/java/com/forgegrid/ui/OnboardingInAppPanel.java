@@ -52,8 +52,9 @@ public class OnboardingInAppPanel extends JPanel {
 	}
 
 	private JPanel buildWelcomeBackPanel(Runnable continueAction) {
-		NeonBackgroundPanel bg = new NeonBackgroundPanel();
-		bg.setLayout(new GridBagLayout());
+        JPanel bg = new JPanel(new GridBagLayout());
+        bg.setOpaque(true);
+        bg.setBackground(new Color(25, 35, 55));
 		
 		JPanel center = new CardContainerPanel();
 		center.setOpaque(false);
@@ -102,7 +103,7 @@ public class OnboardingInAppPanel extends JPanel {
 		continueBtn.setMaximumSize(new Dimension(280, 40));
 		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
 		
-		JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 20);
+        JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 20);
 		Dimension contSize = new Dimension(280, 40);
 		gradientButton.setPreferredSize(contSize);
 		gradientButton.setMinimumSize(contSize);
@@ -122,8 +123,9 @@ public class OnboardingInAppPanel extends JPanel {
 	}
 
 	private JPanel buildCompletionPanel(Runnable continueAction) {
-		NeonBackgroundPanel bg = new NeonBackgroundPanel();
-		bg.setLayout(new GridBagLayout());
+        JPanel bg = new JPanel(new GridBagLayout());
+        bg.setOpaque(true);
+        bg.setBackground(new Color(25, 35, 55));
 		
 		JPanel center = new CardContainerPanel();
 		center.setOpaque(false);
@@ -179,7 +181,7 @@ public class OnboardingInAppPanel extends JPanel {
 		continueBtn.setMaximumSize(new Dimension(300, 45));
 		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
 		
-		JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 22);
+        JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 22);
 		Dimension contSize = new Dimension(300, 45);
 		gradientButton.setPreferredSize(contSize);
 		gradientButton.setMinimumSize(contSize);
@@ -199,8 +201,9 @@ public class OnboardingInAppPanel extends JPanel {
 	}
 
 	private JPanel buildQ1(Runnable next) {
-		NeonBackgroundPanel bg = new NeonBackgroundPanel();
-		bg.setLayout(new GridBagLayout());
+        JPanel bg = new JPanel(new GridBagLayout());
+        bg.setOpaque(true);
+        bg.setBackground(new Color(25, 35, 55));
 		JPanel center = buildQuestionPanel(
 			"Q1. What is your primary goal on ForgeGrid?",
 			new String[]{
@@ -374,31 +377,15 @@ public class OnboardingInAppPanel extends JPanel {
 	}
 
 	private JToggleButton createOptionButton(String text) {
-		JToggleButton btn = new JToggleButton(text) {
-			@Override
-			protected void paintComponent(Graphics g) {
-				super.paintComponent(g);
-				Graphics2D g2 = (Graphics2D) g.create();
-				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				int w = getWidth();
-				int h = getHeight();
-				Color fill = isSelected() ? new Color(46, 196, 182, 170) : new Color(255, 255, 255, 10);
-				g2.setColor(fill);
-				g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
-				g2.setColor(isSelected() ? new Color(46, 196, 182) : new Color(255,255,255,200));
-				g2.setStroke(new BasicStroke(2f));
-				g2.drawRoundRect(1, 1, w - 3, h - 3, 10, 10);
-				g2.dispose();
-			}
-		};
-		btn.setFocusPainted(false);
-		btn.setContentAreaFilled(false);
-		btn.setOpaque(false);
-		btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
-		btn.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-		btn.setRolloverEnabled(false);
+        JToggleButton btn = new JToggleButton(text);
+        btn.setFocusPainted(true);
+        btn.setContentAreaFilled(true);
+        btn.setOpaque(true);
+        btn.setForeground(Color.BLACK);
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        btn.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        btn.setRolloverEnabled(false);
 		return btn;
 	}
 

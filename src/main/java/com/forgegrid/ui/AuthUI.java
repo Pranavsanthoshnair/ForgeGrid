@@ -6,6 +6,7 @@ import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,7 +110,7 @@ public class AuthUI extends JFrame {
         // Build a top header with a left-aligned back button (arrow only)
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(true);
-        header.setBackground(new Color(25, 35, 55));
+        header.setBackground(new Color(238, 238, 238));
         header.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
         backButton = createBackArrowButton();
         header.add(backButton, BorderLayout.WEST);
@@ -209,7 +210,9 @@ public class AuthUI extends JFrame {
 
     
     private JPanel createLoginPanel() {
-        JPanel panel = new NeonBackgroundPanel();
+        JPanel panel = new JPanel();
+        panel.setOpaque(true);
+        panel.setBackground(new Color(238, 238, 238));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         
         // Calculate proportional padding based on frame size
@@ -219,9 +222,9 @@ public class AuthUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(Math.max(10, padding - 80), padding, padding, padding));
         
         // Modern tagline with enhanced styling
-        JLabel mainTagline = new JLabel("ForgeGrid – Your coding journey starts here.");
-        mainTagline.setFont(new Font("Segoe UI", Font.ITALIC, 18));
-        mainTagline.setForeground(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 180)); // Lighter primary color
+        JLabel mainTagline = new JLabel("ForgeGrid – Where coding challenges become milestones.");
+        mainTagline.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        mainTagline.setForeground(Color.DARK_GRAY);
         mainTagline.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Create the logo panel
@@ -233,20 +236,17 @@ public class AuthUI extends JFrame {
         titleRow.setOpaque(false);
         titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140)); // Increased height to avoid clipping
         
-        JLabel welcomePart = new JLabel("Welcome to ");
-        welcomePart.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        welcomePart.setForeground(new Color(240, 240, 240));
+        JLabel welcomePart = new JLabel("ForgeGrid");
+        welcomePart.setFont(new Font("SansSerif", Font.BOLD, 28));
+        welcomePart.setForeground(Color.BLACK);
         
-        GradientTextLabel brandPart = new GradientTextLabel("ForgeGrid");
-        brandPart.setFont(new Font("Segoe UI", Font.BOLD, 34));
-        brandPart.setGradient(PRIMARY_COLOR, SECONDARY_COLOR);
+        // no gradient brand here; simple label already used
         
         // Create a container panel to hold both labels
         JPanel titleContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         titleContainer.setOpaque(false);
         titleContainer.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
         titleContainer.add(welcomePart);
-        titleContainer.add(brandPart);
         
         titleRow.add(titleContainer);
         
@@ -281,19 +281,20 @@ public class AuthUI extends JFrame {
         });
         
         loginButton = new JButton("Login");
-        Theme.stylePrimaryButton(loginButton);
+        loginButton.setUI(new BasicButtonUI());
+        loginButton.setBackground(Theme.BRAND_PINK);
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setBorderPainted(false);
+        loginButton.setFocusPainted(false);
         // Ensure identical dimensions to signup button
         loginButton.setMaximumSize(new Dimension(520, 70));
         loginButton.setPreferredSize(new Dimension(520, 70));
-        JComponent loginGradientWrap = Theme.asGradientButton(
-            loginButton,
-            PRIMARY_COLOR,
-            new Color(PRIMARY_COLOR.getRed() - 20, PRIMARY_COLOR.getGreen() - 20, PRIMARY_COLOR.getBlue() - 20),
-            20
-        );
-        JButton switchToSignupButton = createSolidButton("New User? Sign Up", SECONDARY_COLOR, Color.WHITE);
-        // Keep hover effects enabled for proper button functionality
-        switchToSignupButton.setRolloverEnabled(true);
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JComponent loginGradientWrap = loginButton; // use plain button for basic Swing look
+        JButton switchToSignupButton = new JButton("New User? Sign Up");
+        switchToSignupButton.setMaximumSize(new Dimension(520, 70));
+        switchToSignupButton.setPreferredSize(new Dimension(520, 70));
+        switchToSignupButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Add arrow key navigation to login button
         loginButton.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -407,7 +408,7 @@ public class AuthUI extends JFrame {
                 public void mouseClicked(java.awt.event.MouseEvent e) {
                     // Fill the email field with the suggested username
                     emailField.setText(lastUsername);
-                    emailField.setForeground(Color.WHITE);
+                    emailField.setForeground(Color.BLACK);
                     emailField.putClientProperty("placeholderActive", Boolean.FALSE);
                     // Hide the dropdown after clicking
                     dropdownPanel.setVisible(false);
@@ -499,11 +500,11 @@ public class AuthUI extends JFrame {
             
             if (savedUsername != null && savedPassword != null) {
                 emailField.setText(savedUsername);
-                emailField.setForeground(Color.WHITE);
+                emailField.setForeground(Color.BLACK);
                 emailField.putClientProperty("placeholderActive", Boolean.FALSE);
                 
                 passwordField.setText(savedPassword);
-                passwordField.setForeground(Color.WHITE);
+                passwordField.setForeground(Color.BLACK);
                 passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
                 rememberMeCheckbox.setSelected(true);
             }
@@ -513,7 +514,9 @@ public class AuthUI extends JFrame {
     }
     
     private JPanel createSignupPanel() {
-        JPanel panel = new NeonBackgroundPanel();
+        JPanel panel = new JPanel();
+        panel.setOpaque(true);
+        panel.setBackground(new Color(238, 238, 238));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         
         // Calculate proportional padding based on frame size
@@ -522,14 +525,14 @@ public class AuthUI extends JFrame {
         padding = Math.max(25, Math.min(100, padding));
         panel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
         
-        JLabel titleLabel = new JLabel("Join ForgeGrid");
-        titleLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 28));
-        titleLabel.setForeground(PRIMARY_COLOR);
+        JLabel titleLabel = new JLabel("ForgeGrid");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
+        titleLabel.setForeground(Color.BLACK);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        JLabel subtitleLabel = new JLabel("Join the coding adventure");
-        subtitleLabel.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
-        subtitleLabel.setForeground(new Color(SECONDARY_COLOR.getRed(), SECONDARY_COLOR.getGreen(), SECONDARY_COLOR.getBlue(), 200)); // Lighter secondary color
+        JLabel subtitleLabel = new JLabel("ForgeGrid – Where coding challenges become milestones.");
+        subtitleLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        subtitleLabel.setForeground(Color.DARK_GRAY);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         // Form fields
@@ -576,16 +579,15 @@ public class AuthUI extends JFrame {
         });
         
         signupButton = new JButton("Sign Up");
-        Theme.stylePrimaryButton(signupButton);
+        signupButton.setUI(new BasicButtonUI());
+        signupButton.setBackground(Theme.BRAND_PINK);
+        signupButton.setForeground(Color.WHITE);
+        signupButton.setBorderPainted(false);
+        signupButton.setFocusPainted(false);
         // Ensure identical dimensions to login button
         signupButton.setMaximumSize(new Dimension(520, 70));
         signupButton.setPreferredSize(new Dimension(520, 70));
-        JComponent signupGradientWrap = Theme.asGradientButton(
-            signupButton,
-            SECONDARY_COLOR,
-            new Color(SECONDARY_COLOR.getRed() - 20, SECONDARY_COLOR.getGreen() - 20, SECONDARY_COLOR.getBlue() - 20),
-            20
-        );
+        JComponent signupGradientWrap = signupButton;
         JButton switchToLoginButton = createGlassButton("Already have an account? Login");
         
         // Add arrow key navigation to signup button
@@ -631,54 +633,7 @@ public class AuthUI extends JFrame {
     }
     
     private JTextField createModernTextField(String placeholder) {
-        JTextField field = new JTextField() {
-            private boolean isFocused = false;
-            
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Focus glow effect
-                if (isFocused) {
-                    g2d.setColor(new Color(255, 215, 0, 30));
-                    g2d.fillRoundRect(-2, -2, getWidth() + 4, getHeight() + 4, 19, 19);
-                }
-                
-                // Neumorphic background
-                g2d.setColor(new Color(25, 35, 55));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                // Inner shadow effect
-                g2d.setColor(new Color(0, 0, 0, 30));
-                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 13, 13);
-                
-                // Highlight effect
-                g2d.setColor(new Color(255, 255, 255, 10));
-                g2d.fillRoundRect(1, 1, getWidth() - 2, 3, 15, 15);
-                
-                g2d.dispose();
-                super.paintComponent(g);
-            }
-            
-            @Override
-            public void setFocusable(boolean focusable) {
-                super.setFocusable(focusable);
-                addFocusListener(new java.awt.event.FocusAdapter() {
-                    @Override
-                    public void focusGained(java.awt.event.FocusEvent e) {
-                        isFocused = true;
-                        repaint();
-                    }
-                    
-                    @Override
-                    public void focusLost(java.awt.event.FocusEvent e) {
-                        isFocused = false;
-                        repaint();
-                    }
-                });
-            }
-        };
+        JTextField field = new JTextField();
         
         // Use fixed dimensions for consistent sizing
         int fieldWidth = 520;
@@ -687,13 +642,13 @@ public class AuthUI extends JFrame {
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
         field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        field.setBackground(new Color(25, 35, 55));
+        field.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        field.setBackground(Color.WHITE);
         field.setForeground(new Color(220, 220, 240));
         field.setCaretColor(PRIMARY_COLOR);
-        field.setOpaque(false);
+        field.setOpaque(true);
         field.setText(placeholder);
-        field.setForeground(new Color(200, 200, 220)); // visible placeholder color
+        field.setForeground(Color.BLACK); // placeholder color as black
 
         // Placeholder behavior (clear only when typing begins)
         field.putClientProperty("placeholderActive", Boolean.TRUE);
@@ -704,26 +659,21 @@ public class AuthUI extends JFrame {
                 if (Boolean.TRUE.equals(active) && field.getText().equals(placeholder)) {
                     field.setText("");
                     field.putClientProperty("placeholderActive", Boolean.FALSE);
-                    field.setForeground(Color.WHITE);
+                    field.setForeground(Color.BLACK);
                 }
             }
         });
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                Object active = field.getClientProperty("placeholderActive");
-                if (Boolean.TRUE.equals(active) && field.getText().equals(placeholder)) {
-                    field.setText("");
-                    field.putClientProperty("placeholderActive", Boolean.FALSE);
-                    field.setForeground(Color.WHITE);
-                }
+                // Keep placeholder visible on focus; clear on first typing only
             }
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (field.getText().trim().isEmpty()) {
                     field.setText(placeholder);
                     field.putClientProperty("placeholderActive", Boolean.TRUE);
-                    field.setForeground(new Color(200, 200, 220));
+                    field.setForeground(Color.BLACK);
                 }
             }
         });
@@ -732,156 +682,7 @@ public class AuthUI extends JFrame {
     }
 
     private JPasswordField createModernPasswordField(String placeholder) {
-        JPasswordField field = new JPasswordField() {
-            private boolean isFocused = false;
-            
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Focus glow effect
-                if (isFocused) {
-                    g2d.setColor(new Color(255, 215, 0, 30));
-                    g2d.fillRoundRect(-2, -2, getWidth() + 4, getHeight() + 4, 19, 19);
-                }
-                
-                // Neumorphic background
-                g2d.setColor(new Color(25, 35, 55));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                
-                // Inner shadow effect
-                g2d.setColor(new Color(0, 0, 0, 30));
-                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 13, 13);
-                
-                // Highlight effect
-                g2d.setColor(new Color(255, 255, 255, 10));
-                g2d.fillRoundRect(1, 1, getWidth() - 2, 3, 15, 15);
-                
-                // Draw eye icon with hover effect
-                drawEyeIcon(g2d);
-                
-                // Add hover effect for eye icon
-                Boolean hoveringEye = (Boolean) getClientProperty("isHoveringEye");
-                if (Boolean.TRUE.equals(hoveringEye)) {
-                    int eyeX = getWidth() - 40;
-                    int eyeY = (getHeight() - 16) / 2;
-                    g2d.setColor(new Color(255, 215, 0, 20));
-                    g2d.fillOval(eyeX - 5, eyeY - 5, 30, 26);
-                }
-                
-                g2d.dispose();
-                super.paintComponent(g);
-            }
-            
-            private void drawEyeIcon(Graphics2D g2d) {
-				int eyeX = getWidth() - 40;
-				int eyeY = (getHeight() - 16) / 2;
-
-				// More realistic eye icon
-				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-				// Apply micro scale animation if present
-				Object scaleObj = getClientProperty("eyeScale");
-				float eyeScale = 1.0f;
-				if (scaleObj instanceof Float) {
-					eyeScale = (Float) scaleObj;
-				}
-
-				int iconW = 20;
-				int iconH = 16;
-				int cx = eyeX + iconW / 2;
-				int cy = eyeY + iconH / 2;
-
-				java.awt.geom.AffineTransform oldTx = g2d.getTransform();
-				g2d.translate(cx, cy);
-				g2d.scale(eyeScale, eyeScale);
-				g2d.translate(-cx, -cy);
-
-				Boolean showPasswordProperty = (Boolean) getClientProperty("showPassword");
-				boolean showPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
-
-				if (showPassword) {
-					// Open eye - more realistic with proper shading
-					g2d.setColor(new Color(255, 255, 255, 200)); // White eye
-					g2d.fillOval(eyeX, eyeY, iconW, iconH); // Eye white
-
-					g2d.setColor(new Color(50, 50, 50)); // Dark pupil
-					g2d.fillOval(eyeX + 6, eyeY + 4, 8, 8); // Pupil
-
-					g2d.setColor(new Color(255, 255, 255, 150)); // Highlight
-					g2d.fillOval(eyeX + 7, eyeY + 5, 3, 3); // Eye highlight
-
-					g2d.setColor(new Color(200, 200, 200, 100)); // Eyelid shadow
-					g2d.setStroke(new BasicStroke(1.5f));
-					g2d.drawArc(eyeX + 1, eyeY + 1, iconW - 2, iconH - 2, 0, 180); // Top eyelid
-				} else {
-					// Closed eye with visible eyelashes (more realistic)
-					// Almond-shaped outline (subtle) under the lid for form
-					g2d.setColor(new Color(255, 255, 255, 60));
-					g2d.setStroke(new BasicStroke(1.2f));
-					g2d.drawArc(eyeX + 1, eyeY + 3, iconW - 2, iconH - 6, 200, 140); // lower curve hint
-
-					// Upper eyelid (thicker stroke)
-					g2d.setColor(new Color(90, 90, 95));
-					g2d.setStroke(new BasicStroke(2.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-					g2d.drawArc(eyeX + 1, eyeY + 1, iconW - 2, iconH - 4, 0, 180); // closed lid
-
-					// Eyelashes along the upper lid
-					g2d.setColor(new Color(70, 70, 75));
-					g2d.setStroke(new BasicStroke(1.4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-					int lashCount = 9;
-					for (int i = 0; i < lashCount; i++) {
-						float t = (float) i / (lashCount - 1);
-						// Position along the lid (avoid extreme ends slightly)
-						float px = eyeX + 3 + t * (iconW - 6);
-						// Slight curve offset to follow the arc
-						float curve = (float) Math.sin(t * Math.PI) * 3.5f;
-						float py = eyeY + 4 + (3.5f - curve);
-
-						// Angle fan outward (from -35° to -145°)
-						float angleDeg = -35f - t * 110f;
-						double ang = Math.toRadians(angleDeg);
-
-						// Lash length varies slightly (longer near center)
-						float len = 5.0f + (float) Math.sin(t * Math.PI) * 2.0f;
-
-						float dx = (float) (Math.cos(ang) * len);
-						float dy = (float) (Math.sin(ang) * len);
-
-						g2d.drawLine(Math.round(px), Math.round(py), Math.round(px + dx), Math.round(py + dy));
-					}
-
-					// Soft lid highlight
-					g2d.setColor(new Color(255, 255, 255, 40));
-					g2d.setStroke(new BasicStroke(1f));
-					g2d.drawArc(eyeX + 2, eyeY + 2, iconW - 4, iconH - 6, 10, 160);
-				}
-
-				// restore transform
-				g2d.setTransform(oldTx);
-			
-            }
-            
-            @Override
-            public void setFocusable(boolean focusable) {
-                super.setFocusable(focusable);
-                addFocusListener(new java.awt.event.FocusAdapter() {
-                    @Override
-                    public void focusGained(java.awt.event.FocusEvent e) {
-                        isFocused = true;
-                        repaint();
-                    }
-                    
-                    @Override
-                    public void focusLost(java.awt.event.FocusEvent e) {
-                        isFocused = false;
-                        repaint();
-                    }
-                });
-            }
-        };
+        JPasswordField field = new JPasswordField();
         
         // Use fixed dimensions for consistent sizing
         int fieldWidth = 520;
@@ -890,30 +691,26 @@ public class AuthUI extends JFrame {
         field.setMaximumSize(new Dimension(fieldWidth, fieldHeight));
         field.setPreferredSize(new Dimension(fieldWidth, fieldHeight));
         field.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        field.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        field.setBackground(new Color(25, 35, 55));
+        field.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        field.setBackground(Color.WHITE);
         field.setForeground(new Color(220, 220, 240));
         field.setCaretColor(PRIMARY_COLOR);
-        field.setOpaque(false);
+        field.setOpaque(true);
         field.setText(placeholder);
         field.setEchoChar((char) 0); // Show placeholder text initially
+        field.setForeground(Color.BLACK); // placeholder color as black
 
         // Placeholder behavior
         field.putClientProperty("placeholderActive", Boolean.TRUE);
         
-        // Add click listener for eye icon with cursor changes
+        // Toggle password visibility with simple click region near right edge
         field.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int eyeX = field.getWidth() - 40;
                 int eyeY = (field.getHeight() - 16) / 2;
-                // Larger click area for better usability
                 if (e.getX() >= eyeX - 5 && e.getX() <= eyeX + 25 && 
                     e.getY() >= eyeY - 5 && e.getY() <= eyeY + 21) {
-                    
-                    // Static UI: no eye icon animation
-                    
-                    // Toggle password visibility
                     Boolean showPasswordProperty = (Boolean) field.getClientProperty("showPassword");
                     boolean currentShowPassword = (showPasswordProperty != null) ? showPasswordProperty : false;
                     boolean newShowPassword = !currentShowPassword;
@@ -926,7 +723,6 @@ public class AuthUI extends JFrame {
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                // Reset cursor when mouse leaves the field
                 field.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
             }
         });
@@ -942,7 +738,7 @@ public class AuthUI extends JFrame {
                 if (Boolean.TRUE.equals(active) && current.equals(placeholder)) {
                     field.setText("");
                     field.putClientProperty("placeholderActive", Boolean.FALSE);
-                    field.setForeground(Color.WHITE);
+                    field.setForeground(Color.BLACK);
                     field.setEchoChar('•'); // Always hide password by default
                 }
             }
@@ -951,14 +747,7 @@ public class AuthUI extends JFrame {
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                Object active = field.getClientProperty("placeholderActive");
-                String current = new String(field.getPassword());
-                if (Boolean.TRUE.equals(active) && current.equals(placeholder)) {
-                    field.setText("");
-                    field.putClientProperty("placeholderActive", Boolean.FALSE);
-                    field.setForeground(Color.WHITE);
-                    field.setEchoChar('•');
-                }
+                // Keep placeholder visible on focus; clear on first key press
             }
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
@@ -966,7 +755,7 @@ public class AuthUI extends JFrame {
                 if (current.trim().isEmpty()) {
                     field.setText(placeholder);
                     field.putClientProperty("placeholderActive", Boolean.TRUE);
-                    field.setForeground(new Color(200, 200, 220));
+                    field.setForeground(Color.BLACK);
                     field.setEchoChar((char) 0);
                 }
             }
@@ -1018,7 +807,7 @@ public class AuthUI extends JFrame {
         button.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
         button.setFont(new Font("Trebuchet MS", Font.PLAIN, 20));
-        button.setForeground(new Color(200, 200, 220));
+        button.setForeground(Color.BLACK);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
@@ -1137,14 +926,14 @@ public class AuthUI extends JFrame {
         if (Boolean.TRUE.equals(emailPA) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
             emailField.setText("");
             emailField.putClientProperty("placeholderActive", Boolean.FALSE);
-            emailField.setForeground(Color.WHITE);
+            emailField.setForeground(Color.BLACK);
         }
         Object passPA = passwordField.getClientProperty("placeholderActive");
         String passTextNow = new String(passwordField.getPassword());
         if (Boolean.TRUE.equals(passPA) && "Password".equalsIgnoreCase(passTextNow.trim())) {
             passwordField.setText("");
             passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
-            passwordField.setForeground(Color.WHITE);
+            passwordField.setForeground(Color.BLACK);
             passwordField.setEchoChar('•');
         }
 
@@ -1188,11 +977,11 @@ public class AuthUI extends JFrame {
                     
                     boolean hasCompletedOnboarding = userService.hasCompletedOnboardingByUsername(profile.getUsername());
                     
-                    showCard("LOADING");
+                        showCard("LOADING");
                     if (hasCompletedOnboarding) {
-                        createWelcomeBackOnboarding(profile.getUsername());
+                            createWelcomeBackOnboarding(profile.getUsername());
                     } else {
-                        showCard("ONBOARDING_PROMPT");
+                            showCard("ONBOARDING_PROMPT");
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
@@ -1213,20 +1002,20 @@ public class AuthUI extends JFrame {
         if (Boolean.TRUE.equals(nPA2) && "Username".equalsIgnoreCase(nameFieldParam.getText().trim())) {
             nameFieldParam.setText("");
             nameFieldParam.putClientProperty("placeholderActive", Boolean.FALSE);
-            nameFieldParam.setForeground(Color.WHITE);
+            nameFieldParam.setForeground(Color.BLACK);
         }
         Object ePA2 = emailField.getClientProperty("placeholderActive");
         if (Boolean.TRUE.equals(ePA2) && "Email".equalsIgnoreCase(emailField.getText().trim())) {
             emailField.setText("");
             emailField.putClientProperty("placeholderActive", Boolean.FALSE);
-            emailField.setForeground(Color.WHITE);
+            emailField.setForeground(Color.BLACK);
         }
         Object pPA2 = passwordField.getClientProperty("placeholderActive");
         String passNow = new String(passwordField.getPassword());
         if (Boolean.TRUE.equals(pPA2) && "Password".equalsIgnoreCase(passNow.trim())) {
             passwordField.setText("");
             passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
-            passwordField.setForeground(Color.WHITE);
+            passwordField.setForeground(Color.BLACK);
             passwordField.setEchoChar('•');
         }
 
@@ -1302,15 +1091,15 @@ public class AuthUI extends JFrame {
                     // Reset signup fields to their placeholder state
                     nameFieldParam.setText("Username");
                     nameFieldParam.putClientProperty("placeholderActive", Boolean.TRUE);
-                    nameFieldParam.setForeground(new Color(200, 200, 220));
+                    nameFieldParam.setForeground(Color.BLACK);
                     
                     emailField.setText("Email");
                     emailField.putClientProperty("placeholderActive", Boolean.TRUE);
-                    emailField.setForeground(new Color(200, 200, 220));
+                    emailField.setForeground(Color.BLACK);
                     
                     passwordField.setText("Password");
                     passwordField.putClientProperty("placeholderActive", Boolean.TRUE);
-                    passwordField.setForeground(new Color(200, 200, 220));
+                    passwordField.setForeground(Color.BLACK);
                     passwordField.setEchoChar((char) 0);
                     
                 } else {
@@ -1757,7 +1546,9 @@ public class AuthUI extends JFrame {
     }
 
     private JPanel createOnboardingPromptPanel() {
-        JPanel panel = new NeonBackgroundPanel();
+        JPanel panel = new JPanel();
+        panel.setOpaque(true);
+        panel.setBackground(new Color(25, 35, 55));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         CardContainerPanel card = new CardContainerPanel();

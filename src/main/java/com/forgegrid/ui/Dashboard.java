@@ -139,16 +139,8 @@ public class Dashboard extends JFrame {
         
         setContentPane(mainPanel);
 
-        // Prepare a dark glass-pane overlay to mask any OS repaint/flash during dialogs
-        modalOverlay = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setColor(new Color(0, 0, 0, 150));
-                g2.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
+        // Basic overlay disabled for simplicity
+        modalOverlay = new JPanel();
         modalOverlay.setOpaque(false);
         modalOverlay.setVisible(false);
         setGlassPane(modalOverlay);
@@ -234,42 +226,12 @@ public class Dashboard extends JFrame {
         levelDisplayLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         levelDisplayLabel.setForeground(new Color(100, 180, 220));
         
-        // CENTER: Enhanced XP Progress Bar
-        xpProgressBar = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                int width = getWidth();
-                int height = getHeight();
-                
-                // Background
-                g2.setColor(SIDEBAR_COLOR);
-                g2.fillRoundRect(0, 0, width, height, 10, 10);
-                
-                // Progress
-                if (maxXP > 0) {
-                    int progressWidth = (int) ((width * currentXP) / maxXP);
-                    g2.setColor(new Color(80, 200, 120));
-                    g2.fillRoundRect(0, 0, progressWidth, height, 10, 10);
-                }
-                
-                // XP Text inside bar
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                String xpText = "XP: " + currentXP + " / " + maxXP;
-                FontMetrics fm = g2.getFontMetrics();
-                int textX = (width - fm.stringWidth(xpText)) / 2;
-                int textY = (height + fm.getAscent()) / 2 - 2;
-                g2.drawString(xpText, textX, textY);
-                
-                g2.dispose();
-            }
-        };
-        xpProgressBar.setPreferredSize(new Dimension(300, 24));
-        xpProgressBar.setOpaque(false);
+        // CENTER: Basic Swing progress bar
+        JProgressBar xpProgressBarBasic = new JProgressBar(0, Math.max(1, maxXP));
+        xpProgressBarBasic.setValue(Math.max(0, Math.min(maxXP, currentXP)));
+        xpProgressBarBasic.setStringPainted(true);
+        xpProgressBarBasic.setString("XP: " + currentXP + " / " + maxXP);
+        xpProgressBarBasic.setPreferredSize(new Dimension(300, 24));
         
         // RIGHT: Streak with fire icon
         JLabel streakLabel = new JLabel("🔥 Streak: " + currentStreak);
@@ -277,7 +239,7 @@ public class Dashboard extends JFrame {
         streakLabel.setForeground(new Color(255, 150, 100));
         
         panel.add(levelDisplayLabel, BorderLayout.WEST);
-        panel.add(xpProgressBar, BorderLayout.CENTER);
+        panel.add(xpProgressBarBasic, BorderLayout.CENTER);
         panel.add(streakLabel, BorderLayout.EAST);
         
         return panel;
@@ -311,20 +273,9 @@ public class Dashboard extends JFrame {
         customizeLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         customizeLabel.setOpaque(false);
         
-        // Red dot indicator - using a custom painted component
-        JPanel redDotPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (showRedDot[0]) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(255, 60, 60));
-                    g2.fillOval(2, 5, 8, 8);
-                    g2.dispose();
-                }
-            }
-        };
+        // Red dot indicator replaced with simple static label
+        JLabel redDotPanel = new JLabel("•");
+        redDotPanel.setForeground(new Color(255, 60, 60));
         redDotPanel.setPreferredSize(new Dimension(12, 18));
         redDotPanel.setOpaque(false);
         
@@ -334,7 +285,7 @@ public class Dashboard extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 showCustomizationPanel();
                 showRedDot[0] = false;
-                redDotPanel.repaint();
+                redDotPanel.setText("");
             }
         });
         
@@ -487,18 +438,9 @@ public class Dashboard extends JFrame {
         footer.add(avatarBtn, BorderLayout.WEST);
 
         // Settings gear icon button on the right
-        JPanel gearButton = new JPanel(new BorderLayout()) {
-            private boolean hovered = false;
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(hovered ? new Color(55, 65, 85) : new Color(40, 50, 70));
-                g2.fillOval(0, 0, getWidth()-1, getHeight()-1);
-            }
-        };
-        gearButton.setOpaque(false);
+        JPanel gearButton = new JPanel(new BorderLayout());
+        gearButton.setOpaque(true);
+        gearButton.setBackground(new Color(40, 50, 70));
         gearButton.setPreferredSize(new Dimension(40, 40));
         gearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         JLabel gearIcon = new JLabel("⚙️", SwingConstants.CENTER);
@@ -565,32 +507,14 @@ public class Dashboard extends JFrame {
     private JPanel currentSelectedMenuItem = null;
     
     /**
-     * Create an ultra-modern menu item with smooth animations
+     * Create a simple menu item (basic Swing only)
      */
     private JPanel createModernMenuItem(String icon, String text, boolean selected) {
-        JPanel item = new JPanel(new BorderLayout(14, 0)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Draw rounded background
-                if (getBackground().getRGB() != SIDEBAR_COLOR.getRGB()) {
-                    g2.setColor(getBackground());
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-                }
-                
-                g2.dispose();
-            }
-        };
+        JPanel item = new JPanel(new BorderLayout(14, 0));
         
-        item.setOpaque(false);
-        item.setBackground(selected ? new Color(40, 50, 65) : SIDEBAR_COLOR);
-        item.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 3, 0, 0, selected ? ACCENT_COLOR : new Color(0, 0, 0, 0)),
-            new EmptyBorder(14, 16, 14, 16)
-        ));
+        item.setOpaque(true);
+        item.setBackground(SIDEBAR_COLOR);
+        item.setBorder(new EmptyBorder(10, 12, 10, 12));
         item.setCursor(new Cursor(Cursor.HAND_CURSOR));
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
         
@@ -609,15 +533,13 @@ public class Dashboard extends JFrame {
         // Text with better styling
         JLabel textLabel = new JLabel(text);
         textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textLabel.setForeground(selected ? new Color(240, 245, 250) : new Color(160, 170, 185));
+        textLabel.setForeground(new Color(220, 225, 235));
         
         item.add(iconLabel, BorderLayout.WEST);
         item.add(textLabel, BorderLayout.CENTER);
         
         // Track if this is the first selected item
-        if (selected) {
-            currentSelectedMenuItem = item;
-        }
+        if (selected) currentSelectedMenuItem = item;
         
         // Click only; no hover/timer effects
         item.addMouseListener(new MouseAdapter() {
@@ -627,28 +549,9 @@ public class Dashboard extends JFrame {
                 // Deselect previous item
                 if (currentSelectedMenuItem != null && currentSelectedMenuItem != item) {
                     currentSelectedMenuItem.setBackground(SIDEBAR_COLOR);
-                    currentSelectedMenuItem.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 3, 0, 0, new Color(0, 0, 0, 0)),
-                        new EmptyBorder(14, 16, 14, 16)
-                    ));
-                    Component[] components = currentSelectedMenuItem.getComponents();
-                    if (components.length >= 2) {
-                        ((JLabel) components[0]).setForeground(new Color(140, 150, 170));
-                        ((JLabel) components[1]).setForeground(new Color(160, 170, 185));
-                    }
-                    currentSelectedMenuItem.repaint();
                 }
-                
-                // Select new item
                 item.setBackground(new Color(40, 50, 65));
-                item.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 3, 0, 0, ACCENT_COLOR),
-                    new EmptyBorder(14, 16, 14, 16)
-                ));
-                textLabel.setForeground(new Color(240, 245, 250));
-                iconLabel.setForeground(ACCENT_COLOR);
                 currentSelectedMenuItem = item;
-                item.repaint();
                 
                 // Switch view
                 switchView(text);
@@ -863,48 +766,12 @@ public class Dashboard extends JFrame {
         topRow.add(levelLabel, BorderLayout.WEST);
         topRow.add(xpLabel, BorderLayout.EAST);
         
-        // Progress bar
-        JPanel progressBarPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                int width = getWidth();
-                int height = getHeight();
-                
-                // Background
-                g2.setColor(new Color(30, 40, 55));
-                g2.fillRoundRect(0, 0, width, height, 15, 15);
-                
-                // Progress
-                if (levelInfo.requiredForNextLevel > 0) {
-                    int progressWidth = (int) ((width * levelInfo.currentLevelXP) / (double) levelInfo.requiredForNextLevel);
-                    
-                    // Gradient for progress bar
-                    GradientPaint gradient = new GradientPaint(
-                        0, 0, new Color(59, 130, 246),
-                        progressWidth, 0, new Color(147, 51, 234)
-                    );
-                    g2.setPaint(gradient);
-                    g2.fillRoundRect(0, 0, progressWidth, height, 15, 15);
-                }
-                
-                // Percentage text
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                String percentText = levelInfo.getProgressPercentage() + "%";
-                FontMetrics fm = g2.getFontMetrics();
-                int textX = (width - fm.stringWidth(percentText)) / 2;
-                int textY = (height + fm.getAscent()) / 2 - 2;
-                g2.drawString(percentText, textX, textY);
-                
-                g2.dispose();
-            }
-        };
-        progressBarPanel.setPreferredSize(new Dimension(0, 35));
-        progressBarPanel.setOpaque(false);
+        // Progress bar (basic Swing)
+        JProgressBar progressBarPanel = new JProgressBar(0, Math.max(1, levelInfo.requiredForNextLevel));
+        progressBarPanel.setValue(Math.max(0, Math.min(levelInfo.requiredForNextLevel, levelInfo.currentLevelXP)));
+        progressBarPanel.setStringPainted(true);
+        progressBarPanel.setString(levelInfo.getProgressPercentage() + "%");
+        progressBarPanel.setPreferredSize(new Dimension(0, 18));
         
         // Bottom info
         JLabel nextLevelLabel = new JLabel("Next level at " + levelInfo.requiredForNextLevel + " XP");
@@ -1936,10 +1803,18 @@ public class Dashboard extends JFrame {
         summary.setAlignmentX(Component.LEFT_ALIGNMENT);
         info.add(summary);
 
-        JPanel center = new JPanel(new BorderLayout());
+        JPanel center = new JPanel();
         center.setOpaque(false);
-        center.add(donut, BorderLayout.CENTER); // Center the donut instead of WEST
-        center.add(info, BorderLayout.SOUTH); // Move info below
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+        // Replace donut with a simple progress summary
+        JProgressBar simple = new JProgressBar(0, Math.max(1, totalTasks));
+        simple.setValue(Math.max(0, completedTasks));
+        simple.setStringPainted(true);
+        simple.setString("Tasks: " + completedTasks + "/" + totalTasks);
+        simple.setAlignmentX(Component.CENTER_ALIGNMENT);
+        center.add(simple);
+        center.add(Box.createVerticalStrut(6));
+        center.add(info);
         panel.add(center, BorderLayout.CENTER);
 
         return panel;
@@ -2007,39 +1882,15 @@ public class Dashboard extends JFrame {
         final String[] days = new String[] {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
         final int maxVal = 1; // keep bars at zero height but avoid divide-by-zero
 
-        JPanel chart = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int w = getWidth();
-                int h = getHeight();
-                int pad = 24;
-                int barW = Math.max(10, (w - pad*2) / (completedPerDay.length * 2));
-                int gap = barW;
-
-                for (int i = 0; i < completedPerDay.length; i++) {
-                    double ratio = completedPerDay[i] / (double) maxVal; // always 0
-                    int bh = (int) Math.round((h - pad*2 - 20) * ratio);
-                    int bx = pad + i * (barW + gap);
-                    int by = h - pad - bh;
-                    g2.setColor(new Color(180, 120, 200)); // Subtle purple for bars
-                    g2.fillRoundRect(bx, by, barW, Math.max(0, bh), 6, 6);
-                    g2.setColor(TEXT_SECONDARY);
-                    String d = days[i];
-                    FontMetrics fm = g2.getFontMetrics();
-                    int tx = bx + (barW - fm.stringWidth(d)) / 2;
-                    g2.drawString(d, tx, h - 6);
-                }
-                g2.dispose();
-            }
-        };
-        chart.setOpaque(false);
-        chart.setPreferredSize(new Dimension(300, 100)); // Smaller for non-maximized windows
-        chart.setMinimumSize(new Dimension(250, 80)); // Allow smaller minimum
-        chart.setMaximumSize(new Dimension(500, 150)); // Allow larger when maximized
-        panel.add(chart, BorderLayout.CENTER);
+        // Replace custom chart with a basic list summary
+        DefaultListModel<String> model = new DefaultListModel<>();
+        for (int i = 0; i < days.length; i++) {
+            model.addElement(days[i] + ": " + completedPerDay[i] + " completed");
+        }
+        JList<String> list = new JList<>(model);
+        list.setBackground(PANEL_COLOR);
+        list.setForeground(TEXT_COLOR);
+        panel.add(new JScrollPane(list), BorderLayout.CENTER);
         return panel;
     }
 

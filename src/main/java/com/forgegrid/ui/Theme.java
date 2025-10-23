@@ -2,6 +2,7 @@ package com.forgegrid.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 
 /**
  * Centralized UI theme utilities and brand colors.
@@ -19,41 +20,49 @@ public final class Theme {
 	public static final Color TEXT_SECONDARY = new Color(208, 212, 220);
 
 	public static void stylePrimaryButton(AbstractButton button) {
-		button.setFocusPainted(false);
-		button.setBorderPainted(false);
-		button.setContentAreaFilled(false);
-		button.setOpaque(false);
-		button.setForeground(Color.WHITE);
-		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		button.setFont(button.getFont().deriveFont(Font.BOLD, Math.max(14f, button.getFont().getSize2D())));
+        button.setFocusPainted(true);
+        button.setBorderPainted(true);
+        button.setContentAreaFilled(true);
+        button.setOpaque(true);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFont(button.getFont().deriveFont(Font.BOLD, Math.max(14f, button.getFont().getSize2D())));
 	}
 
-	public static JComponent asGradientButton(AbstractButton button, Color left, Color right, int arc) {
-		JPanel wrapper = new JPanel() {
-			@Override
-			protected void paintComponent(Graphics g) {
-				super.paintComponent(g);
-				Graphics2D g2d = (Graphics2D) g.create();
-				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				int w = getWidth();
-				int h = getHeight();
-				GradientPaint gp = new GradientPaint(0, 0, left, w, h, right);
-				g2d.setPaint(gp);
-				g2d.fillRoundRect(0, 0, w, h, arc, arc);
-				g2d.setColor(new Color(255, 255, 255, 36));
-				g2d.fillRoundRect(2, 2, Math.max(0, w - 4), Math.max(0, h / 2), Math.max(0, arc - 4), Math.max(0, arc - 4));
-				g2d.dispose();
-			}
-		};
+    public static JComponent asGradientButton(AbstractButton button, Color left, Color right, int arc) {
+        stylePrimaryButton(button);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
+
+        final Dimension size = button.getPreferredSize();
+
+        JPanel wrapper = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth();
+                int h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, left, w, 0, right);
+                Shape rr = new RoundRectangle2D.Float(0, 0, w - 1, h - 1, arc, arc);
+                g2.setPaint(gp);
+                g2.fill(rr);
+                g2.setColor(new Color(0, 0, 0, 30));
+                g2.draw(rr);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         wrapper.setOpaque(false);
-        wrapper.setLayout(new GridBagLayout());
-        // Ensure wrapper reports the same size as the button to avoid stretching by parent layouts
-        wrapper.setPreferredSize(button.getPreferredSize());
-        wrapper.setMinimumSize(button.getPreferredSize());
-        wrapper.setMaximumSize(button.getPreferredSize());
         wrapper.add(button);
-		return wrapper;
-	}
+        wrapper.setPreferredSize(new Dimension(size));
+        wrapper.setMinimumSize(new Dimension(size));
+        wrapper.setMaximumSize(new Dimension(size));
+        return wrapper;
+    }
 }
 
 
