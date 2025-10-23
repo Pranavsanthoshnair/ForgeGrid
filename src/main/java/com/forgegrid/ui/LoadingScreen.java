@@ -2,7 +2,6 @@ package com.forgegrid.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * Static loading screen with brand and tagline. No animations or sounds.
@@ -44,22 +43,10 @@ public class LoadingScreen extends JPanel {
         statusLabel.setForeground(Color.GRAY);
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton continueBtn = new JButton("Continue");
-        continueBtn.setUI(new BasicButtonUI());
-        continueBtn.setBackground(Theme.BRAND_PINK);
-        continueBtn.setForeground(Color.WHITE);
-        continueBtn.setBorderPainted(false);
-        continueBtn.setFocusPainted(false);
-        Dimension btn = new Dimension(160, 36);
-        continueBtn.setPreferredSize(btn);
-        continueBtn.setMaximumSize(btn);
-        continueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         card.add(brand);
         card.add(taglineLabel);
         card.add(statusLabel);
         card.add(Box.createRigidArea(new Dimension(0, 12)));
-        card.add(continueBtn);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.CENTER;

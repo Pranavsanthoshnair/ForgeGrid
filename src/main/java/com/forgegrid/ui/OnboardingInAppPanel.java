@@ -163,15 +163,15 @@ public class OnboardingInAppPanel extends JPanel {
 		continueBtn.setMaximumSize(new Dimension(300, 45));
 		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
 		
-        JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 22);
-		Dimension contSize = new Dimension(300, 45);
-		gradientButton.setPreferredSize(contSize);
-		gradientButton.setMinimumSize(contSize);
-		gradientButton.setMaximumSize(contSize);
-		continueWrap.setPreferredSize(contSize);
-		continueWrap.setMinimumSize(contSize);
-		continueWrap.setMaximumSize(contSize);
-		continueWrap.add(gradientButton);
+        continueBtn.setBackground(Theme.BRAND_PINK);
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBorderPainted(false);
+        continueBtn.setFocusPainted(false);
+        Dimension contSize = new Dimension(300, 45);
+        continueWrap.setPreferredSize(contSize);
+        continueWrap.setMinimumSize(contSize);
+        continueWrap.setMaximumSize(contSize);
+        continueWrap.add(continueBtn);
 		buttonPanel.add(continueWrap);
 		
 		center.add(buttonPanel);
@@ -304,16 +304,15 @@ public class OnboardingInAppPanel extends JPanel {
         continueBtn.setPreferredSize(new Dimension(240, 34));
         continueBtn.setMaximumSize(new Dimension(240, 34));
 		continueBtn.setHorizontalAlignment(SwingConstants.CENTER);
-        // Use standardized theme gradient colors for consistency
-        JComponent gradientButton = Theme.asGradientButton(continueBtn, Theme.BRAND_BLUE.darker(), Theme.BRAND_PINK.darker(), 18);
+        continueBtn.setBackground(Theme.BRAND_PINK);
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBorderPainted(false);
+        continueBtn.setFocusPainted(false);
         Dimension contSize = new Dimension(240, 34);
-        gradientButton.setPreferredSize(contSize);
-        gradientButton.setMinimumSize(contSize);
-        gradientButton.setMaximumSize(contSize);
         continueWrap.setPreferredSize(contSize);
         continueWrap.setMinimumSize(contSize);
         continueWrap.setMaximumSize(contSize);
-        continueWrap.add(gradientButton);
+        continueWrap.add(continueBtn);
 		buttonPanel.add(continueWrap);
 		
 		// Add back button if onBack is provided
@@ -329,18 +328,17 @@ public class OnboardingInAppPanel extends JPanel {
                 }
             };
 			backWrap.setOpaque(false);
-            // Use the same approach as Continue button with Theme wrapper
             Dimension backSize = new Dimension(240, 34);
             backBtn.setPreferredSize(backSize);
             backBtn.setMaximumSize(backSize);
-            JComponent backGradientButton = Theme.asGradientButton(backBtn, Theme.BRAND_BLUE.darker(), new Color(80, 90, 110), 18);
-            backGradientButton.setPreferredSize(backSize);
-            backGradientButton.setMinimumSize(backSize);
-            backGradientButton.setMaximumSize(backSize);
+            backBtn.setBackground(new Color(80, 90, 110));
+            backBtn.setForeground(Color.WHITE);
+            backBtn.setBorderPainted(false);
+            backBtn.setFocusPainted(false);
             backWrap.setPreferredSize(backSize);
             backWrap.setMinimumSize(backSize);
             backWrap.setMaximumSize(backSize);
-			backWrap.add(backGradientButton);
+            backWrap.add(backBtn);
 			buttonPanel.add(backWrap);
 		}
 		
@@ -372,31 +370,15 @@ public class OnboardingInAppPanel extends JPanel {
 		return btn;
 	}
 
-	private JButton createContinueButton() {
+    private JButton createContinueButton() {
         JButton b = new JButton("Continue");
-		b.setFocusPainted(false);
-        b.setForeground(Color.WHITE);
-		b.setOpaque(false);
-		b.setContentAreaFilled(false);
-		b.setBorderPainted(false);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        b.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
-		b.setHorizontalAlignment(SwingConstants.CENTER);
-		b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		return b;
-	}
+        b.setFocusPainted(false);
+        return b;
+    }
 	
     private JButton createBackButton() {
         JButton b = new JButton("Back");
         b.setFocusPainted(false);
-        b.setForeground(Color.WHITE);
-        b.setOpaque(false);
-        b.setContentAreaFilled(false);
-        b.setBorderPainted(false);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        b.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
-        b.setHorizontalAlignment(SwingConstants.CENTER);
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return b;
     }
 }
