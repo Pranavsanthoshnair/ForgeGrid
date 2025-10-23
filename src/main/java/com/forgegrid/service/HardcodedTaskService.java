@@ -246,6 +246,118 @@ public class HardcodedTaskService {
                 "Create a program that checks if a number is even or odd",
                 "Java", "Beginner", 10, 15
             ));
+        } else if (language.contains("c")) {
+            // Comprehensive C Programming Beginner Tasks
+            tasks.add(new HardcodedTask(
+                "Hello World Program",
+                "Write a C program to print 'Hello, World!'",
+                "C", "Beginner", 10, 5
+            ));
+            tasks.add(new HardcodedTask(
+                "Personal Information Display",
+                "Write a program to display your name, age, and city",
+                "C", "Beginner", 15, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Basic Calculator",
+                "Write a program to perform addition, subtraction, multiplication, and division of two numbers",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Number Swapping with Third Variable",
+                "Write a program to swap two numbers using a third variable",
+                "C", "Beginner", 15, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Largest of Two Numbers",
+                "Write a program to find the largest of two numbers",
+                "C", "Beginner", 15, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Numbers 1 to 10 Loop",
+                "Print numbers from 1 to 10 using a for loop",
+                "C", "Beginner", 10, 8
+            ));
+            tasks.add(new HardcodedTask(
+                "Even Numbers 1-50",
+                "Print all even numbers between 1 and 50",
+                "C", "Beginner", 15, 12
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum of Natural Numbers",
+                "Find the sum of the first n natural numbers",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Multiplication Table",
+                "Display the multiplication table of a given number",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Read and Display",
+                "Read and display elements of an array",
+                "C", "Beginner", 15, 12
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Largest and Smallest",
+                "Find the largest and smallest elements in an array",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Sum and Average",
+                "Calculate sum and average of array elements",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "String Input and Display",
+                "Read a string and print it",
+                "C", "Beginner", 10, 8
+            ));
+            tasks.add(new HardcodedTask(
+                "String Length Calculator",
+                "Find the length of a string without using strlen()",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Vowel and Consonant Counter",
+                "Count vowels and consonants in a string",
+                "C", "Beginner", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Add Two Numbers Function",
+                "Write a function to add two numbers",
+                "C", "Beginner", 15, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Factorial Function",
+                "Write a function to find factorial of a number",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Pointer Declaration and Initialization",
+                "Demonstrate pointer declaration and initialization",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Swap Numbers Using Pointers",
+                "Swap two numbers using pointers",
+                "C", "Beginner", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum and Average Using Pointers",
+                "Find sum and average of elements using pointers",
+                "C", "Beginner", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Student Structure Definition",
+                "Define a structure named Student with name, roll number, and marks",
+                "C", "Beginner", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Multiple Students Input/Display",
+                "Input and display details of multiple students",
+                "C", "Beginner", 30, 25
+            ));
         } else if (language.contains("python")) {
             // Comprehensive Python Beginner Tasks
             tasks.add(new HardcodedTask(
@@ -421,6 +533,143 @@ public class HardcodedTaskService {
                 "Collections Framework",
                 "Use HashMap and TreeSet to solve a practical problem",
                 "Java", "Intermediate", 35, 60
+            ));
+        } else if (language.contains("c")) {
+            // Comprehensive C Programming Intermediate Tasks
+            tasks.add(new HardcodedTask(
+                "Even or Odd Checker",
+                "Write a program to check whether a number is even or odd",
+                "C", "Intermediate", 15, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Largest of Three Numbers",
+                "Write a program to find the largest among three numbers",
+                "C", "Intermediate", 20, 15
+            ));
+            tasks.add(new HardcodedTask(
+                "Leap Year Checker",
+                "Write a program to check whether a year is a leap year",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "ASCII Value Finder",
+                "Write a program to find the ASCII value of a character",
+                "C", "Intermediate", 15, 10
+            ));
+            tasks.add(new HardcodedTask(
+                "Quadratic Equation Solver",
+                "Write a program to find the roots of a quadratic equation",
+                "C", "Intermediate", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Prime Number Checker",
+                "Check whether a number is prime",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Factorial Calculator",
+                "Find the factorial of a number",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Number Reverser",
+                "Reverse a number",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Palindrome Checker",
+                "Check whether a number is palindrome",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Fibonacci Series Generator",
+                "Generate the Fibonacci series up to n terms",
+                "C", "Intermediate", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Sorting",
+                "Sort an array in ascending order",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Linear Search in Array",
+                "Search an element in an array (Linear Search)",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Count Even and Odd Elements",
+                "Count even and odd elements in an array",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Matrix Addition and Subtraction",
+                "Perform addition and subtraction of two matrices",
+                "C", "Intermediate", 40, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "String Palindrome Checker",
+                "Check whether a string is palindrome",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "String Reverser",
+                "Reverse a string",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "String Comparison",
+                "Compare two strings without using strcmp()",
+                "C", "Intermediate", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Case Conversion",
+                "Convert a string to uppercase and lowercase",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Prime Number Function",
+                "Write a function to check if a number is prime",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Number Reverse Function",
+                "Write a function to reverse a number",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Recursive Fibonacci",
+                "Write a recursive function to generate Fibonacci series",
+                "C", "Intermediate", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Array Elements Using Pointers",
+                "Access array elements using pointers",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "String Length Using Pointers",
+                "Find length of a string using pointers",
+                "C", "Intermediate", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Student Marks Calculation",
+                "Calculate total and average marks of students using structures",
+                "C", "Intermediate", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Union Demonstration",
+                "Demonstrate use of a union",
+                "C", "Intermediate", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Text File Read/Write",
+                "Write a program to read and write data to a text file",
+                "C", "Intermediate", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "File Statistics Counter",
+                "Count the number of lines, words, and characters in a file",
+                "C", "Intermediate", 40, 35
             ));
         } else if (language.contains("python")) {
             // Comprehensive Python Intermediate Tasks
@@ -681,6 +930,143 @@ public class HardcodedTaskService {
                 "Lambda and Streams",
                 "Use Java 8+ features for functional programming",
                 "Java", "Advanced", 60, 120
+            ));
+        } else if (language.contains("c")) {
+            // Comprehensive C Programming Expert/Advanced Tasks
+            tasks.add(new HardcodedTask(
+                "Prime Numbers in Range",
+                "Display all prime numbers between two intervals",
+                "C", "Expert", 45, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Sum of Digits Calculator",
+                "Find the sum of digits of a number using while loop",
+                "C", "Expert", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "GCD and LCM Calculator",
+                "Find GCD and LCM of two numbers",
+                "C", "Expert", 40, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Pattern Programs",
+                "Print pattern programs such as right triangle, pyramid, inverted pyramid, and diamond",
+                "C", "Expert", 50, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Merge Two Arrays",
+                "Merge two arrays",
+                "C", "Expert", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Second Largest Element",
+                "Find the second largest element in an array",
+                "C", "Expert", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Matrix Multiplication",
+                "Perform matrix multiplication",
+                "C", "Expert", 50, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Binary Search Implementation",
+                "Implement Binary Search",
+                "C", "Expert", 45, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Character Frequency Counter",
+                "Count occurrences of each character in a string",
+                "C", "Expert", 40, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Remove Duplicate Characters",
+                "Remove duplicate characters from a string",
+                "C", "Expert", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "First Non-Repeated Character",
+                "Find the first non-repeated character",
+                "C", "Expert", 40, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Anagram Checker",
+                "Check whether two strings are anagrams",
+                "C", "Expert", 45, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Recursive GCD Function",
+                "Write a recursive function to find GCD of two numbers",
+                "C", "Expert", 40, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "Armstrong Number Checker",
+                "Write a function to check Armstrong number",
+                "C", "Expert", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Recursive Power Function",
+                "Write a recursive function to calculate power (xⁿ)",
+                "C", "Expert", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "Pointer to Pointer",
+                "Demonstrate pointer to pointer",
+                "C", "Expert", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Dynamic Memory Allocation",
+                "Perform dynamic memory allocation using malloc() and free()",
+                "C", "Expert", 45, 40
+            ));
+            tasks.add(new HardcodedTask(
+                "Employee Records Array",
+                "Create an array of structures for employee records",
+                "C", "Expert", 50, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Structure to Function",
+                "Pass a structure to a function and display its data",
+                "C", "Expert", 40, 35
+            ));
+            tasks.add(new HardcodedTask(
+                "File Copy Program",
+                "Copy contents from one file to another",
+                "C", "Expert", 30, 25
+            ));
+            tasks.add(new HardcodedTask(
+                "File Append Operations",
+                "Append data to a file",
+                "C", "Expert", 25, 20
+            ));
+            tasks.add(new HardcodedTask(
+                "Stack Operations Implementation",
+                "Implement stack operations using arrays",
+                "C", "Expert", 50, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Queue Operations Implementation",
+                "Implement queue operations using arrays",
+                "C", "Expert", 50, 45
+            ));
+            tasks.add(new HardcodedTask(
+                "Linked List Operations",
+                "Implement linked list operations (insert, delete, display)",
+                "C", "Expert", 60, 60
+            ));
+            tasks.add(new HardcodedTask(
+                "Decimal to Binary Recursion",
+                "Convert decimal to binary using recursion",
+                "C", "Expert", 35, 30
+            ));
+            tasks.add(new HardcodedTask(
+                "Student Record System",
+                "Create a mini project such as Student Record System",
+                "C", "Expert", 80, 120
+            ));
+            tasks.add(new HardcodedTask(
+                "Bank Management System",
+                "Create a mini project such as Bank Management System",
+                "C", "Expert", 90, 150
             ));
         } else if (language.contains("python")) {
             // Comprehensive Python Expert/Advanced Tasks
