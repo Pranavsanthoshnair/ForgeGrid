@@ -9,6 +9,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings({"unused"})
 public class AuthUI extends JFrame {
     // Color scheme
     private static final Color PRIMARY_COLOR = new Color(0xffcc4d); // #ffcc4d - Golden yellow
@@ -35,8 +36,7 @@ public class AuthUI extends JFrame {
     private JPanel signupPanel;
     private WelcomeUI welcomePanel;
     private JPanel onboardingPrompt;
-    private JPanel loadingPanel;
-    private JPanel dashboardPanel;
+    // placeholders removed; cards are managed via cardPanel
     
     public AuthUI() {
         this.authService = new AuthService();
@@ -71,16 +71,12 @@ public class AuthUI extends JFrame {
                 Image iconImage = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
                 setIconImage(iconImage);
             }
-        } catch (Exception e) {
-            System.err.println("Error loading window icon: " + e.getMessage());
-        }
+        } catch (Exception e) { /* ignore icon load errors */ }
         
         // Set modern look and feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { /* ignore look and feel issues */ }
         
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
@@ -196,7 +192,6 @@ public class AuthUI extends JFrame {
                     // Dispose the temporary dashboard frame (we only needed its content)
                     dashboard.dispose();
                 } catch (Exception ex) {
-                    ex.printStackTrace();
                     JOptionPane.showMessageDialog(
                         AuthUI.this,
                         "Error loading dashboard: " + ex.getMessage(),
@@ -916,8 +911,7 @@ public class AuthUI extends JFrame {
                 if (e.getX() >= eyeX - 5 && e.getX() <= eyeX + 25 && 
                     e.getY() >= eyeY - 5 && e.getY() <= eyeY + 21) {
                     
-                    // Add micro-animation for eye icon click
-                    addEyeIconAnimation(field);
+                    // Static UI: no eye icon animation
                     
                     // Toggle password visibility
                     Boolean showPasswordProperty = (Boolean) field.getClientProperty("showPassword");
@@ -1074,7 +1068,6 @@ public class AuthUI extends JFrame {
                 g2d.setFont(getFont());
                 FontMetrics fm = g2d.getFontMetrics();
                 int textW = fm.stringWidth(getText());
-                int textH = fm.getAscent() - fm.getDescent();
                 int centerX = getWidth() / 2;
                 int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
                 // Optional left icon
@@ -1195,19 +1188,11 @@ public class AuthUI extends JFrame {
                     
                     boolean hasCompletedOnboarding = userService.hasCompletedOnboardingByUsername(profile.getUsername());
                     
+                    showCard("LOADING");
                     if (hasCompletedOnboarding) {
-                        showCard("LOADING");
-                        new javax.swing.Timer(2000, e2 -> {
-                            ((javax.swing.Timer) e2.getSource()).stop();
-                            // Create welcome back onboarding panel
-                            createWelcomeBackOnboarding(profile.getUsername());
-                        }).start();
+                        createWelcomeBackOnboarding(profile.getUsername());
                     } else {
-                        showCard("LOADING");
-                        new javax.swing.Timer(3500, e2 -> {
-                            ((javax.swing.Timer) e2.getSource()).stop();
-                            showCard("ONBOARDING_PROMPT");
-                        }).start();
+                        showCard("ONBOARDING_PROMPT");
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
@@ -1348,7 +1333,6 @@ public class AuthUI extends JFrame {
             // Use the single existing logo image
             java.net.URL logoUrl = getClass().getResource("/com/forgegrid/icon/logo2_transparent.png");
             if (logoUrl != null) {
-                System.out.println("Logo found! Loading..."); // Debug output
                 ImageIcon logoIcon = new ImageIcon(logoUrl);
                 Image logoImage = logoIcon.getImage();
                 
@@ -1380,14 +1364,7 @@ public class AuthUI extends JFrame {
                 fallbackLabel.setHorizontalAlignment(JLabel.CENTER);
                 logoPanel.add(fallbackLabel, BorderLayout.CENTER);
             }
-        } catch (Exception e) {
-            // Fallback to text if there's any error loading the logo
-            JLabel fallbackLabel = new JLabel("ForgeGrid");
-            fallbackLabel.setFont(new Font("Arial", Font.BOLD, 24));
-            fallbackLabel.setForeground(PRIMARY_COLOR);
-            fallbackLabel.setHorizontalAlignment(JLabel.CENTER);
-            logoPanel.add(fallbackLabel, BorderLayout.CENTER);
-        }
+        } catch (Exception e) { /* ignore L&F issues */ }
         
         return logoPanel;
     }
@@ -1593,19 +1570,7 @@ public class AuthUI extends JFrame {
     /**
      * Simplified eye icon animation
      */
-    private void addEyeIconAnimation(JPasswordField field) {
-        // Simple scale animation
-        field.putClientProperty("eyeScale", 1.1f);
-        field.repaint();
-        
-        Timer resetTimer = new Timer(100, e -> {
-            field.putClientProperty("eyeScale", 1.0f);
-            field.repaint();
-            ((Timer) e.getSource()).stop();
-        });
-        resetTimer.setRepeats(false);
-        resetTimer.start();
-    }
+    
     
     
     
@@ -1828,15 +1793,12 @@ public class AuthUI extends JFrame {
                 );
                 
                 if (saved) {
-                    System.out.println("✓ Onboarding marked as skipped in database!");
                     // Update the current profile
                     currentProfile.setOnboardingCompleted(true);
                     currentProfile.setOnboardingGoal("Skipped");
                     currentProfile.setOnboardingLanguage("Not specified");
                     currentProfile.setOnboardingSkill("Not specified");
-                } else {
-                    System.err.println("✗ Failed to save skip status to database");
-                }
+                } else { /* no-op */ }
             }
             
             String goal = currentProfile != null ? currentProfile.getOnboardingGoal() : null;

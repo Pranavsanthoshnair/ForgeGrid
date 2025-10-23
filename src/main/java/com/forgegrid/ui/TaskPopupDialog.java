@@ -23,7 +23,8 @@ public class TaskPopupDialog extends JDialog {
     
     private HardcodedTask task;
     private long startTime;
-    private Timer uiTimer;
+    private javax.swing.Timer uiTimer;
+    
     private JLabel timerLabel;
     private Dashboard parent;
     
@@ -74,18 +75,10 @@ public class TaskPopupDialog extends JDialog {
         closeButton.setFocusPainted(false);
         closeButton.setPreferredSize(new Dimension(40, 30));
         closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        closeButton.addActionListener(e -> {
-            if (uiTimer != null) uiTimer.stop();
-            dispose();
-        });
-        closeButton.addMouseListener(new MouseAdapter() {
+        closeButton.addActionListener(new ActionListener() {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                closeButton.setBackground(new Color(220, 60, 60));
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                closeButton.setBackground(new Color(30, 35, 45));
+            public void actionPerformed(ActionEvent e) {
+                dispose();
             }
         });
         
@@ -206,7 +199,12 @@ public class TaskPopupDialog extends JDialog {
         submitBtn.setBorderPainted(false);
         submitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         submitBtn.setPreferredSize(new Dimension(160, 45));
-        submitBtn.addActionListener(e -> handleSubmit());
+        submitBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleSubmit();
+            }
+        });
         
         JButton skipBtn = new JButton("⏭ Skip Task");
         skipBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -216,7 +214,12 @@ public class TaskPopupDialog extends JDialog {
         skipBtn.setBorderPainted(false);
         skipBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         skipBtn.setPreferredSize(new Dimension(160, 45));
-        skipBtn.addActionListener(e -> handleSkip());
+        skipBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleSkip();
+            }
+        });
         
         buttonsPanel.add(submitBtn);
         buttonsPanel.add(skipBtn);
@@ -266,7 +269,12 @@ public class TaskPopupDialog extends JDialog {
     }
     
     private void startUITimer() {
-        uiTimer = new Timer(1000, e -> updateTimerDisplay());
+        uiTimer = new javax.swing.Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateTimerDisplay();
+            }
+        });
         uiTimer.start();
     }
     
@@ -277,9 +285,10 @@ public class TaskPopupDialog extends JDialog {
         timerLabel.setText(String.format("⏱ %02d:%02d", minutes, seconds));
     }
     
+    
+    
     private void handleSubmit() {
-        uiTimer.stop();
-        
+        if (uiTimer != null) uiTimer.stop();
         long elapsedMillis = System.currentTimeMillis() - startTime;
         int elapsedMinutes = (int) (elapsedMillis / 60000);
         
@@ -298,7 +307,6 @@ public class TaskPopupDialog extends JDialog {
             );
             
             if (result != JOptionPane.YES_OPTION) {
-                uiTimer.start();
                 return;
             }
         }
@@ -316,15 +324,13 @@ public class TaskPopupDialog extends JDialog {
         );
         
                         if (success) {
-                            // Play success tone
-                            try { com.forgegrid.ui.Sound.playSuccess(); } catch (Exception ignored) {}
             // Add XP and check for level up
             LevelService.LevelUpResult result = levelService.addXP(profile.getUsername(), task.getXpReward());
             
             // Refresh parent dashboard
             parent.completedTaskNames.add(task.getTaskName());
-            parent.loadedViews.put(parent.VIEW_TASKS, false);
-            parent.loadedViews.put(parent.VIEW_DASHBOARD, false);
+            parent.loadedViews.put(Dashboard.VIEW_TASKS, false);
+            parent.loadedViews.put(Dashboard.VIEW_DASHBOARD, false);
             
             // Update parent's display
             parent.refreshHeaderAfterXPChange();
@@ -361,10 +367,10 @@ public class TaskPopupDialog extends JDialog {
             
             if (choice == 0) {
                 // Refresh view and show next task
-                parent.switchView(parent.VIEW_TASKS);
+                parent.switchView(Dashboard.VIEW_TASKS);
                 SwingUtilities.invokeLater(() -> parent.showTaskPopup());
             } else {
-                parent.switchView(parent.VIEW_TASKS);
+                parent.switchView(Dashboard.VIEW_TASKS);
             }
         } else {
             JOptionPane.showMessageDialog(
@@ -373,14 +379,12 @@ public class TaskPopupDialog extends JDialog {
                 "Error",
                 JOptionPane.ERROR_MESSAGE
             );
-            try { com.forgegrid.ui.Sound.playError(); } catch (Exception ignored) {}
-            uiTimer.start();
+            
         }
     }
     
     private void handleSkip() {
-        uiTimer.stop();
-        
+        if (uiTimer != null) uiTimer.stop();
         int result = JOptionPane.showConfirmDialog(
             this,
             "Skip this task?\n\n" +
@@ -392,7 +396,7 @@ public class TaskPopupDialog extends JDialog {
         );
         
         if (result != JOptionPane.YES_OPTION) {
-            uiTimer.start();
+            if (uiTimer != null) uiTimer.start();
             return;
         }
         
@@ -414,14 +418,13 @@ public class TaskPopupDialog extends JDialog {
         );
         
         if (success) {
-            try { com.forgegrid.ui.Sound.playSkip(); } catch (Exception ignored) {}
             // Apply XP penalty
-            LevelService.LevelUpResult levelResult = levelService.addXP(profile.getUsername(), xpPenalty);
+            levelService.addXP(profile.getUsername(), xpPenalty);
             
             // Mark as completed so it doesn't show again
             parent.completedTaskNames.add(task.getTaskName());
-            parent.loadedViews.put(parent.VIEW_TASKS, false);
-            parent.loadedViews.put(parent.VIEW_DASHBOARD, false);
+            parent.loadedViews.put(Dashboard.VIEW_TASKS, false);
+            parent.loadedViews.put(Dashboard.VIEW_DASHBOARD, false);
             
             // Update parent's display
             parent.refreshHeaderAfterXPChange();
@@ -445,10 +448,10 @@ public class TaskPopupDialog extends JDialog {
             
             if (choice == 0) {
                 // Refresh view and show next task
-                parent.switchView(parent.VIEW_TASKS);
+                parent.switchView(Dashboard.VIEW_TASKS);
                 SwingUtilities.invokeLater(() -> parent.showTaskPopup());
             } else {
-                parent.switchView(parent.VIEW_TASKS);
+                parent.switchView(Dashboard.VIEW_TASKS);
             }
         } else {
             JOptionPane.showMessageDialog(
@@ -457,16 +460,13 @@ public class TaskPopupDialog extends JDialog {
                 "Error",
                 JOptionPane.ERROR_MESSAGE
             );
-            try { com.forgegrid.ui.Sound.playError(); } catch (Exception ignored) {}
-            uiTimer.start();
+            
         }
     }
     
     @Override
     public void dispose() {
-        if (uiTimer != null) {
-            uiTimer.stop();
-        }
+        if (uiTimer != null) uiTimer.stop();
         super.dispose();
     }
 }

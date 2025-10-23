@@ -4,8 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
-import java.util.Timer;
-import java.util.TimerTask;
+ 
 
 /**
  * Welcome screen with logo + title + "Let's start" button,
@@ -161,113 +160,18 @@ public class WelcomeUI extends JPanel {
     }
     
     /**
-     * Inner class for displaying rotating motivational quotes with fade animations
+     * Static quotes panel; shows a single quote without rotation or fades.
      */
     private class RotatingQuotesPanel extends JPanel {
-        private JLabel quoteLabel;
-        private Timer quoteTimer;
-        private int currentQuoteIndex = 0;
-        
         public RotatingQuotesPanel() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
             setOpaque(false);
-            
-            // Create quote label with enhanced visibility and subtle glow
-            quoteLabel = new GlowingQuotesLabel(quotes[0], JLabel.CENTER);
+            JLabel quoteLabel = new GlowingQuotesLabel(quotes[0], JLabel.CENTER);
             quoteLabel.setFont(getStylishFont("Segoe UI", Font.BOLD | Font.ITALIC, 18, new String[]{"Poppins","Trebuchet MS","SansSerif"}));
-            
-            // Use brand colors for better visibility
             quoteLabel.setForeground(Theme.BRAND_YELLOW);
             quoteLabel.setPreferredSize(new Dimension(600, 30));
             quoteLabel.setHorizontalAlignment(JLabel.CENTER);
-            
             add(quoteLabel, BorderLayout.CENTER);
-            
-            // Start the rotation timer
-            startQuoteRotation();
-        }
-        
-        private void startQuoteRotation() {
-            quoteTimer = new Timer(true); // Daemon timer
-            
-            quoteTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    SwingUtilities.invokeLater(() -> {
-                        // Fade out
-                        fadeOut(() -> {
-                            // Change quote
-                            currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
-                            quoteLabel.setText(quotes[currentQuoteIndex]);
-                            
-                            // Fade in
-                            fadeIn();
-                        });
-                    });
-                }
-            }, 4000, 4000); // Start after 4 seconds, repeat every 4 seconds
-        }
-        
-        private void fadeOut(Runnable onComplete) {
-            Timer fadeTimer = new Timer(true);
-            float[] alpha = {1.0f};
-            
-            fadeTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    SwingUtilities.invokeLater(() -> {
-                        alpha[0] -= 0.05f;
-                        if (alpha[0] <= 0) {
-                            alpha[0] = 0;
-                            fadeTimer.cancel();
-                            onComplete.run();
-                        }
-                        
-                        Color currentColor = quoteLabel.getForeground();
-                        Color newColor = new Color(
-                            currentColor.getRed(), 
-                            currentColor.getGreen(), 
-                            currentColor.getBlue(), 
-                            (int)(180 * alpha[0])
-                        );
-                        quoteLabel.setForeground(newColor);
-                    });
-                }
-            }, 16, 16); // Approximately 60 FPS
-        }
-        
-        private void fadeIn() {
-            Timer fadeTimer = new Timer(true);
-            float[] alpha = {0.0f};
-            
-            fadeTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    SwingUtilities.invokeLater(() -> {
-                        alpha[0] += 0.05f;
-                        if (alpha[0] >= 1) {
-                            alpha[0] = 1;
-                            fadeTimer.cancel();
-                        }
-                        
-                        Color currentColor = quoteLabel.getForeground();
-                        Color newColor = new Color(
-                            currentColor.getRed(), 
-                            currentColor.getGreen(), 
-                            currentColor.getBlue(), 
-                            (int)(180 * alpha[0])
-                        );
-                        quoteLabel.setForeground(newColor);
-                    });
-                }
-            }, 16, 16); // Approximately 60 FPS
-        }
-        
-        // Cleanup method to stop timer when panel is removed
-        public void cleanup() {
-            if (quoteTimer != null) {
-                quoteTimer.cancel();
-            }
         }
     }
     
@@ -300,7 +204,6 @@ public class WelcomeUI extends JPanel {
             
             Dimension size = getSize();
             int textWidth = (int) textBounds.getWidth();
-            int textHeight = (int) textBounds.getHeight();
             
             // Calculate centered position
             int textX = (size.width - textWidth) / 2;

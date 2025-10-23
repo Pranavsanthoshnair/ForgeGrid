@@ -9,7 +9,6 @@ import javax.swing.*;
 public class FontUtils {
     
     private static Font emojiFont;
-    private static Font fallbackFont;
     private static boolean fontsInitialized = false;
     
     /**
@@ -35,7 +34,7 @@ public class FontUtils {
             for (String available : availableFonts) {
                 if (available.equalsIgnoreCase(fontName)) {
                     emojiFont = new Font(fontName, Font.PLAIN, 14);
-                    System.out.println("✓ Using emoji font: " + fontName);
+                    
                     fontsInitialized = true;
                     break;
                 }
@@ -46,11 +45,11 @@ public class FontUtils {
         // Fallback to Segoe UI (no emoji, but won't crash)
         if (!fontsInitialized) {
             emojiFont = new Font("Segoe UI", Font.PLAIN, 14);
-            System.out.println("⚠ No emoji font found, using Segoe UI fallback");
+            
             fontsInitialized = true;
         }
         
-        fallbackFont = new Font("Segoe UI", Font.PLAIN, 14);
+        
     }
     
     /**
@@ -99,7 +98,7 @@ public class FontUtils {
         UIManager.put("TabbedPane.font", defaultFont);
         UIManager.put("TitledBorder.font", boldFont);
         
-        System.out.println("✓ Global emoji font support configured");
+        
     }
     
     /**

@@ -4,35 +4,20 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Simple fade-in wrapper for smooth screen transitions.
+ * Static container panel. No transitions or animations.
  */
 public class FadeInPanel extends JPanel {
-
-	private float alpha = 0f;
-	private final Timer timer;
 
 	public FadeInPanel(LayoutManager layout) {
 		super(layout);
 		setOpaque(false);
-        timer = new Timer(16, e -> {
-            alpha = Math.min(1f, alpha + 0.08f);
-            if (alpha >= 1f) ((Timer) e.getSource()).stop();
-            repaint();
-        });
 	}
 
-	public void play() {
-		alpha = 0f;
-        if (!timer.isRunning()) timer.start();
-	}
+	public void play() { /* no-op to preserve API */ }
 
 	@Override
 	protected void paintComponent(Graphics g) {
-		Graphics2D g2 = (Graphics2D) g.create();
-        if (alpha < 1f && !timer.isRunning()) timer.start();
-        g2.setComposite(AlphaComposite.SrcOver.derive(alpha));
-		super.paintComponent(g2);
-		g2.dispose();
+		super.paintComponent(g);
 	}
 }
 

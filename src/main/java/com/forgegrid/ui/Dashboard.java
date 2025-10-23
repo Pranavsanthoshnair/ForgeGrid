@@ -7,11 +7,12 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.SwingUtilities;
-import javax.swing.tree.*;
+ 
 import java.awt.*;
 import java.awt.event.*;
 // removed unused: import java.awt.geom.*;
 
+@SuppressWarnings({"unused"})
 public class Dashboard extends JFrame {
 
     final PlayerProfile profile; // Package-private for TaskPopupDialog access
@@ -327,22 +328,13 @@ public class Dashboard extends JFrame {
         redDotPanel.setPreferredSize(new Dimension(12, 18));
         redDotPanel.setOpaque(false);
         
-        // Add hover effect
+        // Click only; no hover changes
         customizeLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 showCustomizationPanel();
-                // Hide red dot after clicking
                 showRedDot[0] = false;
                 redDotPanel.repaint();
-            }
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                customizeLabel.setForeground(ACCENT_COLOR.brighter());
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                customizeLabel.setForeground(ACCENT_COLOR);
             }
         });
         
@@ -486,12 +478,8 @@ public class Dashboard extends JFrame {
         avatarBtn.add(Box.createHorizontalStrut(10), BorderLayout.CENTER);
         avatarBtn.add(info, BorderLayout.EAST);
 
-        // Hover effect
+        // Click only; no hover changes
         avatarBtn.addMouseListener(new MouseAdapter(){
-            @Override
-            public void mouseEntered(MouseEvent e){ avatarBtn.setBackground(new Color(35,45,60)); avatarBtn.setOpaque(true); avatarBtn.repaint(); }
-            @Override
-            public void mouseExited(MouseEvent e){ avatarBtn.setOpaque(false); avatarBtn.repaint(); }
             @Override
             public void mouseClicked(MouseEvent e){ switchView(VIEW_PROFILE); }
         });
@@ -523,10 +511,6 @@ public class Dashboard extends JFrame {
         gearButton.add(gearIcon, BorderLayout.CENTER);
         gearButton.setToolTipText("Settings");
         gearButton.addMouseListener(new MouseAdapter(){
-            @Override
-            public void mouseEntered(MouseEvent e) { ((JPanel)e.getComponent()).setOpaque(true); ((JPanel)e.getComponent()).repaint(); }
-            @Override
-            public void mouseExited(MouseEvent e) { ((JPanel)e.getComponent()).setOpaque(false); ((JPanel)e.getComponent()).repaint(); }
             @Override
             public void mouseClicked(MouseEvent e) { switchView(VIEW_SETTINGS); }
         });
@@ -635,52 +619,8 @@ public class Dashboard extends JFrame {
             currentSelectedMenuItem = item;
         }
         
-        // Add smooth hover and click effects with timer for animation
-        final Timer[] hoverTimer = {null};
-        
+        // Click only; no hover/timer effects
         item.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (item != currentSelectedMenuItem) {
-                    // Cancel any existing timer
-                    if (hoverTimer[0] != null && hoverTimer[0].isRunning()) {
-                        hoverTimer[0].stop();
-                    }
-                    
-                    // Smooth transition
-                    hoverTimer[0] = new Timer(10, new ActionListener() {
-                        float alpha = 0f;
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            alpha += 0.15f;
-                            if (alpha >= 1f) {
-                                alpha = 1f;
-                                ((Timer) e.getSource()).stop();
-                            }
-                            item.setBackground(new Color(35, 45, 60));
-                            textLabel.setForeground(new Color(240, 245, 250));
-                            iconLabel.setForeground(ACCENT_COLOR);
-                            item.repaint();
-                        }
-                    });
-                    hoverTimer[0].start();
-                }
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (item != currentSelectedMenuItem) {
-                    // Cancel timer
-                    if (hoverTimer[0] != null && hoverTimer[0].isRunning()) {
-                        hoverTimer[0].stop();
-                    }
-                    
-                    item.setBackground(SIDEBAR_COLOR);
-                    textLabel.setForeground(new Color(160, 170, 185));
-                    iconLabel.setForeground(new Color(140, 150, 170));
-                    item.repaint();
-                }
-            }
             
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -1247,16 +1187,7 @@ public class Dashboard extends JFrame {
         button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         button.setPreferredSize(new Dimension(0, 40));
         
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(bgColor.brighter());
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(bgColor);
-            }
-        });
+        // No hover effect
         
         return button;
     }
@@ -1616,18 +1547,7 @@ public class Dashboard extends JFrame {
         card.add(rightPanel, BorderLayout.EAST);
         
         // Add hover effect if not completed
-        if (!isCompleted) {
-            card.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    card.setBackground(new Color(45, 55, 70));
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    card.setBackground(new Color(35, 45, 60));
-                }
-            });
-        }
+        // No hover changes
         
         return card;
     }
@@ -1674,16 +1594,7 @@ public class Dashboard extends JFrame {
         row.add(rightPanel, BorderLayout.EAST);
         
         // Add hover effect
-        row.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                row.setBackground(new Color(45, 55, 70));
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                row.setBackground(new Color(35, 45, 60));
-            }
-        });
+        // No hover changes
         
         return row;
     }
@@ -1807,16 +1718,7 @@ public class Dashboard extends JFrame {
         saveButton.setMaximumSize(new Dimension(150, 40));
         saveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        saveButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                saveButton.setBackground(ACCENT_COLOR.brighter());
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                saveButton.setBackground(ACCENT_COLOR);
-            }
-        });
+        // No hover changes
         
         saveButton.addActionListener(e -> {
             String email = emailField.getText();
@@ -3175,17 +3077,7 @@ public class Dashboard extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         // Add glow effect
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(glowColor.brighter());
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(glowColor);
-            }
-        });
+        // No hover changes
         
         return button;
     }
@@ -3344,16 +3236,7 @@ public class Dashboard extends JFrame {
         logoutButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         logoutButton.setPreferredSize(new Dimension(0, 40));
         
-        logoutButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                logoutButton.setBackground(new Color(255, 80, 80));
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                logoutButton.setBackground(new Color(220, 60, 60));
-            }
-        });
+        // No hover changes
         
         logoutButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(

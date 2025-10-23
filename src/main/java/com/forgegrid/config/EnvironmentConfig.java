@@ -8,11 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Environment configuration utility for loading database credentials.
- * Supports both system environment variables and .env file loading.
- * 
- * Migration Note: This class was added to support Railway MySQL integration,
- * replacing the hardcoded XAMPP localhost configuration.
+ * Utility for loading database-related environment variables from a .env file
+ * and the system environment. Designed for simple, fail-safe configuration.
  */
 public class EnvironmentConfig {
     
@@ -58,7 +55,7 @@ public class EnvironmentConfig {
                 }
             }
         } catch (IOException e) {
-            // Silently fail
+            // .env is optional; ignore if missing or unreadable
         }
     }
     
@@ -186,18 +183,13 @@ public class EnvironmentConfig {
                 throw new IllegalArgumentException("Invalid Railway URL format");
             }
             
-            // Extract credentials (user:pass)
+            // Extract and validate credentials (user:pass); content not used in JDBC URL
             String credentials = url.substring(0, atIndex);
-            String hostAndDb = url.substring(atIndex + 1);
-            
-            // Find : in credentials to separate user and password
             int colonIndex = credentials.indexOf(':');
             if (colonIndex == -1) {
                 throw new IllegalArgumentException("Invalid Railway URL format - no password");
             }
-            
-            String username = credentials.substring(0, colonIndex);
-            String password = credentials.substring(colonIndex + 1);
+            String hostAndDb = url.substring(atIndex + 1);
             
             // Find : in hostAndDb to separate host and port
             int portIndex = hostAndDb.indexOf(':');
@@ -220,6 +212,7 @@ public class EnvironmentConfig {
             return String.format("jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
                                host, port, database);
         } catch (Exception e) {
+            // Fallback to the original value if parsing fails
             return railwayUrl;
         }
     }
