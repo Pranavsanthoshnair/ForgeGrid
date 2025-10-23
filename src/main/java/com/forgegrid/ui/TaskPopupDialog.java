@@ -1,8 +1,7 @@
 package com.forgegrid.ui;
 
 import com.forgegrid.model.HardcodedTask;
-import com.forgegrid.service.HardcodedTaskService;
-import com.forgegrid.service.LevelService;
+import com.forgegrid.controller.DashboardController;
 import com.forgegrid.model.PlayerProfile;
 
 import javax.swing.*;
@@ -240,11 +239,10 @@ public class TaskPopupDialog extends JDialog {
         }
         
         // Save completed task
-        HardcodedTaskService taskService = new HardcodedTaskService();
-        LevelService levelService = new LevelService();
+        DashboardController ctrl = new DashboardController(new com.forgegrid.service.HardcodedTaskService(), new com.forgegrid.service.LevelService());
         PlayerProfile profile = parent.profile;
         
-        boolean success = taskService.saveCompletedTask(
+        boolean success = ctrl.saveCompletedTask(
             profile.getUsername(),
             task.getTaskName(),
             Math.max(1, elapsedMinutes),
@@ -253,7 +251,7 @@ public class TaskPopupDialog extends JDialog {
         
                         if (success) {
             // Add XP and check for level up
-            LevelService.LevelUpResult result = levelService.addXP(profile.getUsername(), task.getXpReward());
+            com.forgegrid.service.LevelService.LevelUpResult result = new com.forgegrid.service.LevelService().addXP(profile.getUsername(), task.getXpReward());
             
             // Refresh parent dashboard
             parent.completedTaskNames.add(task.getTaskName());
@@ -332,13 +330,12 @@ public class TaskPopupDialog extends JDialog {
         int elapsedMinutes = Math.max(1, (int) (elapsedMillis / 60000));
         
         // Save skipped task with negative XP
-        HardcodedTaskService taskService = new HardcodedTaskService();
-        LevelService levelService = new LevelService();
+        DashboardController ctrl = new DashboardController(new com.forgegrid.service.HardcodedTaskService(), new com.forgegrid.service.LevelService());
         PlayerProfile profile = parent.profile;
         
         int xpPenalty = -(task.getXpReward() / 2);
         
-        boolean success = taskService.saveSkippedTask(
+        boolean success = new com.forgegrid.service.HardcodedTaskService().saveSkippedTask(
             profile.getUsername(),
             task.getTaskName(),
             elapsedMinutes,
@@ -347,7 +344,7 @@ public class TaskPopupDialog extends JDialog {
         
         if (success) {
             // Apply XP penalty
-            levelService.addXP(profile.getUsername(), xpPenalty);
+            new com.forgegrid.service.LevelService().addXP(profile.getUsername(), xpPenalty);
             
             // Mark as completed so it doesn't show again
             parent.completedTaskNames.add(task.getTaskName());

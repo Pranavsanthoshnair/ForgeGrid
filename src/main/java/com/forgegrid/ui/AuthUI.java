@@ -4,6 +4,8 @@ import com.forgegrid.auth.AuthService;
 import com.forgegrid.config.UserPreferences;
 import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
+import com.forgegrid.controller.AuthController;
+import com.forgegrid.controller.OnboardingController;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.plaf.basic.BasicButtonUI;
@@ -25,9 +27,8 @@ public class AuthUI extends JFrame {
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private final Map<String, JPanel> cardFades = new HashMap<>();
-    private AuthService authService;
-    private UserService userService;
-    private UserPreferences userPreferences;
+    private AuthController controller;
+    private OnboardingController onboardingController;
     private LoadingScreen loadingScreen;
     private PlayerProfile currentProfile;
     
@@ -39,9 +40,8 @@ public class AuthUI extends JFrame {
     // placeholders removed; cards are managed via cardPanel
     
     public AuthUI() {
-        this.authService = new AuthService();
-        this.userService = new UserService();
-        this.userPreferences = new UserPreferences();
+        this.controller = new AuthController(new AuthService(), new UserService(), new UserPreferences());
+        this.onboardingController = new OnboardingController(new UserService());
         initializeUI();
     }
     
@@ -379,9 +379,9 @@ public class AuthUI extends JFrame {
         panel.add(Box.createVerticalGlue());
         
         // Auto-fill credentials if remember me was previously enabled
-        if (userPreferences.isRememberMeEnabled()) {
-            String savedUsername = userPreferences.getSavedUsername();
-            String savedPassword = userPreferences.getSavedPassword();
+        if (controller.isRememberMeEnabled()) {
+            String savedUsername = controller.getSavedUsername();
+            String savedPassword = controller.getSavedPassword();
             
             if (savedUsername != null && savedPassword != null) {
                 emailField.setText(savedUsername);
@@ -706,7 +706,7 @@ public class AuthUI extends JFrame {
         // Use MySQL authentication
         SwingUtilities.invokeLater(() -> {
             try {
-                PlayerProfile profile = authService.login(username, password);
+                PlayerProfile profile = controller.login(username, password);
                 
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
@@ -716,15 +716,15 @@ public class AuthUI extends JFrame {
                     this.currentProfile = profile;
                     
                     // Save username for auto-fill on next login
-                    userPreferences.setLastUsername(username);
+                    controller.setLastUsername(username);
                     
                     if (rememberMeCheckbox.isSelected()) {
-                        userPreferences.saveRememberMeCredentials(username, password);
+                        controller.saveRememberMeCredentials(username, password);
                     } else {
-                        userPreferences.clearRememberMe();
+                        controller.clearRememberMe();
                     }
                     
-                    boolean hasCompletedOnboarding = userService.hasCompletedOnboardingByUsername(profile.getUsername());
+                    boolean hasCompletedOnboarding = controller.hasCompletedOnboarding(profile.getUsername());
                     
                         showCard("LOADING");
                     if (hasCompletedOnboarding) {
@@ -824,7 +824,7 @@ public class AuthUI extends JFrame {
         // Use MySQL authentication for registration with username, email, and password
         SwingUtilities.invokeLater(() -> {
             try {
-                boolean success = authService.register(name, email, password);
+                boolean success = controller.register(name, email, password);
                 
                 signupButton.setEnabled(true);
                 signupButton.setText("Sign Up");
@@ -1097,7 +1097,7 @@ public class AuthUI extends JFrame {
         
         if (username != null && !username.trim().isEmpty()) {
             // Check if user exists
-            if (authService.usernameExists(username.trim())) {
+            if (controller.usernameExists(username.trim())) {
                 // Get new password
                 String newPassword = JOptionPane.showInputDialog(
                     this, 
@@ -1118,7 +1118,7 @@ public class AuthUI extends JFrame {
                     }
                     
                     // Reset password
-                    boolean success = authService.resetPassword(username.trim(), newPassword);
+                    boolean success = controller.resetPassword(username.trim(), newPassword);
                     
                     if (success) {
                         JOptionPane.showMessageDialog(
@@ -1185,27 +1185,17 @@ public class AuthUI extends JFrame {
      */
     private void createNewUserOnboarding() {
         OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
-            // Save onboarding data to database
             if (currentProfile != null && currentProfile.getUsername() != null) {
-                boolean saved = userService.saveOnboardingDataByUsername(
-                    currentProfile.getUsername(), 
-                    goal, 
-                    language, 
-                    skill
-                );
-                
+                boolean saved = onboardingController.saveOnboardingData(currentProfile.getUsername(), goal, language, skill);
                 if (saved) {
-                    // Update the current profile with onboarding data
                     currentProfile.setOnboardingCompleted(true);
                     currentProfile.setOnboardingGoal(goal);
                     currentProfile.setOnboardingLanguage(language);
                     currentProfile.setOnboardingSkill(skill);
                 }
             }
-            
-            // After onboarding, open Dashboard within the same window
             openDashboardInCard(goal, language, skill);
-        }, true, currentProfile != null ? currentProfile.getUsername() : null); // isNewUser = true, pass username
+        }, true, currentProfile != null ? currentProfile.getUsername() : null);
         
         // Replace the placeholder onboarding panel
         cardPanel.removeAll();
@@ -1224,15 +1214,12 @@ public class AuthUI extends JFrame {
      */
     private void createWelcomeBackOnboarding(String username) {
         OnboardingInAppPanel onboarding = new OnboardingInAppPanel((goal, language, skill) -> {
-            // Load existing onboarding data from database
-            String[] onboardingData = userService.getOnboardingDataByUsername(username);
+            String[] onboardingData = onboardingController.getOnboardingData(username);
             String existingGoal = onboardingData != null ? onboardingData[0] : null;
             String existingLanguage = onboardingData != null ? onboardingData[1] : null;
             String existingSkill = onboardingData != null ? onboardingData[2] : null;
-            
-            // Go directly to dashboard with existing data
             openDashboardInCard(existingGoal, existingLanguage, existingSkill);
-        }, false, username); // isNewUser = false
+        }, false, username);
         
         // Replace the placeholder onboarding panel
         cardPanel.removeAll();
@@ -1282,7 +1269,7 @@ public class AuthUI extends JFrame {
         skipBtn.addActionListener(e -> {
             // Mark onboarding as completed (skipped) in database
             if (currentProfile != null && currentProfile.getUsername() != null) {
-                boolean saved = userService.saveOnboardingDataByUsername(
+                boolean saved = controller.saveOnboardingData(
                     currentProfile.getUsername(), 
                     "Skipped", 
                     "Not specified", 

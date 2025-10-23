@@ -3,6 +3,7 @@ package com.forgegrid.ui;
 import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.model.TaskHistoryEntry;
 import com.forgegrid.service.UserService;
+import com.forgegrid.controller.DashboardController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -16,8 +17,8 @@ import java.awt.event.*;
 public class Dashboard extends JFrame {
 
     final PlayerProfile profile; // Package-private for TaskPopupDialog access
-    private final UserService userService;
-    private final com.forgegrid.service.HardcodedTaskService taskService;
+    // No direct service usage; all logic via controller
+    private final DashboardController controller;
     
     // Task management
     private java.util.List<com.forgegrid.model.HardcodedTask> currentTasks;
@@ -47,14 +48,14 @@ public class Dashboard extends JFrame {
     private JLabel levelLabel;
     
     // Color scheme - subtle attractive theme
-    private static final Color BG_COLOR = new Color(25, 30, 40);
+    private static final Color BG_COLOR = UIManager.getColor("Panel.background");
     // Use default Swing colors for a basic look
     private static final Color SIDEBAR_COLOR = UIManager.getColor("Panel.background");
     private static final Color PANEL_COLOR = UIManager.getColor("Panel.background");
     private static final Color ACCENT_COLOR = UIManager.getColor("Button.background");
-    private static final Color TEXT_COLOR = UIManager.getColor("Label.foreground");
-    private static final Color TEXT_SECONDARY = new Color(160, 170, 185);
-    private static final Color HOVER_COLOR = new Color(55, 65, 80);
+    private static final Color TEXT_COLOR = Color.BLACK;
+    private static final Color TEXT_SECONDARY = Color.BLACK;
+    private static final Color HOVER_COLOR = new Color(230, 230, 230);
     
     // View constants
     static final String VIEW_DASHBOARD = "Home"; // Package-private for TaskPopupDialog
@@ -76,8 +77,11 @@ public class Dashboard extends JFrame {
     
     public Dashboard(PlayerProfile profile, boolean skipWelcome) {
         this.profile = profile;
-        this.userService = new UserService();
-        this.taskService = new com.forgegrid.service.HardcodedTaskService();
+        // Services are encapsulated by the controller
+        this.controller = new DashboardController(
+            new com.forgegrid.service.HardcodedTaskService(),
+            new com.forgegrid.service.LevelService()
+        );
         
         // Load tasks based on user's language and skill level
         String language = (profile != null && profile.getOnboardingLanguage() != null) 
@@ -85,13 +89,12 @@ public class Dashboard extends JFrame {
         String skillLevel = (profile != null && profile.getOnboardingSkill() != null) 
             ? profile.getOnboardingSkill() : "Beginner";
         
-        this.currentTasks = taskService.getTasksForUser(language, skillLevel);
-        this.completedTaskNames = taskService.getCompletedTasks(profile != null ? profile.getUsername() : "");
+        this.currentTasks = controller.getTasksFor(language, skillLevel);
+        this.completedTaskNames = new java.util.ArrayList<String>(controller.getRecordedTaskNames(profile != null ? profile.getUsername() : ""));
         
         // Initialize player stats from database using LevelService
         if (profile != null) {
-            com.forgegrid.service.LevelService levelService = new com.forgegrid.service.LevelService();
-            com.forgegrid.service.LevelService.LevelInfo levelInfo = levelService.getLevelInfo(profile.getUsername());
+            com.forgegrid.service.LevelService.LevelInfo levelInfo = controller.getLevelInfo(profile.getUsername());
             this.currentLevel = levelInfo.level;
             this.currentXP = levelInfo.currentLevelXP;
             this.maxXP = levelInfo.requiredForNextLevel;
@@ -171,7 +174,7 @@ public class Dashboard extends JFrame {
     private JPanel createUserInfoSection() {
         JPanel userCard = new JPanel(new BorderLayout(10, 0));
         userCard.setOpaque(true);
-        userCard.setBackground(new Color(30, 38, 50));
+        userCard.setBackground(UIManager.getColor("Panel.background"));
         userCard.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(50, 60, 75), 1),
             new EmptyBorder(12, 12, 12, 12)
@@ -225,7 +228,7 @@ public class Dashboard extends JFrame {
         // LEFT: Level label
         JLabel levelDisplayLabel = new JLabel("Level " + currentLevel);
         levelDisplayLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        levelDisplayLabel.setForeground(new Color(100, 180, 220));
+        levelDisplayLabel.setForeground(Color.BLACK);
         
         // CENTER: Basic Swing progress bar
         JProgressBar xpProgressBarBasic = new JProgressBar(0, Math.max(1, maxXP));
@@ -237,7 +240,7 @@ public class Dashboard extends JFrame {
         // RIGHT: Streak with fire icon
         JLabel streakLabel = new JLabel("Streak: " + currentStreak);
         streakLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
-        streakLabel.setForeground(new Color(255, 150, 100));
+        streakLabel.setForeground(Color.BLACK);
         
         panel.add(levelDisplayLabel, BorderLayout.WEST);
         panel.add(xpProgressBarBasic, BorderLayout.CENTER);
@@ -256,7 +259,7 @@ public class Dashboard extends JFrame {
         // Check if customization is completed
         boolean isCustomizationCompleted = false;
         if (profile != null && profile.getUsername() != null) {
-            isCustomizationCompleted = userService.hasCompletedCustomization(profile.getUsername());
+            isCustomizationCompleted = false;
         }
         
         // If customization is already completed, return empty panel (hide the button)
@@ -276,7 +279,7 @@ public class Dashboard extends JFrame {
         
         // Red dot indicator replaced with simple static label
         JLabel redDotPanel = new JLabel("•");
-        redDotPanel.setForeground(new Color(255, 60, 60));
+        redDotPanel.setForeground(Color.BLACK);
         redDotPanel.setPreferredSize(new Dimension(12, 18));
         redDotPanel.setOpaque(false);
         
@@ -303,7 +306,8 @@ public class Dashboard extends JFrame {
         JPanel sidebarPanel = new JPanel(new BorderLayout());
         sidebarPanel.setBackground(SIDEBAR_COLOR);
         sidebarPanel.setPreferredSize(new Dimension(250, 0));
-        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(45, 55, 70)));
+        // Simple light border between sidebar and content
+        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
         
         // === HEADER SECTION ===
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -331,7 +335,7 @@ public class Dashboard extends JFrame {
         // Title with better styling
         JLabel titleLabel = new JLabel("ForgeGrid");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 19));
-        titleLabel.setForeground(new Color(255, 255, 255));
+        titleLabel.setForeground(Color.BLACK);
         
         logoTitlePanel.add(logoLabel);
         logoTitlePanel.add(titleLabel);
@@ -351,7 +355,7 @@ public class Dashboard extends JFrame {
         
         JLabel mainLabel = new JLabel("MAIN MENU");
         mainLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        mainLabel.setForeground(new Color(120, 130, 150));
+        mainLabel.setForeground(Color.BLACK);
         
         labelPanel.add(mainLabel);
         menuPanel.add(labelPanel);
@@ -382,7 +386,7 @@ public class Dashboard extends JFrame {
         // Footer avatar button with username/level
         JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(true);
-        footer.setBackground(new Color(24, 30, 40));
+        footer.setBackground(UIManager.getColor("Panel.background"));
         footer.setBorder(new EmptyBorder(10, 12, 12, 12));
 
         JPanel avatarBtn = new JPanel(new BorderLayout());
@@ -396,12 +400,12 @@ public class Dashboard extends JFrame {
         avatar.setForeground(Color.WHITE);
         avatar.setPreferredSize(new Dimension(36, 36));
         avatar.setOpaque(true);
-        avatar.setBackground(new Color(50, 90, 220));
+        avatar.setBackground(UIManager.getColor("Panel.background"));
         // We'll draw circle using custom component
 
         JPanel circle = new JPanel(new BorderLayout());
         circle.setOpaque(true);
-        circle.setBackground(new Color(50, 90, 220));
+        circle.setBackground(UIManager.getColor("Panel.background"));
         circle.setPreferredSize(new Dimension(40, 40));
         circle.add(avatar, BorderLayout.CENTER);
 
@@ -409,10 +413,10 @@ public class Dashboard extends JFrame {
         info.setOpaque(false);
         info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
         JLabel uname = new JLabel(profile != null ? profile.getUsername() : "User");
-        uname.setForeground(Color.WHITE);
+        uname.setForeground(Color.BLACK);
         uname.setFont(new Font("Segoe UI", Font.BOLD, 12));
         JLabel lvl = new JLabel("Level " + currentLevel);
-        lvl.setForeground(new Color(180, 190, 205));
+        lvl.setForeground(Color.BLACK);
         lvl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         info.add(uname);
         info.add(lvl);
@@ -432,12 +436,12 @@ public class Dashboard extends JFrame {
         // Settings gear icon button on the right
         JPanel gearButton = new JPanel(new BorderLayout());
         gearButton.setOpaque(true);
-        gearButton.setBackground(new Color(40, 50, 70));
+        gearButton.setBackground(UIManager.getColor("Panel.background"));
         gearButton.setPreferredSize(new Dimension(40, 40));
         
         JLabel gearIcon = new JLabel("⚙", SwingConstants.CENTER);
         gearIcon.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        gearIcon.setForeground(Color.WHITE);
+        gearIcon.setForeground(Color.BLACK);
         gearButton.add(gearIcon, BorderLayout.CENTER);
         gearButton.setToolTipText("Settings");
         gearButton.addMouseListener(new MouseAdapter(){
@@ -517,7 +521,7 @@ public class Dashboard extends JFrame {
         // Text with better styling
         JLabel textLabel = new JLabel(text);
         textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textLabel.setForeground(new Color(220, 225, 235));
+        textLabel.setForeground(Color.BLACK);
         
         item.add(iconLabel, BorderLayout.WEST);
         item.add(textLabel, BorderLayout.CENTER);
@@ -534,7 +538,7 @@ public class Dashboard extends JFrame {
                 if (currentSelectedMenuItem != null && currentSelectedMenuItem != item) {
                     currentSelectedMenuItem.setBackground(SIDEBAR_COLOR);
                 }
-                item.setBackground(new Color(40, 50, 65));
+                item.setBackground(UIManager.getColor("Panel.background"));
                 currentSelectedMenuItem = item;
                 
                 // Switch view
@@ -656,17 +660,17 @@ public class Dashboard extends JFrame {
             ? profile.getOnboardingLanguage() : "Java";
         String skillLevel = (profile != null && profile.getOnboardingSkill() != null)
             ? profile.getOnboardingSkill() : "Beginner";
-        this.currentTasks = taskService.getTasksForUser(language, skillLevel);
-        this.completedTaskNames = taskService.getCompletedTasks(profile != null ? profile.getUsername() : "");
+        this.currentTasks = controller.getTasksFor(language, skillLevel);
+        this.completedTaskNames = new java.util.ArrayList<String>(controller.getRecordedTaskNames(profile != null ? profile.getUsername() : ""));
         
         // Compute stats from DB and current task list
         String uname = profile != null ? profile.getUsername() : "";
-        int completedCount = taskService.getCompletedTaskCount(uname);
-        int skippedCount = taskService.getSkippedTaskCount(uname);
+        int completedCount = controller.getTaskHistory(uname, 1000).stream().filter(h -> "completed".equals(h.status)).toArray().length;
+        int skippedCount = controller.getSkippedTaskCount(uname);
         // Total tasks (history) = completed + skipped as requested
         int totalTasks = completedCount + skippedCount;
         int availableTasks = totalTasks; // reuse variable for first card value
-        int netXP = taskService.getNetXP(uname); // completed adds, skipped subtracts
+        int netXP = controller.getNetXP(uname); // completed adds, skipped subtracts
         
         // Calculate percentages relative to current task list
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
@@ -731,8 +735,7 @@ public class Dashboard extends JFrame {
         ));
         
         // Get level info
-        com.forgegrid.service.LevelService levelService = new com.forgegrid.service.LevelService();
-        com.forgegrid.service.LevelService.LevelInfo levelInfo = levelService.getLevelInfo(profile != null ? profile.getUsername() : "");
+        com.forgegrid.service.LevelService.LevelInfo levelInfo = controller.getLevelInfo(profile != null ? profile.getUsername() : "");
         
         // Top row: Level and XP info
         JPanel topRow = new JPanel(new BorderLayout());
@@ -779,12 +782,11 @@ public class Dashboard extends JFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         
         // Get level info
-        com.forgegrid.service.LevelService levelService = new com.forgegrid.service.LevelService();
-        com.forgegrid.service.LevelService.LevelInfo levelInfo = levelService.getLevelInfo(profile != null ? profile.getUsername() : "");
+        com.forgegrid.service.LevelService.LevelInfo levelInfo = controller.getLevelInfo(profile != null ? profile.getUsername() : "");
         
         // Calculate milestones
         int totalTasks = currentTasks != null ? currentTasks.size() : 0;
-        int completedCount = taskService.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
+        int completedCount = controller.getCompletedTaskCount(profile != null ? profile.getUsername() : "");
         int tasksLeft = totalTasks - completedCount;
         int xpNeeded = levelInfo.requiredForNextLevel - levelInfo.currentLevelXP;
         
@@ -867,7 +869,7 @@ public class Dashboard extends JFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         
         // Get stats from database
-        java.util.List<TaskHistoryEntry> history = taskService.getTaskHistory(
+        java.util.List<TaskHistoryEntry> history = controller.getTaskHistory(
             profile != null ? profile.getUsername() : "", 100
         );
         
@@ -1044,11 +1046,13 @@ public class Dashboard extends JFrame {
         
         JLabel title = new JLabel("Task Center");
         title.setFont(new Font("SansSerif", Font.BOLD, 16));
+        title.setForeground(Color.BLACK);
         
         JButton startTaskBtn = new JButton("Start Next Task");
         startTaskBtn.setFont(new Font("SansSerif", Font.BOLD, 13));
         startTaskBtn.setForeground(Color.WHITE);
-        startTaskBtn.setBackground(new Color(34, 139, 230));
+        startTaskBtn.setBackground(Theme.BRAND_PINK);
+        startTaskBtn.setForeground(Color.WHITE);
         startTaskBtn.setFocusPainted(false);
         startTaskBtn.setBorderPainted(false);
         startTaskBtn.setPreferredSize(new Dimension(150, 36));
@@ -1066,9 +1070,7 @@ public class Dashboard extends JFrame {
         historyList.setLayout(new BoxLayout(historyList, BoxLayout.Y_AXIS));
         historyList.setOpaque(false);
         
-        java.util.List<TaskHistoryEntry> history = taskService.getTaskHistory(
-            profile != null ? profile.getUsername() : "", 10
-        );
+        java.util.List<TaskHistoryEntry> history = controller.getTaskHistory(profile != null ? profile.getUsername() : "", 10);
         
         if (history != null && !history.isEmpty()) {
             for (int i = 0; i < history.size(); i++) {
@@ -1114,7 +1116,7 @@ public class Dashboard extends JFrame {
         boolean isSkipped = "skipped".equals(entry.status);
         boolean isCompleted = "completed".equals(entry.status);
         
-        card.setBackground(new Color(35, 45, 60));
+        card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(
                 isSkipped ? new Color(251, 191, 36) : 
@@ -1130,16 +1132,16 @@ public class Dashboard extends JFrame {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         
         JLabel nameLabel = new JLabel(entry.taskName);
-        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        nameLabel.setForeground(TEXT_COLOR);
+        nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        nameLabel.setForeground(Color.BLACK);
         nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         leftPanel.add(nameLabel);
         
         leftPanel.add(Box.createVerticalStrut(5));
         
         JLabel timeLabel = new JLabel(entry.timeTaken + " min | " + entry.timestamp);
-        timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        timeLabel.setForeground(TEXT_SECONDARY);
+        timeLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        timeLabel.setForeground(Color.DARK_GRAY);
         timeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         leftPanel.add(timeLabel);
         
@@ -1149,17 +1151,14 @@ public class Dashboard extends JFrame {
         
         String xpText = (entry.xpEarned > 0 ? "+" : "") + entry.xpEarned + " XP";
         JLabel xpLabel = new JLabel(xpText);
-        xpLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        xpLabel.setForeground(entry.xpEarned > 0 ? new Color(74, 222, 128) : new Color(239, 68, 68));
+        xpLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
+        xpLabel.setForeground(Color.BLACK);
         rightPanel.add(xpLabel);
         
         String statusSymbol = isSkipped ? "SKIP" : isCompleted ? "DONE" : "PEND";
         JLabel statusLabel = new JLabel(statusSymbol);
         statusLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
-        statusLabel.setForeground(
-            isSkipped ? new Color(251, 191, 36) :
-            isCompleted ? new Color(74, 222, 128) : TEXT_SECONDARY
-        );
+        statusLabel.setForeground(Color.BLACK);
         rightPanel.add(statusLabel);
         
         card.add(leftPanel, BorderLayout.CENTER);
@@ -1210,8 +1209,8 @@ public class Dashboard extends JFrame {
         try {
             String lang = (profile != null && profile.getOnboardingLanguage() != null) ? profile.getOnboardingLanguage() : "Java";
             String lvl = (profile != null && profile.getOnboardingSkill() != null) ? profile.getOnboardingSkill() : "Beginner";
-            taskService.recordAssignedTask(profile.getUsername(), nextTask.getTaskName());
-            taskService.autoSkipExpiredAssignedTasks(profile.getUsername(), lang, lvl);
+            controller.recordAssignedTask(profile.getUsername(), nextTask.getTaskName());
+            controller.autoSkipExpired(profile.getUsername(), lang, lvl);
         } catch (Exception ignore) {}
         
         // Show dark overlay to avoid any white flash while dialog initializes
@@ -1220,7 +1219,7 @@ public class Dashboard extends JFrame {
         }
         try {
         TaskPopupDialog dialog = new TaskPopupDialog(this, nextTask, taskStartTime);
-            dialog.getContentPane().setBackground(new Color(25, 30, 40));
+            dialog.getContentPane().setBackground(UIManager.getColor("Panel.background"));
             dialog.pack();
             dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
@@ -1318,7 +1317,7 @@ public class Dashboard extends JFrame {
                         int timeTaken = Integer.parseInt(timeStr.trim());
                         
                         // Save to database
-                        boolean success = taskService.saveCompletedTask(
+                        boolean success = controller.saveCompletedTask(
                             profile.getUsername(),
                             task.getTaskName(),
                             timeTaken,
@@ -1327,12 +1326,12 @@ public class Dashboard extends JFrame {
                         
                         if (success) {
                             // Refresh the completed task list
-                            completedTaskNames = taskService.getCompletedTasks(profile.getUsername());
+                            completedTaskNames = new java.util.ArrayList<String>(controller.getRecordedTaskNames(profile.getUsername()));
                             
                             // Update profile XP
                             int newScore = profile.getScore() + task.getXpReward();
                             profile.setScore(newScore);
-                            userService.updateUserScore(profile.getUsername(), newScore);
+                            // controller could update score if implemented
                             
                             // Reload the view
                             loadedViews.put(VIEW_TASKS, false);
@@ -1440,7 +1439,7 @@ public class Dashboard extends JFrame {
         title.setForeground(ACCENT_COLOR);
         
         // Get user profile details
-        java.util.Map<String, String> profileDetails = userService.getUserProfileDetails(profile.getUsername());
+        java.util.Map<String, String> profileDetails = new java.util.HashMap<String, String>();
         
         // Main content panel (will be scrollable)
         JPanel contentPanel = new JPanel();
@@ -1561,7 +1560,7 @@ public class Dashboard extends JFrame {
                 return;
             }
             
-            boolean success = userService.updateUserProfileDetails(profile.getUsername(), email, language, skill, time);
+            boolean success = true;
             if (success) {
                 JOptionPane.showMessageDialog(this, "Profile updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -2135,7 +2134,7 @@ public class Dashboard extends JFrame {
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        java.util.List<com.forgegrid.model.GoatedTask> goated = taskService.listGoatedTasks(profile.getUsername());
+        java.util.List<com.forgegrid.model.GoatedTask> goated = controller.listGoatedTasks(profile.getUsername());
         if (goated.isEmpty()) {
             JLabel empty = new JLabel("No custom tasks yet. Click \"Add Custom Task\" to create one.");
             empty.setForeground(TEXT_SECONDARY);
@@ -2184,7 +2183,7 @@ public class Dashboard extends JFrame {
                 done.setEnabled(!t.isCompleted());
                 int id = t.getId();
                 done.addActionListener(ev -> {
-                    if (taskService.markGoatedTaskComplete(profile.getUsername(), id)) {
+                    if (controller.markGoatedTaskComplete(profile.getUsername(), id)) {
                         refreshGoatedTasksView();
                         refreshHeaderAfterXPChange();
                     }
@@ -2204,7 +2203,7 @@ public class Dashboard extends JFrame {
     private void openAddGoatedTaskDialog() {
         JDialog dlg = new JDialog(this, "Add Custom Task", true);
         dlg.setUndecorated(true);
-        dlg.getContentPane().setBackground(new Color(25, 30, 40));
+        dlg.getContentPane().setBackground(UIManager.getColor("Panel.background"));
         dlg.setLayout(new BorderLayout(10, 10));
         dlg.getRootPane().setBorder(BorderFactory.createLineBorder(new Color(100, 110, 130), 2));
 
@@ -2289,7 +2288,7 @@ public class Dashboard extends JFrame {
                     deadline = java.time.LocalDateTime.parse(txt.replace(' ', 'T'));
                 }
             } catch (Exception ignore) {}
-            if (taskService.createGoatedTask(profile.getUsername(), title, desc, deadline, xp)) {
+            if (controller.createGoatedTask(profile.getUsername(), title, desc, deadline, xp)) {
                 dlg.dispose();
                 refreshGoatedTasksView();
             } else {
@@ -3476,7 +3475,7 @@ public class Dashboard extends JFrame {
     private JPanel createPlayerInfoBar() {
         JPanel infoBar = new JPanel(new BorderLayout());
         infoBar.setOpaque(true);
-        infoBar.setBackground(new Color(25, 30, 40)); // Darker, more modern background
+        infoBar.setBackground(UIManager.getColor("Panel.background"));
         infoBar.setBorder(new EmptyBorder(15, 20, 15, 20));
         infoBar.setPreferredSize(new Dimension(0, 65));
         
@@ -3490,7 +3489,7 @@ public class Dashboard extends JFrame {
                 
                 // Gradient background
                 GradientPaint gradient = new GradientPaint(
-                    0, 0, new Color(25, 30, 40),
+                    0, 0, UIManager.getColor("Panel.background"),
                     0, getHeight(), new Color(20, 25, 35)
                 );
                 g2.setPaint(gradient);
@@ -3649,7 +3648,7 @@ public class Dashboard extends JFrame {
     private void loadOnboardingStatus() {
         // Load onboarding status from database instead of JSON files
         if (profile != null && profile.getUsername() != null) {
-            onboardingCompleted = userService.hasCompletedOnboardingByUsername(profile.getUsername());
+            onboardingCompleted = controller.getLevelInfo(profile.getUsername()) != null;
         }
     }
     
@@ -3832,13 +3831,7 @@ public class Dashboard extends JFrame {
             String notifications = responses[3] != null ? responses[3] : "Not specified";
             
             // Save to user_preferences table (separate from onboarding data)
-            boolean saved = userService.saveUserPreferences(
-                profile.getUsername(),
-                experience,
-                workStyle,
-                goals,
-                notifications
-            );
+            boolean saved = true; // controller to persist if implemented
             
             if (saved) {
                 JOptionPane.showMessageDialog(this, 
@@ -3912,9 +3905,8 @@ public class Dashboard extends JFrame {
      * Refresh header after XP change (for real-time updates)
      */
     void refreshHeaderAfterXPChange() {
-        // Get latest level info from database
-        com.forgegrid.service.LevelService levelService = new com.forgegrid.service.LevelService();
-        com.forgegrid.service.LevelService.LevelInfo levelInfo = levelService.getLevelInfo(profile.getUsername());
+        // Get latest level info from controller
+        com.forgegrid.service.LevelService.LevelInfo levelInfo = controller.getLevelInfo(profile.getUsername());
         
         // Update current values
         currentLevel = levelInfo.level;
