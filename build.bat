@@ -11,8 +11,7 @@ if not exist "bin" mkdir bin
 
 REM Find all Java files and compile them
 echo Compiling Java source files...
-dir /s /b src\main\java\*.java > sources.txt
-javac -cp "lib/*" -d bin --release 17 @sources.txt
+javac -cp "lib/*" -d bin --release 17 -J-Dfile.encoding=UTF-8 src\main\java\com\forgegrid\app\*.java src\main\java\com\forgegrid\auth\*.java src\main\java\com\forgegrid\config\*.java src\main\java\com\forgegrid\controller\*.java src\main\java\com\forgegrid\db\*.java src\main\java\com\forgegrid\model\*.java src\main\java\com\forgegrid\service\*.java src\main\java\com\forgegrid\ui\*.java
 
 REM Check compilation result
 if %ERRORLEVEL% EQU 0 (
@@ -45,7 +44,6 @@ if %ERRORLEVEL% EQU 0 (
     echo Build failed!
 )
 
-REM Clean up temporary file
-if exist sources.txt del sources.txt
+REM Clean up completed
 
 endlocal
