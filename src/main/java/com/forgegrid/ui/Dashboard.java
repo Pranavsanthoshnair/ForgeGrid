@@ -133,9 +133,31 @@ public class Dashboard extends JFrame {
     }
 
     private void initUI() {
-        // Main container
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(BG_COLOR);
+        // Main container with pink theme
+        JPanel mainPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Create pink gradient background
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Theme.BRAND_PINK.brighter().brighter(),
+                    0, getHeight(), Theme.BRAND_PINK.brighter(),
+                    false
+                );
+                g2.setPaint(gradient);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                
+                // Add subtle pink glow effect
+                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 20));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                
+                g2.dispose();
+            }
+        };
+        mainPanel.setOpaque(false);
         
         // Create the main sections
         JPanel sidebarPanel = createSidebarPanel();
@@ -304,14 +326,36 @@ public class Dashboard extends JFrame {
     }
     
     /**
-     * Creates the ultra-modern professional sidebar menu
+     * Creates the ultra-modern professional sidebar menu with pink theme and glow effects
      */
     private JPanel createSidebarPanel() {
-        JPanel sidebarPanel = new JPanel(new BorderLayout());
-        sidebarPanel.setBackground(SIDEBAR_COLOR);
+        JPanel sidebarPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Create pink gradient background
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Theme.BRAND_PINK.darker().darker(),
+                    0, getHeight(), Theme.BRAND_PINK.darker(),
+                    false
+                );
+                g2.setPaint(gradient);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                
+                // Add subtle glow effect
+                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 30));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                
+                g2.dispose();
+            }
+        };
+        sidebarPanel.setOpaque(false);
         sidebarPanel.setPreferredSize(new Dimension(250, 0));
-        // Simple light border between sidebar and content
-        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
+        // Pink border between sidebar and content
+        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Theme.BRAND_PINK));
         
         // === HEADER SECTION ===
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -339,7 +383,7 @@ public class Dashboard extends JFrame {
         // Title with better styling
         JLabel titleLabel = new JLabel("ForgeGrid");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 19));
-        titleLabel.setForeground(Color.BLACK);
+        titleLabel.setForeground(Color.WHITE);
         
         logoTitlePanel.add(logoLabel);
         logoTitlePanel.add(titleLabel);
@@ -359,7 +403,7 @@ public class Dashboard extends JFrame {
         
         JLabel mainLabel = new JLabel("MAIN MENU");
         mainLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        mainLabel.setForeground(Color.BLACK);
+        mainLabel.setForeground(Color.WHITE);
         
         labelPanel.add(mainLabel);
         menuPanel.add(labelPanel);
@@ -503,13 +547,42 @@ public class Dashboard extends JFrame {
     private JPanel currentSelectedMenuItem = null;
     
     /**
-     * Create a simple menu item (basic Swing only)
+     * Create an enhanced menu item with pink theme and glow effects
      */
     private JPanel createModernMenuItem(String icon, String text, boolean selected) {
-        JPanel item = new JPanel(new BorderLayout(14, 0));
+        JPanel item = new JPanel(new BorderLayout(14, 0)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw active tab effect if selected
+                if (this == currentSelectedMenuItem) {
+                    // Pink gradient background fill
+                    GradientPaint gradient = new GradientPaint(
+                        0, 0, Theme.BRAND_PINK.brighter(),
+                        0, getHeight(), Theme.BRAND_PINK,
+                        false
+                    );
+                    g2.setPaint(gradient);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                    
+                    // Pink glow effect
+                    g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 60));
+                    g2.fillRoundRect(-2, -2, getWidth() + 4, getHeight() + 4, 10, 10);
+                    
+                    // White line/tab on left side
+                    g2.setColor(Color.WHITE);
+                    g2.setStroke(new BasicStroke(3.0f));
+                    g2.drawLine(0, 0, 0, getHeight());
+                }
+                
+                g2.dispose();
+            }
+        };
         
-        item.setOpaque(true);
-        item.setBackground(SIDEBAR_COLOR);
+        item.setOpaque(false);
         item.setBorder(new EmptyBorder(10, 12, 10, 12));
         
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
@@ -517,6 +590,7 @@ public class Dashboard extends JFrame {
         // Icon with better styling
         JLabel iconLabel = new JLabel(icon);
         iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        iconLabel.setForeground(Color.WHITE);
         
         iconLabel.setPreferredSize(new Dimension(25, 25));
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -525,7 +599,7 @@ public class Dashboard extends JFrame {
         // Text with better styling
         JLabel textLabel = new JLabel(text);
         textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textLabel.setForeground(Color.BLACK);
+        textLabel.setForeground(Color.WHITE);
         
         item.add(iconLabel, BorderLayout.WEST);
         item.add(textLabel, BorderLayout.CENTER);
@@ -540,10 +614,10 @@ public class Dashboard extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 // Deselect previous item
                 if (currentSelectedMenuItem != null && currentSelectedMenuItem != item) {
-                    currentSelectedMenuItem.setBackground(SIDEBAR_COLOR);
+                    currentSelectedMenuItem.repaint();
                 }
-                item.setBackground(UIManager.getColor("Panel.background"));
                 currentSelectedMenuItem = item;
+                item.repaint();
                 
                 // Switch view
                 switchView(text);
@@ -680,11 +754,11 @@ public class Dashboard extends JFrame {
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
         
-        // Stat Cards: Total tasks done, Completed, Skipped, Net XP
-        statsSection.add(createModernStatCard("Total Tasks", String.valueOf(availableTasks), "T", new Color(147, 51, 234), 100));
-        statsSection.add(createModernStatCard("Completed", String.valueOf(completedCount), "✅", new Color(34, 197, 94), completedPercentage));
-        statsSection.add(createModernStatCard("Skipped", String.valueOf(skippedCount), "S", new Color(251, 191, 36), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0));
-        statsSection.add(createModernStatCard("Net XP", String.valueOf(netXP), "XP", new Color(234, 179, 8), 100));
+        // Stat Cards: Total tasks done, Completed, Skipped, Net XP with enhanced design
+        statsSection.add(createEnhancedStatCard("Total Tasks", String.valueOf(availableTasks), "🎯", new Color(255, 255, 255), 100)); // Soft White
+        statsSection.add(createEnhancedStatCard("Completed", String.valueOf(completedCount), "🏆", new Color(160, 255, 0), completedPercentage)); // Neon Lime
+        statsSection.add(createEnhancedStatCard("Skipped", String.valueOf(skippedCount), "⏳", new Color(255, 153, 0), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0)); // Bright Orange
+        statsSection.add(createEnhancedStatCard("Net XP", String.valueOf(netXP), "⚡", new Color(0, 230, 255), 100)); // Electric Cyan
         
         mainContainer.add(statsSection);
         mainContainer.add(Box.createVerticalStrut(15));
@@ -932,6 +1006,93 @@ public class Dashboard extends JFrame {
     }
     
     /**
+     * Create an enhanced stat card with pink theme, borders, shadows, and glow effects
+     */
+    private JPanel createEnhancedStatCard(String title, String value, String icon, Color accentColor, int progress) {
+        // Create a custom panel with enhanced styling
+        JPanel card = new JPanel(new BorderLayout(12, 8)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Create pink glow effect
+                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 40));
+                g2.fillRoundRect(-3, -3, getWidth() + 6, getHeight() + 6, 15, 15);
+                
+                // Create subtle inner shadow effect
+                g2.setColor(new Color(0, 0, 0, 20));
+                g2.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 12, 12);
+                
+                // Main card background with pink gradient
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, Theme.BRAND_PINK.brighter().brighter(),
+                    0, getHeight(), Theme.BRAND_PINK.brighter(),
+                    false
+                );
+                g2.setPaint(gradient);
+                g2.fillRoundRect(0, 0, getWidth() - 2, getHeight() - 2, 12, 12);
+                
+                // Add subtle border using accent color
+                g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 50));
+                g2.setStroke(new BasicStroke(2.0f));
+                g2.drawRoundRect(0, 0, getWidth() - 2, getHeight() - 2, 12, 12);
+                
+                g2.dispose();
+            }
+        };
+        
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+        
+        // Central icon section
+        JPanel iconSection = new JPanel(new BorderLayout());
+        iconSection.setOpaque(false);
+        
+        // Large central icon
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+        iconLabel.setForeground(accentColor);
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+        
+        // Value with color coding
+        JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        valueLabel.setForeground(accentColor);
+        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        iconSection.add(iconLabel, BorderLayout.CENTER);
+        iconSection.add(valueLabel, BorderLayout.SOUTH);
+        
+        // Title
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        titleLabel.setForeground(TEXT_SECONDARY);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        // Progress Bar
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(progress);
+        progressBar.setStringPainted(false);
+        progressBar.setPreferredSize(new Dimension(0, 6));
+        progressBar.setBackground(new Color(40, 50, 65));
+        progressBar.setForeground(accentColor);
+        progressBar.setBorderPainted(false);
+        
+        JPanel bottomSection = new JPanel(new BorderLayout(0, 8));
+        bottomSection.setOpaque(false);
+        bottomSection.add(titleLabel, BorderLayout.NORTH);
+        bottomSection.add(progressBar, BorderLayout.SOUTH);
+        
+        card.add(iconSection, BorderLayout.CENTER);
+        card.add(bottomSection, BorderLayout.SOUTH);
+        
+        return card;
+    }
+    
+    /**
      * Create a modern stat card with progress indicator
      */
     private JPanel createModernStatCard(String title, String value, String icon, Color accentColor, int progress) {
@@ -984,6 +1145,50 @@ public class Dashboard extends JFrame {
         card.add(bottomSection, BorderLayout.SOUTH);
         
         return card;
+    }
+    
+    /**
+     * Create a flow layout panel with pink glow effect
+     */
+    private JPanel createGlowingFlowPanel(FlowLayout layout) {
+        JPanel panel = new JPanel(layout) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Create subtle pink glow effect
+                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 15));
+                g2.fillRoundRect(-1, -1, getWidth() + 2, getHeight() + 2, 8, 8);
+                
+                g2.dispose();
+            }
+        };
+        panel.setOpaque(false);
+        return panel;
+    }
+    
+    /**
+     * Create a box layout panel with pink glow effect
+     */
+    private JPanel createGlowingBoxPanel(BoxLayout layout) {
+        JPanel panel = new JPanel(layout) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Create subtle pink glow effect
+                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 15));
+                g2.fillRoundRect(-1, -1, getWidth() + 2, getHeight() + 2, 8, 8);
+                
+                g2.dispose();
+            }
+        };
+        panel.setOpaque(false);
+        return panel;
     }
     
     /**
@@ -1044,9 +1249,8 @@ public class Dashboard extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
         
-        // Centered header
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        header.setOpaque(false);
+        // Centered header with glow effect
+        JPanel header = createGlowingFlowPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         
         JLabel title = new JLabel("Task Center");
         title.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -1919,8 +2123,7 @@ public class Dashboard extends JFrame {
         title.setForeground(TEXT_COLOR);
         header.add(title, BorderLayout.WEST);
         
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttons.setOpaque(false);
+        JPanel buttons = createGlowingFlowPanel(new FlowLayout(FlowLayout.RIGHT));
         
         JButton addTaskBtn = new JButton("+ Add New Task");
         styleTaskButton(addTaskBtn, new Color(80, 200, 120));
@@ -2112,6 +2315,108 @@ public class Dashboard extends JFrame {
         return panel;
     }
     
+    /**
+     * Create an enhanced task card with pink theme, rounded corners, colored priority bars, and glow effects
+     */
+    private JPanel createEnhancedTaskCard(com.forgegrid.model.GoatedTask task) {
+        JPanel card = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Determine priority color based on task properties
+                Color priorityColor = determinePriorityColor(task);
+                
+                // Create pink glow effect
+                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 30));
+                g2.fillRoundRect(-2, -2, getWidth() + 4, getHeight() + 4, 16, 16);
+                
+                // Draw colored priority bar on the left edge
+                g2.setColor(priorityColor);
+                g2.fillRect(0, 0, 3, getHeight());
+                
+                // Draw rounded background with pink gradient
+                GradientPaint gradient = new GradientPaint(
+                    3, 0, Theme.BRAND_PINK.brighter(),
+                    3, getHeight(), Theme.BRAND_PINK,
+                    false
+                );
+                g2.setPaint(gradient);
+                g2.fillRoundRect(3, 0, getWidth() - 3, getHeight(), 12, 12);
+                
+                // Add Neon Lime border/glow for Goated Tasks with pink accent
+                g2.setColor(new Color(160, 255, 0, 80)); // Neon Lime with higher transparency
+                g2.setStroke(new BasicStroke(2.0f));
+                g2.drawRoundRect(3, 0, getWidth() - 3, getHeight(), 12, 12);
+                
+                g2.dispose();
+            }
+        };
+        
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(12, 16, 12, 16)); // Left padding accounts for priority bar
+        
+        // Content panel
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setOpaque(false);
+        
+        // Left content
+        JPanel left = new JPanel();
+        left.setOpaque(false);
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+
+        JLabel tTitle = new JLabel(task.getTitle() != null ? task.getTitle() : "Custom Task");
+        tTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        tTitle.setForeground(TEXT_COLOR);
+        left.add(tTitle);
+
+        String subtitle = (task.getDeadline() != null ? ("Due: " + task.getDeadline().toString()) : "No deadline") +
+                "  •  XP: " + task.getXp();
+        JLabel tSub = new JLabel(subtitle);
+        tSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tSub.setForeground(TEXT_SECONDARY);
+        left.add(tSub);
+
+        if (task.getDescription() != null && !task.getDescription().isBlank()) {
+            JLabel tDesc = new JLabel("<html><body style='width: 500px'>" + task.getDescription() + "</body></html>");
+            tDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            tDesc.setForeground(TEXT_SECONDARY);
+            left.add(Box.createVerticalStrut(4));
+            left.add(tDesc);
+        }
+        
+        contentPanel.add(left, BorderLayout.CENTER);
+        
+        return contentPanel;
+    }
+    
+    /**
+     * Determine priority color based on task properties
+     */
+    private Color determinePriorityColor(com.forgegrid.model.GoatedTask task) {
+        // High priority: Red
+        if (task.getDeadline() != null) {
+            try {
+                java.time.LocalDate deadlineDate = task.getDeadline().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+                long daysUntilDeadline = java.time.temporal.ChronoUnit.DAYS.between(
+                    java.time.LocalDate.now(), 
+                    deadlineDate
+                );
+                if (daysUntilDeadline <= 1) {
+                    return new Color(255, 100, 100); // Red for urgent
+                } else if (daysUntilDeadline <= 3) {
+                    return new Color(255, 153, 0); // Orange for high priority
+                }
+            } catch (Exception e) {
+                // If date conversion fails, use standard priority
+            }
+        }
+        // Standard priority: Soft White
+        return new Color(255, 255, 255);
+    }
+    
     private JComponent buildGoatedTasksView() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -2146,40 +2451,9 @@ public class Dashboard extends JFrame {
             panel.add(empty);
         } else {
             for (com.forgegrid.model.GoatedTask t : goated) {
-                JPanel card = new JPanel(new BorderLayout());
-                card.setOpaque(true);
-                card.setBackground(new Color(35, 45, 60));
-                card.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(80, 100, 140), 1),
-                    new EmptyBorder(12, 14, 12, 14)
-                ));
+                JPanel card = createEnhancedTaskCard(t);
 
-                JPanel left = new JPanel();
-                left.setOpaque(false);
-                left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-
-                JLabel tTitle = new JLabel(t.getTitle() != null ? t.getTitle() : "Custom Task");
-                tTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
-                tTitle.setForeground(TEXT_COLOR);
-                left.add(tTitle);
-
-                String subtitle = (t.getDeadline() != null ? ("Due: " + t.getDeadline().toString()) : "No deadline") +
-                        "  •  XP: " + t.getXp();
-                JLabel tSub = new JLabel(subtitle);
-                tSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                tSub.setForeground(TEXT_SECONDARY);
-                left.add(tSub);
-
-                if (t.getDescription() != null && !t.getDescription().isBlank()) {
-                    JLabel tDesc = new JLabel("<html><body style='width: 500px'>" + t.getDescription() + "</body></html>");
-                    tDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                    tDesc.setForeground(TEXT_SECONDARY);
-                    left.add(Box.createVerticalStrut(4));
-                    left.add(tDesc);
-                }
-
-                card.add(left, BorderLayout.CENTER);
-
+                // Add action button
                 JPanel actions = new JPanel();
                 actions.setOpaque(false);
                 JButton done = new JButton(t.isCompleted() ? "Completed" : "Mark Complete");
