@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Service for managing hardcoded tasks based on user preferences
+ * Service for managing task content and persistence:
+ * - Provides hardcoded task catalogs by language and skill level
+ * - Manages user task records in MySQL (create/list/update/delete, XP credit)
  */
 public class HardcodedTaskService {
     
@@ -19,9 +21,7 @@ public class HardcodedTaskService {
         createUserTasksTable();
     }
     
-    /**
-     * Create user_tasks table if it doesn't exist
-     */
+    /** Create user_tasks table if it doesn't exist. */
     private void createUserTasksTable() {
         String createTableSQL = 
             "CREATE TABLE IF NOT EXISTS user_tasks (" +
@@ -55,9 +55,7 @@ public class HardcodedTaskService {
         }
     }
 
-    /**
-     * Add columns for Goated Tasks if not present.
-     */
+    /** Add columns and indexes for Goated Tasks if not present. */
     private void migrateUserTasksForGoated(Statement stmt) {
         try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN type VARCHAR(20) DEFAULT 'regular'"); } catch (SQLException ignored) {}
         try { stmt.execute("ALTER TABLE user_tasks ADD COLUMN title VARCHAR(255) NULL"); } catch (SQLException ignored) {}
@@ -69,9 +67,7 @@ public class HardcodedTaskService {
         try { stmt.execute("CREATE INDEX idx_user_tasks_type ON user_tasks(type)"); } catch (SQLException ignored) {}
     }
 
-    /**
-     * Create a Goated Task for the user.
-     */
+    /** Create a Goated Task for the user. */
     public boolean createGoatedTask(String username, String title, String description, java.time.LocalDateTime deadline, int xp) {
         if (xp < 0) xp = 0;
         if (xp > 500) xp = 500;
@@ -93,9 +89,7 @@ public class HardcodedTaskService {
         }
     }
 
-    /**
-     * List all Goated Tasks for a user.
-     */
+    /** List all Goated Tasks for a user. */
     public java.util.List<com.forgegrid.model.GoatedTask> listGoatedTasks(String username) {
         java.util.List<com.forgegrid.model.GoatedTask> list = new java.util.ArrayList<>();
         String sql = "SELECT id, title, description, deadline, xp, is_completed, created_at FROM user_tasks WHERE username = ? AND type = 'goated' ORDER BY is_completed ASC, deadline IS NULL ASC, deadline ASC";
@@ -121,9 +115,7 @@ public class HardcodedTaskService {
         return list;
     }
 
-    /**
-     * Mark a Goated Task as completed and credit XP.
-     */
+    /** Mark a Goated Task as completed and credit XP. */
     public boolean markGoatedTaskComplete(String username, int taskId) {
         String select = "SELECT xp, is_completed FROM user_tasks WHERE id = ? AND username = ? AND type = 'goated'";
         String update = "UPDATE user_tasks SET is_completed = 1, status = 'completed', xp_earned = COALESCE(xp, 0), completed_at = ? WHERE id = ? AND username = ?";
@@ -152,9 +144,7 @@ public class HardcodedTaskService {
         return false;
     }
 
-    /**
-     * Update a Goated Task.
-     */
+    /** Update a Goated Task. */
     public boolean updateGoatedTask(String username, int taskId, String title, String description, java.time.LocalDateTime deadline, Integer xp) {
         String sql = "UPDATE user_tasks SET title = ?, description = ?, deadline = ?, xp = ? WHERE id = ? AND username = ? AND type = 'goated'";
         try (Connection conn = dbHelper.getConnection();
@@ -172,9 +162,7 @@ public class HardcodedTaskService {
         }
     }
 
-    /**
-     * Delete a Goated Task.
-     */
+    /** Delete a Goated Task. */
     public boolean deleteGoatedTask(String username, int taskId) {
         String sql = "DELETE FROM user_tasks WHERE id = ? AND username = ? AND type = 'goated'";
         try (Connection conn = dbHelper.getConnection();
@@ -188,9 +176,7 @@ public class HardcodedTaskService {
         }
     }
     
-    /**
-     * Get hardcoded tasks based on language and skill level
-     */
+    /** Get hardcoded tasks based on language and skill level. */
     public List<HardcodedTask> getTasksForUser(String language, String level) {
         List<HardcodedTask> tasks = new ArrayList<>();
         
@@ -214,9 +200,7 @@ public class HardcodedTaskService {
     }
     
     
-    /**
-     * Beginner level tasks
-     */
+    /** Beginner level tasks. */
     private List<HardcodedTask> getBeginnerTasks(String language) {
         List<HardcodedTask> tasks = new ArrayList<>();
         
@@ -2532,7 +2516,7 @@ public class HardcodedTaskService {
         String selectSQL = 
             "SELECT task_name, time_taken, xp_earned, status, completed_at " +
             "FROM user_tasks " +
-            "WHERE username = ? " +
+            "WHERE username = ? AND status IN ('completed','skipped') " +
             "ORDER BY completed_at DESC " +
             "LIMIT ?";
         

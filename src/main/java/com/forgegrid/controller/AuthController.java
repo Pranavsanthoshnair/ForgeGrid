@@ -5,6 +5,10 @@ import com.forgegrid.config.UserPreferences;
 import com.forgegrid.model.PlayerProfile;
 import com.forgegrid.service.UserService;
 
+/**
+ * Thin controller that connects UI to authentication and user services.
+ * Intentionally minimal: delegates to services without duplicating logic.
+ */
 public class AuthController {
 
     private final AuthService authService;

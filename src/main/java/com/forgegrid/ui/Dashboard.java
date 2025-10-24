@@ -13,6 +13,11 @@ import java.awt.*;
 import java.awt.event.*;
 // removed unused: import java.awt.geom.*;
 
+/**
+ * Main application dashboard frame. Presents sidebar navigation and center
+ * content views (tasks, profile, settings, etc.). Reads data via
+ * controllers/services and renders basic Swing components without custom LAF.
+ */
 @SuppressWarnings({"unused"})
 public class Dashboard extends JFrame {
 
@@ -137,13 +142,12 @@ public class Dashboard extends JFrame {
         JPanel centerContainer = createCenterContainer();
         
         // Add components to main panel
-        // Removed legacy top bar per new design
         mainPanel.add(sidebarPanel, BorderLayout.WEST);
         mainPanel.add(centerContainer, BorderLayout.CENTER);
         
         setContentPane(mainPanel);
 
-        // Basic overlay disabled for simplicity
+        // Basic overlay setup
         modalOverlay = new JPanel();
         modalOverlay.setOpaque(false);
         modalOverlay.setVisible(false);
@@ -1155,7 +1159,7 @@ public class Dashboard extends JFrame {
         xpLabel.setForeground(Color.BLACK);
         rightPanel.add(xpLabel);
         
-        String statusSymbol = isSkipped ? "SKIP" : isCompleted ? "DONE" : "PEND";
+        String statusSymbol = isSkipped ? "SKIP" : isCompleted ? "DONE" : "";
         JLabel statusLabel = new JLabel(statusSymbol);
         statusLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
         statusLabel.setForeground(Color.BLACK);
@@ -2202,24 +2206,24 @@ public class Dashboard extends JFrame {
 
     private void openAddGoatedTaskDialog() {
         JDialog dlg = new JDialog(this, "Add Custom Task", true);
-        dlg.setUndecorated(true);
+        dlg.setUndecorated(false);
         dlg.getContentPane().setBackground(UIManager.getColor("Panel.background"));
         dlg.setLayout(new BorderLayout(10, 10));
-        dlg.getRootPane().setBorder(BorderFactory.createLineBorder(new Color(100, 110, 130), 2));
+        dlg.getRootPane().setBorder(null);
 
         // Title bar similar to TaskPopupDialog
         JPanel titleBar = new JPanel(new BorderLayout());
-        titleBar.setBackground(new Color(30, 35, 45));
+        titleBar.setBackground(UIManager.getColor("Panel.background"));
         titleBar.setBorder(new EmptyBorder(10, 15, 10, 15));
         JLabel titleLb = new JLabel("New Custom Task");
         titleLb.setFont(new Font("SansSerif", Font.BOLD, 14));
-        titleLb.setForeground(new Color(220, 225, 235));
+        titleLb.setForeground(Color.BLACK);
         JButton close = new JButton("✕");
         close.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        close.setForeground(new Color(220, 225, 235));
-        close.setBackground(new Color(30, 35, 45));
-        close.setBorderPainted(false);
-        close.setFocusPainted(false);
+        close.setForeground(Color.BLACK);
+        close.setBackground(UIManager.getColor("Panel.background"));
+        close.setBorderPainted(true);
+        close.setFocusPainted(true);
         close.setPreferredSize(new Dimension(40, 30));
         
         close.addActionListener(ev -> dlg.dispose());
@@ -2239,19 +2243,19 @@ public class Dashboard extends JFrame {
         gc.anchor = GridBagConstraints.WEST;
 
         JTextField titleField = new JTextField(24);
-        titleField.setForeground(new Color(220, 225, 235));
-        titleField.setBackground(new Color(40, 50, 65));
+        titleField.setForeground(Color.BLACK);
+        titleField.setBackground(Color.WHITE);
         JTextArea descArea = new JTextArea(5, 24);
-        descArea.setForeground(new Color(220, 225, 235));
-        descArea.setBackground(new Color(40, 50, 65));
+        descArea.setForeground(Color.BLACK);
+        descArea.setBackground(Color.WHITE);
         descArea.setLineWrap(true);
         descArea.setWrapStyleWord(true);
         JSpinner xpField = new JSpinner(new SpinnerNumberModel(50, 0, 500, 10));
-        ((JSpinner.DefaultEditor) xpField.getEditor()).getTextField().setBackground(new Color(40, 50, 65));
-        ((JSpinner.DefaultEditor) xpField.getEditor()).getTextField().setForeground(new Color(220, 225, 235));
+        ((JSpinner.DefaultEditor) xpField.getEditor()).getTextField().setBackground(Color.WHITE);
+        ((JSpinner.DefaultEditor) xpField.getEditor()).getTextField().setForeground(Color.BLACK);
         JTextField deadlineField = new JTextField(24);
-        deadlineField.setForeground(new Color(220, 225, 235));
-        deadlineField.setBackground(new Color(40, 50, 65));
+        deadlineField.setForeground(Color.BLACK);
+        deadlineField.setBackground(Color.WHITE);
         deadlineField.setToolTipText("YYYY-MM-DD HH:MM (24h)");
 
         int r = 0;
@@ -2271,8 +2275,6 @@ public class Dashboard extends JFrame {
         buttons.setOpaque(false);
         JButton cancel = new JButton("Cancel");
         JButton save = new JButton("Save");
-        styleTaskButton(cancel, new Color(90, 100, 120));
-        styleTaskButton(save, new Color(70, 160, 100));
         buttons.add(cancel);
         buttons.add(save);
 
@@ -3929,7 +3931,7 @@ public class Dashboard extends JFrame {
         setVisible(false);
         dispose();
         SwingUtilities.invokeLater(() -> {
-            AuthUI authUI = new AuthUI();
+            com.forgegrid.ui.AuthUI authUI = new com.forgegrid.ui.AuthUI();
             authUI.setVisible(true);
         });
     }

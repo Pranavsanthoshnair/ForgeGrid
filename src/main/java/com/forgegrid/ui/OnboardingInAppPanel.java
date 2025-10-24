@@ -5,7 +5,9 @@ import java.awt.*;
 import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
- * In-app onboarding panel (same window) replicating OnboardingWizard steps.
+ * In-app onboarding panel that asks three quick questions (goal, language,
+ * skill) for new users, or shows a concise welcome-back screen for returning
+ * users. Emits selections via {@link CompletionListener}.
  */
 public class OnboardingInAppPanel extends JPanel {
 
@@ -56,7 +58,7 @@ public class OnboardingInAppPanel extends JPanel {
         // Basic light background like other screens
         JPanel bg = new JPanel(new GridBagLayout());
         bg.setOpaque(true);
-        bg.setBackground(new Color(238, 238, 238));
+        bg.setBackground(UIManager.getColor("Panel.background"));
 
         // Simple white card container
         JPanel card = new JPanel();
@@ -114,7 +116,7 @@ public class OnboardingInAppPanel extends JPanel {
 	private JPanel buildCompletionPanel(Runnable continueAction) {
         JPanel bg = new JPanel(new GridBagLayout());
         bg.setOpaque(true);
-        bg.setBackground(new Color(25, 35, 55));
+        bg.setBackground(UIManager.getColor("Panel.background"));
 		
         JPanel center = new JPanel();
         center.setOpaque(true);
@@ -206,7 +208,7 @@ public class OnboardingInAppPanel extends JPanel {
 	private JPanel buildQ2(Runnable next) {
         JPanel bg = new JPanel(new GridBagLayout());
         bg.setOpaque(true);
-        bg.setBackground(new Color(238, 238, 238));
+        bg.setBackground(UIManager.getColor("Panel.background"));
 		JPanel center = buildQuestionPanel(
 			"Q2. What's your preferred programming language?",
 			new String[]{"Java", "Python", "C", "JavaScript"},

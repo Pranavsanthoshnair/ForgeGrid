@@ -12,6 +12,12 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Authentication UI frame that hosts the welcome cover, login, signup, and
+ * in-app onboarding views. Uses a CardLayout to navigate between screens and
+ * delegates business logic to controllers. Also sets the application title and
+ * window icon.
+ */
 @SuppressWarnings({"unused"})
 public class AuthUI extends JFrame {
     // Color scheme
@@ -37,7 +43,7 @@ public class AuthUI extends JFrame {
     private JPanel signupPanel;
     private WelcomeUI welcomePanel;
     private JPanel onboardingPrompt;
-    // placeholders removed; cards are managed via cardPanel
+    
     
     public AuthUI() {
         this.controller = new AuthController(new AuthService(), new UserService(), new UserPreferences());
@@ -93,13 +99,12 @@ public class AuthUI extends JFrame {
         addWithFade(loginPanel, "LOGIN");
         addWithFade(signupPanel, "SIGNUP");
 
-		// Create landing cover panel (shown first)
-        // Welcome screen inside the same window (instead of separate tab/window)
+        // Create landing cover panel (shown first)
         welcomePanel = new WelcomeUI();
         welcomePanel.addStartActionListener(e -> showCard("LOGIN"));
         addWithFade(welcomePanel, "WELCOME");
 
-        // In-app Onboarding panel (same window) - will be created dynamically based on user status
+        // In-app onboarding panel (created dynamically based on user status)
         addWithFade(new JPanel(), "ONBOARDING"); // Placeholder, will be replaced dynamically
 
         // Inline onboarding prompt card (asks Yes/No inside app UI)
@@ -121,12 +126,12 @@ public class AuthUI extends JFrame {
         root.add(cardPanel, BorderLayout.CENTER);
         add(root);
         
-        // Show welcome first with fade-in
+        // Show welcome first
         cardLayout.show(cardPanel, "WELCOME");
         playFade("WELCOME");
         updateBackButtonVisibility("WELCOME");
         
-        // No dynamic resize or global font overrides; keep it basic
+        
     }
 
     private void addWithFade(JComponent comp, String name) {
@@ -141,7 +146,6 @@ public class AuthUI extends JFrame {
 
     private void showCard(String name) {
         cardLayout.show(cardPanel, name);
-        // no animations
         updateBackButtonVisibility(name);
     }
 
@@ -331,7 +335,7 @@ public class AuthUI extends JFrame {
         
         card.add(emailContainer);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
-        card.add(passwordField);
+        card.add(wrapPasswordWithToggle(passwordField));
         card.add(Box.createRigidArea(new Dimension(0, 15)));
         
         // Add "Remember Me" checkbox
@@ -514,7 +518,7 @@ public class AuthUI extends JFrame {
         signupCard.add(Box.createRigidArea(new Dimension(0, 18)));
         signupCard.add(signupEmailField);
         signupCard.add(Box.createRigidArea(new Dimension(0, 18)));
-        signupCard.add(signupPasswordField);
+        signupCard.add(wrapPasswordWithToggle(signupPasswordField));
         signupCard.add(Box.createRigidArea(new Dimension(0, 30)));
         signupCard.add(signupGradientWrap);
         signupCard.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -589,8 +593,8 @@ public class AuthUI extends JFrame {
         field.setCaretColor(PRIMARY_COLOR);
         field.setOpaque(true);
         field.setText(placeholder);
-        field.setEchoChar((char) 0); // Show placeholder text initially
-        field.setForeground(Color.BLACK); // placeholder color as black
+        field.setEchoChar((char) 0); // show placeholder text initially
+        field.setForeground(Color.BLACK);
 
         // Placeholder behavior
         field.putClientProperty("placeholderActive", Boolean.TRUE);
@@ -631,7 +635,7 @@ public class AuthUI extends JFrame {
                     field.setText("");
                     field.putClientProperty("placeholderActive", Boolean.FALSE);
                     field.setForeground(Color.BLACK);
-                    field.setEchoChar('•'); // Always hide password by default
+                    field.setEchoChar('•'); // hide actual password
                 }
             }
         });
@@ -655,19 +659,30 @@ public class AuthUI extends JFrame {
 
         return field;
     }
+
+    private JComponent wrapPasswordWithToggle(JPasswordField field) {
+        JPanel wrap = new JPanel(new BorderLayout(5, 0));
+        wrap.setOpaque(false);
+        wrap.add(field, BorderLayout.CENTER);
+
+        JButton toggle = new JButton("Show");
+        toggle.setFocusPainted(false);
+        toggle.setBorderPainted(true);
+        toggle.addActionListener(e -> {
+            Object active = field.getClientProperty("placeholderActive");
+            String current = new String(field.getPassword());
+            boolean isPlaceholder = Boolean.TRUE.equals(active) && current.equals("Password");
+            if (isPlaceholder) return; // don't toggle placeholder
+            boolean showing = Boolean.TRUE.equals(field.getClientProperty("showPassword"));
+            boolean newShowing = !showing;
+            field.putClientProperty("showPassword", newShowing);
+            field.setEchoChar(newShowing ? (char) 0 : '•');
+            toggle.setText(newShowing ? "Hide" : "Show");
+        });
+        wrap.add(toggle, BorderLayout.EAST);
+        return wrap;
+    }
     
-    
-    
-    // Removed custom glass button to keep Swing usage minimal
-
-    // Google OAuth methods removed - using MySQL authentication only
-
-
-    // Removed custom solid button painter to keep things basic
-
-    // Removed custom GradientPanel in favor of shared components
-
-    // GradientTextLabel no longer used
 
     private void handleLogin() {
         // Normalize placeholders just in case flags are stale
@@ -1047,23 +1062,6 @@ public class AuthUI extends JFrame {
     }
     
     
-    /**
-     * Simplified button hover effect
-     */
-    // Removed hover helpers
-    
-    /**
-     * Simplified link hover animation
-     */
-    // Removed unused addLinkHoverAnimation helper
-    
-    /**
-     * Simplified eye icon animation
-     */
-    
-    
-    
-    
     private void applyCustomStyling() {
         // Set larger default font for all components
         Font defaultFont = new Font("Trebuchet MS", Font.PLAIN, 18);
@@ -1080,12 +1078,7 @@ public class AuthUI extends JFrame {
         }
     }
     
-    // Main method removed since we're using Main.java
-    
-    
-    /**
-     * Show password reset dialog
-     */
+    /** Show password reset dialog. */
     private void showPasswordResetDialog() {
         // Create a simple input dialog for username
         String username = JOptionPane.showInputDialog(
@@ -1147,16 +1140,7 @@ public class AuthUI extends JFrame {
         }
     }
     
-    /**
-     * Initialize authentication system
-     */
-    // Removed unused initializeAuthentication helper
-    
-    
-    /**
-     * Show the SIGNUP card reliably and focus the first field.
-     * Ensures the signup panel exists and triggers layout refresh.
-     */
+    /** Show the SIGNUP card and focus the first field. */
     private void showSignup() {
         SwingUtilities.invokeLater(() -> {
             // Use the standard showCard method like all other navigation
@@ -1166,10 +1150,7 @@ public class AuthUI extends JFrame {
     }
     
     
-    /**
-     * Show the LOGIN card reliably and focus the first field.
-     * Ensures the login panel exists and triggers layout refresh.
-     */
+    /** Show the LOGIN card and focus the first field. */
     private void showLogin() {
         SwingUtilities.invokeLater(() -> {
             cardLayout.show(cardPanel, "LOGIN");
@@ -1236,7 +1217,7 @@ public class AuthUI extends JFrame {
     private JPanel createOnboardingPromptPanel() {
         JPanel panel = new JPanel();
         panel.setOpaque(true);
-        panel.setBackground(new Color(25, 35, 55));
+        panel.setBackground(UIManager.getColor("Panel.background"));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         CardContainerPanel card = new CardContainerPanel();
