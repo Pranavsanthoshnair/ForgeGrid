@@ -754,8 +754,8 @@ public class Dashboard extends JFrame {
         int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
         int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
         
-        // Stat Cards: Total tasks done, Completed, Skipped, Net XP with enhanced design
-        statsSection.add(createEnhancedStatCard("Total Tasks", String.valueOf(availableTasks), "🎯", new Color(255, 255, 255), 100)); // Soft White
+        // Stat Cards: Total tasks done, Completed, Skipped, Net XP with settings-style backgrounds
+        statsSection.add(createEnhancedStatCard("Total Tasks", String.valueOf(availableTasks), "🎯", new Color(255, 255, 255), 100)); // White
         statsSection.add(createEnhancedStatCard("Completed", String.valueOf(completedCount), "🏆", new Color(160, 255, 0), completedPercentage)); // Neon Lime
         statsSection.add(createEnhancedStatCard("Skipped", String.valueOf(skippedCount), "⏳", new Color(255, 153, 0), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0)); // Bright Orange
         statsSection.add(createEnhancedStatCard("Net XP", String.valueOf(netXP), "⚡", new Color(0, 230, 255), 100)); // Electric Cyan
@@ -1009,42 +1009,13 @@ public class Dashboard extends JFrame {
      * Create an enhanced stat card with pink theme, borders, shadows, and glow effects
      */
     private JPanel createEnhancedStatCard(String title, String value, String icon, Color accentColor, int progress) {
-        // Create a custom panel with enhanced styling
-        JPanel card = new JPanel(new BorderLayout(12, 8)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Create pink glow effect
-                g2.setColor(new Color(Theme.BRAND_PINK.getRed(), Theme.BRAND_PINK.getGreen(), Theme.BRAND_PINK.getBlue(), 40));
-                g2.fillRoundRect(-3, -3, getWidth() + 6, getHeight() + 6, 15, 15);
-                
-                // Create subtle inner shadow effect
-                g2.setColor(new Color(0, 0, 0, 20));
-                g2.fillRoundRect(2, 2, getWidth() - 2, getHeight() - 2, 12, 12);
-                
-                // Main card background with pink gradient
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, Theme.BRAND_PINK.brighter().brighter(),
-                    0, getHeight(), Theme.BRAND_PINK.brighter(),
-                    false
-                );
-                g2.setPaint(gradient);
-                g2.fillRoundRect(0, 0, getWidth() - 2, getHeight() - 2, 12, 12);
-                
-                // Add subtle border using accent color
-                g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 50));
-                g2.setStroke(new BasicStroke(2.0f));
-                g2.drawRoundRect(0, 0, getWidth() - 2, getHeight() - 2, 12, 12);
-                
-                g2.dispose();
-            }
-        };
-        
-        card.setOpaque(false);
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+        // Create a custom panel with pink background
+        JPanel card = new JPanel(new BorderLayout(12, 8));
+        card.setBackground(Theme.BRAND_PINK);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Theme.BRAND_PINK, 1),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
         
         // Central icon section
         JPanel iconSection = new JPanel(new BorderLayout());
@@ -1069,7 +1040,7 @@ public class Dashboard extends JFrame {
         // Title
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        titleLabel.setForeground(TEXT_SECONDARY);
+        titleLabel.setForeground(Color.WHITE);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
         // Progress Bar
@@ -1649,11 +1620,17 @@ public class Dashboard extends JFrame {
         // Get user profile details
         java.util.Map<String, String> profileDetails = new java.util.HashMap<String, String>();
         
-        // Main content panel (will be scrollable)
+        // Main content panel with horizontal layout
         JPanel contentPanel = new JPanel();
         contentPanel.setOpaque(false);
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setLayout(new BorderLayout(30, 0));
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        // Left side: Profile Stats Cards
+        JPanel leftPanel = new JPanel();
+        leftPanel.setOpaque(false);
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setPreferredSize(new Dimension(400, 0));
         
         // Profile Stats Cards (Top Section)
         JPanel statsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
@@ -1672,8 +1649,8 @@ public class Dashboard extends JFrame {
         JPanel streakCard = createProfileStatCard("Streak", currentStreak + " days", "S", new Color(251, 191, 36));
         statsPanel.add(streakCard);
         
-        contentPanel.add(statsPanel);
-        contentPanel.add(Box.createVerticalStrut(20));
+        leftPanel.add(statsPanel);
+        leftPanel.add(Box.createVerticalStrut(20));
         
         // Profile Information Card
         JPanel profilePanel = new JPanel();
@@ -1778,7 +1755,22 @@ public class Dashboard extends JFrame {
         
         profilePanel.add(saveButton);
         
-        contentPanel.add(profilePanel);
+        // Right side: Account Information (centered)
+        JPanel rightPanel = new JPanel();
+        rightPanel.setOpaque(false);
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Center the Account Information panel
+        JPanel centerWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        centerWrapper.setOpaque(false);
+        centerWrapper.add(profilePanel);
+        
+        rightPanel.add(centerWrapper);
+        
+        // Add panels to main content
+        contentPanel.add(leftPanel, BorderLayout.WEST);
+        contentPanel.add(rightPanel, BorderLayout.CENTER);
         
         // Wrap content in scroll pane
         JScrollPane scrollPane = new JScrollPane(contentPanel);
@@ -1798,17 +1790,35 @@ public class Dashboard extends JFrame {
      * Create a profile stat card
      */
     private JPanel createProfileStatCard(String label, String value, String icon, Color accentColor) {
-        JPanel card = new JPanel(new BorderLayout(12, 0));
-        card.setBackground(PANEL_COLOR);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
-            new EmptyBorder(20, 20, 20, 20)
-        ));
+        JPanel card = new JPanel(new BorderLayout(12, 0)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Create rose gradient background
+                Color roseStart = new Color(225, 76, 140, 180); // BRAND_PINK with transparency
+                Color roseEnd = new Color(255, 182, 193, 200); // Light rose
+                GradientPaint gradient = new GradientPaint(0, 0, roseStart, getWidth(), getHeight(), roseEnd);
+                g2.setPaint(gradient);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                
+                // Add subtle border
+                g2.setColor(new Color(225, 76, 140, 100));
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(20, 20, 20, 20));
         
         // Icon
         JLabel iconLabel = new JLabel(icon);
         iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 36));
-        iconLabel.setForeground(accentColor);
+        iconLabel.setForeground(new Color(255, 255, 255)); // White for better contrast
         
         // Right panel with label and value
         JPanel rightPanel = new JPanel();
@@ -1817,12 +1827,12 @@ public class Dashboard extends JFrame {
         
         JLabel labelText = new JLabel(label);
         labelText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        labelText.setForeground(TEXT_SECONDARY);
+        labelText.setForeground(new Color(255, 255, 255, 200)); // Semi-transparent white
         labelText.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel valueText = new JLabel(value);
         valueText.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        valueText.setForeground(TEXT_COLOR);
+        valueText.setForeground(new Color(255, 255, 255)); // White for better contrast
         valueText.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         rightPanel.add(labelText);
@@ -3217,7 +3227,7 @@ public class Dashboard extends JFrame {
         // Header
         JLabel title = new JLabel("Settings");
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setForeground(ACCENT_COLOR);
+        title.setForeground(Color.BLACK);
         
         // Main content with GridLayout for two columns
         JPanel contentPanel = new JPanel(new GridLayout(1, 2, 20, 20));
@@ -3239,7 +3249,7 @@ public class Dashboard extends JFrame {
         
         JLabel preferencesTitle = new JLabel("General Preferences");
         preferencesTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        preferencesTitle.setForeground(TEXT_COLOR);
+        preferencesTitle.setForeground(Color.BLACK);
         preferencesTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         preferencesCard.add(preferencesTitle);
         preferencesCard.add(Box.createVerticalStrut(20));
@@ -3276,15 +3286,15 @@ public class Dashboard extends JFrame {
         
         JLabel accountLabel = new JLabel("Account");
         accountLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        accountLabel.setForeground(TEXT_COLOR);
+        accountLabel.setForeground(Color.BLACK);
         accountLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         accountCard.add(accountLabel);
         accountCard.add(Box.createVerticalStrut(20));
         
         // Account info display
         JPanel accountInfo = new JPanel();
-        accountInfo.setOpaque(true);
-        accountInfo.setBackground(new Color(35, 45, 60));
+        accountInfo.setOpaque(false);
+        accountInfo.setBackground(Color.WHITE);
         accountInfo.setBorder(new EmptyBorder(15, 15, 15, 15));
         accountInfo.setLayout(new BoxLayout(accountInfo, BoxLayout.Y_AXIS));
         
@@ -3294,7 +3304,7 @@ public class Dashboard extends JFrame {
         } catch (Exception ex) {
             usernameInfo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
         }
-        usernameInfo.setForeground(TEXT_COLOR);
+        usernameInfo.setForeground(Color.BLACK);
         usernameInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel levelInfo = new JLabel("🏆 Level " + currentLevel);
@@ -3303,7 +3313,7 @@ public class Dashboard extends JFrame {
         } catch (Exception ex) {
             levelInfo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
         }
-        levelInfo.setForeground(TEXT_COLOR);
+        levelInfo.setForeground(Color.BLACK);
         levelInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         accountInfo.add(usernameInfo);
@@ -3377,8 +3387,8 @@ public class Dashboard extends JFrame {
      */
     private JPanel createEnhancedToggleSetting(String icon, String title, String description, boolean enabled) {
         JPanel panel = new JPanel(new BorderLayout(12, 0));
-        panel.setOpaque(true);
-        panel.setBackground(new Color(35, 45, 60));
+        panel.setOpaque(false);
+        panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
         
         // Icon
@@ -3393,12 +3403,12 @@ public class Dashboard extends JFrame {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setForeground(Color.BLACK);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(Color.BLACK);
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         middlePanel.add(titleLabel);
@@ -3438,7 +3448,7 @@ public class Dashboard extends JFrame {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setForeground(Theme.BRAND_PINK);
         
         headerPanel.add(iconLabel, BorderLayout.WEST);
         headerPanel.add(titleLabel, BorderLayout.CENTER);
@@ -3446,7 +3456,7 @@ public class Dashboard extends JFrame {
         // Description
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(Theme.BRAND_PINK.darker().darker());
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         // Dropdown
@@ -3454,7 +3464,7 @@ public class Dashboard extends JFrame {
         dropdown.setSelectedItem(currentValue);
         dropdown.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         dropdown.setBackground(new Color(50, 60, 75));
-        dropdown.setForeground(TEXT_COLOR);
+        dropdown.setForeground(Theme.BRAND_PINK);
         dropdown.setBorder(new EmptyBorder(5, 10, 5, 10));
         dropdown.setAlignmentX(Component.LEFT_ALIGNMENT);
         
@@ -3481,11 +3491,11 @@ public class Dashboard extends JFrame {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setForeground(Theme.BRAND_PINK);
         
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(Theme.BRAND_PINK.darker().darker());
         
         leftPanel.add(iconLabel);
         leftPanel.add(Box.createVerticalStrut(2));
@@ -3500,12 +3510,12 @@ public class Dashboard extends JFrame {
         
         JLabel toggleLabel = new JLabel(enabled ? "ON" : "OFF");
         toggleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        toggleLabel.setForeground(enabled ? new Color(80, 200, 120) : new Color(150, 150, 150));
+        toggleLabel.setForeground(enabled ? Theme.BRAND_PINK : new Color(150, 150, 150));
         toggleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JButton toggleBtn = new JButton(enabled ? "ON" : "OFF");
         toggleBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        toggleBtn.setForeground(enabled ? new Color(80, 200, 120) : new Color(150, 150, 150));
+        toggleBtn.setForeground(enabled ? Theme.BRAND_PINK : new Color(150, 150, 150));
         toggleBtn.setBackground(new Color(50, 60, 75));
         toggleBtn.setBorderPainted(false);
         toggleBtn.setPreferredSize(new Dimension(40, 20));
@@ -3625,12 +3635,12 @@ public class Dashboard extends JFrame {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setForeground(Theme.BRAND_PINK);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(Theme.BRAND_PINK.darker().darker());
         descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JButton actionBtn = new JButton(buttonText);

@@ -1093,4 +1093,21 @@ new com.forgegrid.service.LevelService().addXP(username, penalty);
 new com.forgegrid.service.LevelService().addXP(username, xp);
 ```
 
+---
+
+## 26) Settings UI improvements
+- **Problem**: Settings section had dark backgrounds making black text unreadable
+- **Solution**: Removed dark backgrounds from setting cards and account panels, kept black text for readability
+- **Enhancement**: Added rose gradient backgrounds to profile stat cards with white text for contrast
+- **Layout**: Improved profile section with horizontal layout using `BorderLayout`
+- **Result**: Clean, readable settings interface with consistent pink theme
+
+---
+
+## 27) Home Page Card Styling Updates
+- **Problem**: Home page stat cards had pink gradient backgrounds that didn't match settings page style
+- **Solution**: Changed card backgrounds from pink gradient to `PANEL_COLOR` (settings-style gray background) with pink borders
+- **Enhancement**: Updated Profile view layout to center Account Information panel using horizontal `BorderLayout`
+- **Result**: Consistent styling across home page and settings with improved visual balance
+
 
