@@ -63,11 +63,32 @@ Entry Point
 ### Logging
 - Console logs indicate table creation/migrations and connection success/fail.
 
-### Packaging (optional)
-Example:
+### Packaging (JAR file)
+The project has been packaged into a JAR file for easy distribution:
+
+**Windows:**
+```bat
+run-jar.bat
+```
+
+**macOS/Linux:**
 ```bash
-jar --create --file forgegrid.jar -C bin .
-java -cp "forgegrid.jar:lib/*" com.forgegrid.app.Main
+chmod +x run-jar.sh
+./run-jar.sh
+```
+
+**Manual JAR execution:**
+```bash
+# Windows
+java -cp "ForgeGrid.jar;lib\*" com.forgegrid.app.Main
+
+# macOS/Linux
+java -cp "ForgeGrid.jar:lib/*" com.forgegrid.app.Main
+```
+
+**Creating JAR from source:**
+```bash
+jar --create --file ForgeGrid.jar -C bin .
 ```
 
 ### Common Issues
