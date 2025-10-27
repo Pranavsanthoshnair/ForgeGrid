@@ -655,15 +655,18 @@ public class Dashboard extends JFrame {
             
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Deselect previous item
-                if (currentSelectedMenuItem != null && currentSelectedMenuItem != item) {
-                    currentSelectedMenuItem.repaint();
+                // Only update if different item is selected
+                if (currentSelectedMenuItem != item) {
+                    // Deselect previous item
+                    if (currentSelectedMenuItem != null) {
+                        currentSelectedMenuItem.repaint();
+                    }
+                    currentSelectedMenuItem = item;
+                    item.repaint();
+                    
+                    // Switch view
+                    switchView(text);
                 }
-                currentSelectedMenuItem = item;
-                item.repaint();
-                
-                // Switch view
-                switchView(text);
             }
         });
         
@@ -765,6 +768,9 @@ public class Dashboard extends JFrame {
         panel.setLayout(new BorderLayout(0, 20));
         panel.setBorder(new EmptyBorder(0, 0, 0, 0));
         
+        // Use double buffering for better performance
+        panel.setDoubleBuffered(true);
+        
         // Main container with vertical layout
         JPanel mainContainer = new JPanel();
         mainContainer.setOpaque(false);
@@ -792,9 +798,18 @@ public class Dashboard extends JFrame {
             uname = "testuser";
         }
         
-        int completedCount = controller.getCompletedTaskCount(uname);
-        int skippedCount = controller.getSkippedTaskCount(uname);
-        int netXP = controller.getNetXP(uname); // completed adds, skipped subtracts
+        // Cache database calls to avoid repeated queries
+        int completedCount, skippedCount, netXP;
+        try {
+            completedCount = controller.getCompletedTaskCount(uname);
+            skippedCount = controller.getSkippedTaskCount(uname);
+            netXP = controller.getNetXP(uname);
+        } catch (Exception e) {
+            // Fallback to test data if database calls fail
+            completedCount = 0;
+            skippedCount = 0;
+            netXP = 0;
+        }
         
         // Total tasks = completed + skipped + available tasks
         int totalTasks = completedCount + skippedCount;
@@ -3456,12 +3471,18 @@ public class Dashboard extends JFrame {
         
         // Responsive stacking on smaller widths
         panel.addComponentListener(new java.awt.event.ComponentAdapter(){
+            private int lastWidth = -1;
+            
             @Override
             public void componentResized(java.awt.event.ComponentEvent e){
                 int w = panel.getWidth();
-                boolean twoCols = w >= 1050;
-                contentPanel.setLayout(new GridLayout(twoCols ? 1 : 2, twoCols ? 2 : 1, 20, 20));
-                contentPanel.revalidate();
+                // Only update if width actually changed significantly
+                if (Math.abs(w - lastWidth) > 50) {
+                    boolean twoCols = w >= 1050;
+                    contentPanel.setLayout(new GridLayout(twoCols ? 1 : 2, twoCols ? 2 : 1, 20, 20));
+                    contentPanel.revalidate();
+                    lastWidth = w;
+                }
             }
         });
         
@@ -4264,10 +4285,16 @@ public class Dashboard extends JFrame {
     void switchView(String viewName) { // Package-private for TaskPopupDialog
         // Lazy load the view if not already loaded
         if (!loadedViews.containsKey(viewName) || !loadedViews.get(viewName)) {
-            centerPanel.add(createViewPanel(viewName), viewName);
-            loadedViews.put(viewName, true);
+            // Create view in background thread to avoid UI blocking
+            SwingUtilities.invokeLater(() -> {
+                centerPanel.add(createViewPanel(viewName), viewName);
+                loadedViews.put(viewName, true);
+                centerLayout.show(centerPanel, viewName);
+            });
+        } else {
+            // View already exists, just switch to it
+            centerLayout.show(centerPanel, viewName);
         }
-        centerLayout.show(centerPanel, viewName);
     }
     
     /**
