@@ -76,10 +76,13 @@ java -cp "forgegrid.jar:lib/*" com.forgegrid.app.Main
 - Classpath: ensure `lib/mysql-connector-j-8.0.33.jar` is present
 - Java version: use JDK 17+
 - SSL: connection string uses `useSSL=true`
+- Performance: If experiencing UI lag, ensure you're using the latest build with performance optimizations
+- Password field: Password always shows dots (`•`) by default for security, even with "Remember Me" enabled
 
 ### Development Tips
 - Use an IDE with Java 17+ SDK.
 - Mark `src/main/resources` as resources folder.
 - Run `com.forgegrid.app.Main` directly from the IDE.
+- The application now includes performance optimizations for smoother UI interactions.
 
 
