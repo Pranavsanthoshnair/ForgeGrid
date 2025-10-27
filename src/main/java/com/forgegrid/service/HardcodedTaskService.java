@@ -2395,46 +2395,11 @@ public class HardcodedTaskService {
     }
 
     /**
-     * Reset the assignment time for an existing assigned task.
-     * This is called when a user reopens a task they previously started.
-     */
-    public void resetAssignedTaskTime(String username, String taskName) {
-        String updateSQL = "UPDATE user_tasks SET completed_at = ? WHERE username = ? AND task_name = ? AND status = 'assigned'";
-        try (Connection conn = dbHelper.getConnection();
-             PreparedStatement upd = conn.prepareStatement(updateSQL)) {
-            upd.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            upd.setString(2, username);
-            upd.setString(3, taskName);
-            upd.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error resetting assigned task time: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Check if a task is currently assigned to the user.
-     */
-    public boolean isTaskAssigned(String username, String taskName) {
-        String sql = "SELECT 1 FROM user_tasks WHERE username = ? AND task_name = ? AND status = 'assigned' LIMIT 1";
-        try (Connection conn = dbHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            stmt.setString(2, taskName);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            System.err.println("Error checking if task is assigned: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Convert any 'assigned' tasks older than 48 hours into 'skipped' with XP penalty.
+     * Convert any 'assigned' tasks older than 24 hours into 'skipped' with XP penalty.
      * Penalty is 50% of the task XP (negative).
-     * This gives users more time to return to tasks they started.
      */
     public void autoSkipExpiredAssignedTasks(String username, String language, String level) {
-        String selectExpired = "SELECT task_name FROM user_tasks WHERE username = ? AND status = 'assigned' AND completed_at < (NOW() - INTERVAL 48 HOUR)";
+        String selectExpired = "SELECT task_name FROM user_tasks WHERE username = ? AND status = 'assigned' AND completed_at < (NOW() - INTERVAL 24 HOUR)";
         String updateSQL = "UPDATE user_tasks SET status='skipped', xp_earned=?, time_taken=?, completed_at=? WHERE username=? AND task_name=? AND status='assigned'";
         try (Connection conn = dbHelper.getConnection();
              PreparedStatement sel = conn.prepareStatement(selectExpired);
@@ -2446,7 +2411,7 @@ public class HardcodedTaskService {
                 int reward = getXpRewardForTaskName(taskName, language, level);
                 int penalty = -(Math.max(1, reward / 2));
                 upd.setInt(1, penalty);
-                upd.setInt(2, 2880); // 48h in minutes
+                upd.setInt(2, 1440); // 24h in minutes
                 upd.setTimestamp(3, Timestamp.valueOf(java.time.LocalDateTime.now()));
                 upd.setString(4, username);
                 upd.setString(5, taskName);

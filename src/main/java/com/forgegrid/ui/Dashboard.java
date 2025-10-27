@@ -1401,18 +1401,11 @@ public class Dashboard extends JFrame {
         // Start timer
         taskStartTime = System.currentTimeMillis();
         
-        // Record assignment or reset time for existing assigned task
+        // Record assignment so 24h auto-skip can apply
         try {
             String lang = (profile != null && profile.getOnboardingLanguage() != null) ? profile.getOnboardingLanguage() : "Java";
             String lvl = (profile != null && profile.getOnboardingSkill() != null) ? profile.getOnboardingSkill() : "Beginner";
-            
-            // Check if task is already assigned - if so, reset the time
-            if (controller.isTaskAssigned(profile.getUsername(), nextTask.getTaskName())) {
-                controller.resetAssignedTaskTime(profile.getUsername(), nextTask.getTaskName());
-            } else {
-                controller.recordAssignedTask(profile.getUsername(), nextTask.getTaskName());
-            }
-            
+            controller.recordAssignedTask(profile.getUsername(), nextTask.getTaskName());
             controller.autoSkipExpired(profile.getUsername(), lang, lvl);
         } catch (Exception ignore) {}
         
