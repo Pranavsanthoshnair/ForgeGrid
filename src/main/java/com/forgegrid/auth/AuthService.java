@@ -21,7 +21,7 @@ public class AuthService {
     private final DatabaseHelper dbHelper;
     
     /**
-     * Constructor for AuthService
+     * 
      */
     public AuthService() {
         this.dbHelper = DatabaseHelper.getInstance();
