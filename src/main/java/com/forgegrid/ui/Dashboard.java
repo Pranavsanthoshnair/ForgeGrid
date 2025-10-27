@@ -1708,34 +1708,59 @@ public class Dashboard extends JFrame {
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(ACCENT_COLOR);
         
+        // Check if profile is null
+        if (profile == null) {
+            JLabel errorLabel = new JLabel("Profile not loaded. Please try again.");
+            errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            errorLabel.setForeground(Color.RED);
+            errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            panel.add(errorLabel, BorderLayout.CENTER);
+            return panel;
+        }
+        
         // Get user profile details from database
         com.forgegrid.service.UserService userService = new com.forgegrid.service.UserService();
-        String[] preferences = userService.getUserPreferences(profile.getUsername());
+        String[] preferences = null;
+        try {
+            preferences = userService.getUserPreferences(profile.getUsername());
+        } catch (Exception e) {
+            System.err.println("Error loading user preferences: " + e.getMessage());
+            e.printStackTrace();
+        }
         
         // Main content panel - centered
         JPanel contentPanel = new JPanel();
         contentPanel.setOpaque(false);
-        contentPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        contentPanel.setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         
         // Account Information Card - centered
         JPanel profilePanel = new JPanel();
         profilePanel.setOpaque(true);
-        profilePanel.setBackground(PANEL_COLOR);
+        profilePanel.setBackground(Color.WHITE); // Use white background for visibility
         profilePanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
+            BorderFactory.createLineBorder(new Color(60, 70, 90), 2), // Thicker border for visibility
             new EmptyBorder(30, 30, 30, 30)
         ));
         profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
-        profilePanel.setPreferredSize(new Dimension(500, 0));
+        profilePanel.setPreferredSize(new Dimension(500, 400)); // Fixed height for visibility
+        profilePanel.setMinimumSize(new Dimension(500, 400));
         
         // Card title
         JLabel cardTitle = new JLabel("Account Information");
         cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        cardTitle.setForeground(TEXT_COLOR);
+        cardTitle.setForeground(Color.BLACK); // Use black for visibility
         cardTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         cardTitle.setBorder(new EmptyBorder(0, 0, 25, 0));
         profilePanel.add(cardTitle);
+        
+        // Test label to ensure visibility
+        JLabel testLabel = new JLabel("Profile loaded successfully!");
+        testLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        testLabel.setForeground(Color.BLACK);
+        testLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        profilePanel.add(testLabel);
+        profilePanel.add(Box.createVerticalStrut(20));
         
         // Username (read-only)
         JPanel usernamePanel = createProfileField("Username", profile.getUsername(), false, null);
@@ -1743,7 +1768,9 @@ public class Dashboard extends JFrame {
         profilePanel.add(Box.createVerticalStrut(20));
         
         // Email (editable)
-        JTextField emailField = new JTextField(profile.getEmail() != null ? profile.getEmail() : "");
+        String email = profile.getEmail() != null ? profile.getEmail() : "";
+        System.out.println("DEBUG - Profile email: " + email);
+        JTextField emailField = new JTextField(email);
         emailField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         emailField.setBackground(Color.WHITE);
         emailField.setForeground(Color.BLACK);
@@ -1754,7 +1781,9 @@ public class Dashboard extends JFrame {
         // Programming Language (editable)
         String[] languages = {"Java", "Python", "JavaScript", "C++", "C#", "Go", "Rust", "Ruby", "PHP", "Swift"};
         JComboBox<String> languageBox = new JComboBox<>(languages);
-        languageBox.setSelectedItem(profile.getOnboardingLanguage() != null ? profile.getOnboardingLanguage() : "Java");
+        String currentLanguage = profile.getOnboardingLanguage() != null ? profile.getOnboardingLanguage() : "Java";
+        System.out.println("DEBUG - Profile language: " + currentLanguage);
+        languageBox.setSelectedItem(currentLanguage);
         languageBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         languageBox.setBackground(Color.WHITE);
         languageBox.setForeground(Color.BLACK);
@@ -1765,7 +1794,9 @@ public class Dashboard extends JFrame {
         // Skill Level (editable)
         String[] skillLevels = {"Beginner", "Intermediate", "Advanced", "Expert"};
         JComboBox<String> skillBox = new JComboBox<>(skillLevels);
-        skillBox.setSelectedItem(profile.getOnboardingSkill() != null ? profile.getOnboardingSkill() : "Beginner");
+        String currentSkill = profile.getOnboardingSkill() != null ? profile.getOnboardingSkill() : "Beginner";
+        System.out.println("DEBUG - Profile skill: " + currentSkill);
+        skillBox.setSelectedItem(currentSkill);
         skillBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         skillBox.setBackground(Color.WHITE);
         skillBox.setForeground(Color.BLACK);
@@ -1812,31 +1843,33 @@ public class Dashboard extends JFrame {
         profilePanel.add(buttonsPanel);
         
         // Add the profile panel to content
-        contentPanel.add(profilePanel);
+        System.out.println("DEBUG - Adding profile panel to content");
+        contentPanel.add(profilePanel, BorderLayout.CENTER);
+        System.out.println("DEBUG - Profile panel added, content panel children: " + contentPanel.getComponentCount());
         
         // Action listeners
         saveButton.addActionListener(e -> {
-            String email = emailField.getText().trim();
+            String newEmail = emailField.getText().trim();
             String language = (String) languageBox.getSelectedItem();
             String skill = (String) skillBox.getSelectedItem();
             String time = (String) timeBox.getSelectedItem();
             
-            if (email.isEmpty()) {
+            if (newEmail.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Email cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            if (!isValidEmail(email)) {
+            if (!isValidEmail(newEmail)) {
                 JOptionPane.showMessageDialog(this, "Please enter a valid email address!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             // Update user profile in database
-            boolean success = userService.updateUserProfileDetails(profile.getUsername(), email, language, skill, time);
+            boolean success = userService.updateUserProfileDetails(profile.getUsername(), newEmail, language, skill, time);
             
             if (success) {
                 // Update local profile object
-                profile.setEmail(email);
+                profile.setEmail(newEmail);
                 profile.setOnboardingLanguage(language);
                 profile.setOnboardingSkill(skill);
                 
@@ -1871,6 +1904,9 @@ public class Dashboard extends JFrame {
         
         panel.add(title, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
+        
+        System.out.println("DEBUG - Profile panel assembled, main panel children: " + panel.getComponentCount());
+        System.out.println("DEBUG - ScrollPane children: " + scrollPane.getViewport().getComponentCount());
         
         return panel;
     }
