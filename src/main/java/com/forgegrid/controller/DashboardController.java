@@ -25,6 +25,8 @@ public class DashboardController {
     public int getNetXP(String username) { return taskService.getNetXP(username); }
     public Set<String> getRecordedTaskNames(String username) { return taskService.getRecordedTaskNames(username); }
     public void recordAssignedTask(String username, String taskName) { taskService.recordAssignedTask(username, taskName); }
+    public void resetAssignedTaskTime(String username, String taskName) { taskService.resetAssignedTaskTime(username, taskName); }
+    public boolean isTaskAssigned(String username, String taskName) { return taskService.isTaskAssigned(username, taskName); }
     public void autoSkipExpired(String username, String language, String level) { taskService.autoSkipExpiredAssignedTasks(username, language, level); }
     public java.util.List<com.forgegrid.model.GoatedTask> listGoatedTasks(String username) { return taskService.listGoatedTasks(username); }
     public boolean markGoatedTaskComplete(String username, int taskId) { return taskService.markGoatedTaskComplete(username, taskId); }

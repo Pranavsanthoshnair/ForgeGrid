@@ -36,6 +36,14 @@ public class TaskPopupDialog extends JDialog {
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         getContentPane().setBackground(new Color(238, 238, 238));
         
+        // Add window listener to handle closing without completion
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                handleDialogClosing();
+            }
+        });
+        
         setupUI();
         startUITimer();
     }
@@ -386,6 +394,44 @@ public class TaskPopupDialog extends JDialog {
                 JOptionPane.ERROR_MESSAGE
             );
             
+        }
+    }
+    
+    /**
+     * Handle dialog closing without completion or skip
+     */
+    private void handleDialogClosing() {
+        if (uiTimer != null) uiTimer.stop();
+        
+        // Calculate elapsed time
+        long elapsedMillis = System.currentTimeMillis() - startTime;
+        int elapsedMinutes = Math.max(1, (int) (elapsedMillis / 60000));
+        
+        // Ask user what they want to do
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            "You're closing the task dialog.\n\n" +
+            "Time spent: " + elapsedMinutes + " min\n\n" +
+            "What would you like to do?",
+            "Task Dialog Closing",
+            JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            new String[]{"Complete Task", "Skip Task", "Cancel"},
+            "Complete Task"
+        );
+        
+        if (choice == 0) {
+            // Complete the task
+            handleSubmit();
+        } else if (choice == 1) {
+            // Skip the task
+            handleSkip();
+        } else {
+            // Cancel - just close without any action
+            // The task remains in 'assigned' status and won't be auto-skipped
+            // unless it's been more than 24 hours
+            super.dispose();
         }
     }
     
