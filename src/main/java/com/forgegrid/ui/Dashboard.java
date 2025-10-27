@@ -1728,11 +1728,10 @@ public class Dashboard extends JFrame {
             e.printStackTrace();
         }
         
-        // Main content panel - centered
-        JPanel contentPanel = new JPanel();
+        // Main content panel - centered using GridBagLayout
+        JPanel contentPanel = new JPanel(new GridBagLayout());
         contentPanel.setOpaque(false);
-        contentPanel.setLayout(new BorderLayout());
-        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        contentPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
         
         // Account Information Card - centered
         JPanel profilePanel = new JPanel();
@@ -1743,66 +1742,56 @@ public class Dashboard extends JFrame {
             new EmptyBorder(30, 30, 30, 30)
         ));
         profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
-        profilePanel.setPreferredSize(new Dimension(500, 400)); // Fixed height for visibility
-        profilePanel.setMinimumSize(new Dimension(500, 400));
+        profilePanel.setPreferredSize(new Dimension(600, 500)); // Larger size for better visibility
+        profilePanel.setMinimumSize(new Dimension(600, 500));
         
         // Card title
         JLabel cardTitle = new JLabel("Account Information");
-        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        cardTitle.setForeground(Color.BLACK); // Use black for visibility
+        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        cardTitle.setForeground(Color.BLACK);
         cardTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        cardTitle.setBorder(new EmptyBorder(0, 0, 25, 0));
+        cardTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
         profilePanel.add(cardTitle);
-        
-        // Test label to ensure visibility
-        JLabel testLabel = new JLabel("Profile loaded successfully!");
-        testLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        testLabel.setForeground(Color.BLACK);
-        testLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        profilePanel.add(testLabel);
-        profilePanel.add(Box.createVerticalStrut(20));
         
         // Username (read-only)
         JPanel usernamePanel = createProfileField("Username", profile.getUsername(), false, null);
         profilePanel.add(usernamePanel);
-        profilePanel.add(Box.createVerticalStrut(20));
+        profilePanel.add(Box.createVerticalStrut(25));
         
         // Email (editable)
         String email = profile.getEmail() != null ? profile.getEmail() : "";
-        System.out.println("DEBUG - Profile email: " + email);
         JTextField emailField = new JTextField(email);
         emailField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         emailField.setBackground(Color.WHITE);
         emailField.setForeground(Color.BLACK);
-        JPanel emailPanel = createProfileFieldWithComponent("Email", emailField);
+        emailField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        JPanel emailPanel = createProfileFieldWithComponent("Email Address", emailField);
         profilePanel.add(emailPanel);
-        profilePanel.add(Box.createVerticalStrut(20));
+        profilePanel.add(Box.createVerticalStrut(25));
         
         // Programming Language (editable)
         String[] languages = {"Java", "Python", "JavaScript", "C++", "C#", "Go", "Rust", "Ruby", "PHP", "Swift"};
         JComboBox<String> languageBox = new JComboBox<>(languages);
         String currentLanguage = profile.getOnboardingLanguage() != null ? profile.getOnboardingLanguage() : "Java";
-        System.out.println("DEBUG - Profile language: " + currentLanguage);
         languageBox.setSelectedItem(currentLanguage);
         languageBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         languageBox.setBackground(Color.WHITE);
         languageBox.setForeground(Color.BLACK);
-        JPanel languagePanel = createProfileFieldWithComponent("Preferred Language", languageBox);
+        JPanel languagePanel = createProfileFieldWithComponent("Preferred Programming Language", languageBox);
         profilePanel.add(languagePanel);
-        profilePanel.add(Box.createVerticalStrut(20));
+        profilePanel.add(Box.createVerticalStrut(25));
         
         // Skill Level (editable)
         String[] skillLevels = {"Beginner", "Intermediate", "Advanced", "Expert"};
         JComboBox<String> skillBox = new JComboBox<>(skillLevels);
         String currentSkill = profile.getOnboardingSkill() != null ? profile.getOnboardingSkill() : "Beginner";
-        System.out.println("DEBUG - Profile skill: " + currentSkill);
         skillBox.setSelectedItem(currentSkill);
         skillBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         skillBox.setBackground(Color.WHITE);
         skillBox.setForeground(Color.BLACK);
-        JPanel skillPanel = createProfileFieldWithComponent("Skill Level", skillBox);
+        JPanel skillPanel = createProfileFieldWithComponent("Current Skill Level", skillBox);
         profilePanel.add(skillPanel);
-        profilePanel.add(Box.createVerticalStrut(20));
+        profilePanel.add(Box.createVerticalStrut(25));
         
         // Preferred Time for Tasks (editable)
         String[] times = {"Morning (6 AM - 12 PM)", "Afternoon (12 PM - 6 PM)", "Evening (6 PM - 12 AM)", "Night (12 AM - 6 AM)"};
@@ -1814,38 +1803,42 @@ public class Dashboard extends JFrame {
         timeBox.setForeground(Color.BLACK);
         JPanel timePanel = createProfileFieldWithComponent("Preferred Time for Tasks", timeBox);
         profilePanel.add(timePanel);
-        profilePanel.add(Box.createVerticalStrut(30));
+        profilePanel.add(Box.createVerticalStrut(40));
         
         // Buttons panel
-        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         buttonsPanel.setOpaque(false);
         
         // Save button
         JButton saveButton = new JButton("Save Changes");
-        saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        saveButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
         saveButton.setForeground(Color.WHITE);
         saveButton.setBackground(ACCENT_COLOR);
         saveButton.setFocusPainted(false);
         saveButton.setBorderPainted(false);
-        saveButton.setPreferredSize(new Dimension(140, 40));
+        saveButton.setPreferredSize(new Dimension(160, 45));
         
         // Logout button
         JButton logoutButton = new JButton("Logout");
-        logoutButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        logoutButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
         logoutButton.setForeground(Color.WHITE);
         logoutButton.setBackground(new Color(220, 53, 69)); // Red color
         logoutButton.setFocusPainted(false);
         logoutButton.setBorderPainted(false);
-        logoutButton.setPreferredSize(new Dimension(100, 40));
+        logoutButton.setPreferredSize(new Dimension(120, 45));
         
         buttonsPanel.add(saveButton);
         buttonsPanel.add(logoutButton);
         profilePanel.add(buttonsPanel);
         
-        // Add the profile panel to content
-        System.out.println("DEBUG - Adding profile panel to content");
-        contentPanel.add(profilePanel, BorderLayout.CENTER);
-        System.out.println("DEBUG - Profile panel added, content panel children: " + contentPanel.getComponentCount());
+        // Center the profile panel using GridBagLayout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        contentPanel.add(profilePanel, gbc);
         
         // Action listeners
         saveButton.addActionListener(e -> {
@@ -1882,7 +1875,7 @@ public class Dashboard extends JFrame {
         logoutButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to logout?",
+                "Are you sure you want to logout? This will clear your 'Remember Me' settings.",
                 "Confirm Logout",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
@@ -1902,12 +1895,7 @@ public class Dashboard extends JFrame {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
-        panel.add(title, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
-        
-        System.out.println("DEBUG - Profile panel assembled, main panel children: " + panel.getComponentCount());
-        System.out.println("DEBUG - ScrollPane children: " + scrollPane.getViewport().getComponentCount());
-        
         return panel;
     }
     
