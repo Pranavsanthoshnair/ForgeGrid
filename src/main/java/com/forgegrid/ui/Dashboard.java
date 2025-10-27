@@ -256,12 +256,55 @@ public class Dashboard extends JFrame {
         levelDisplayLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         levelDisplayLabel.setForeground(Color.BLACK);
         
-        // CENTER: Basic Swing progress bar
-        JProgressBar xpProgressBarBasic = new JProgressBar(0, Math.max(1, maxXP));
-        xpProgressBarBasic.setValue(Math.max(0, Math.min(maxXP, currentXP)));
-        xpProgressBarBasic.setStringPainted(true);
-        xpProgressBarBasic.setString("XP: " + currentXP + " / " + maxXP);
-        xpProgressBarBasic.setPreferredSize(new Dimension(300, 24));
+        // CENTER: Custom progress bar with better text handling
+        JPanel xpProgressPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int width = getWidth();
+                int height = getHeight();
+                int progress = (int)((currentXP / (double)maxXP) * width);
+                
+                // Draw background
+                g2.setColor(new Color(230, 230, 230));
+                g2.fillRoundRect(0, 0, width, height, 8, 8);
+                
+                // Draw progress
+                g2.setColor(Theme.BRAND_PINK);
+                g2.fillRoundRect(0, 0, progress, height, 8, 8);
+                
+                // Draw border
+                g2.setColor(new Color(200, 200, 200));
+                g2.drawRoundRect(0, 0, width - 1, height - 1, 8, 8);
+                
+                // Draw text
+                String text = currentXP + " / " + maxXP + " XP";
+                g2.setColor(TEXT_COLOR);
+                Font font = g2.getFont().deriveFont(Font.BOLD, 12f);
+                g2.setFont(font);
+                FontMetrics fm = g2.getFontMetrics();
+                int textWidth = fm.stringWidth(text);
+                
+                // Center text
+                int x = Math.max(5, (width - textWidth) / 2);
+                int y = ((height - fm.getHeight()) / 2) + fm.getAscent();
+                
+                // Draw text shadow for better contrast
+                g2.setColor(new Color(0, 0, 0, 30));
+                g2.drawString(text, x + 1, y + 1);
+                
+                // Draw text
+                g2.setColor(TEXT_COLOR);
+                g2.drawString(text, x, y);
+                
+                g2.dispose();
+            }
+        };
+        xpProgressPanel.setPreferredSize(new Dimension(320, 26));
+        xpProgressPanel.setOpaque(false);
         
         // RIGHT: Streak with fire icon
         JLabel streakLabel = new JLabel("Streak: " + currentStreak);
@@ -269,7 +312,7 @@ public class Dashboard extends JFrame {
         streakLabel.setForeground(Color.BLACK);
         
         panel.add(levelDisplayLabel, BorderLayout.WEST);
-        panel.add(xpProgressBarBasic, BorderLayout.CENTER);
+        panel.add(xpProgressPanel, BorderLayout.CENTER);
         panel.add(streakLabel, BorderLayout.EAST);
         
         return panel;
@@ -751,29 +794,31 @@ public class Dashboard extends JFrame {
         
         int completedCount = controller.getCompletedTaskCount(uname);
         int skippedCount = controller.getSkippedTaskCount(uname);
-        // Total tasks (history) = completed + skipped as requested
-        int totalTasks = completedCount + skippedCount;
-        int availableTasks = totalTasks; // reuse variable for first card value
         int netXP = controller.getNetXP(uname); // completed adds, skipped subtracts
+        
+        // Total tasks = completed + skipped + available tasks
+        int totalTasks = completedCount + skippedCount;
+        int availableTasks = currentTasks != null ? currentTasks.size() : 0;
+        int totalTasksWithAvailable = totalTasks + availableTasks;
         
         // If all stats are 0, add some test data to verify the display works
         if (completedCount == 0 && skippedCount == 0 && netXP == 0) {
             completedCount = 3; // Test completed tasks
             skippedCount = 1;   // Test skipped tasks
-            totalTasks = completedCount + skippedCount;
-            availableTasks = totalTasks;
             netXP = 150; // Test net XP
+            totalTasks = completedCount + skippedCount;
+            totalTasksWithAvailable = totalTasks + availableTasks;
         }
         
-        // Calculate percentages relative to current task list
-        int completedPercentage = totalTasks > 0 ? (completedCount * 100 / totalTasks) : 0;
-        int availablePercentage = totalTasks > 0 ? (availableTasks * 100 / totalTasks) : 0;
+        // Calculate percentages relative to total tasks
+        int completedPercentage = totalTasksWithAvailable > 0 ? (completedCount * 100 / totalTasksWithAvailable) : 0;
+        int skippedPercentage = totalTasksWithAvailable > 0 ? (skippedCount * 100 / totalTasksWithAvailable) : 0;
         
         // Stat Cards: Total tasks done, Completed, Skipped, Net XP with settings-style backgrounds
-        statsSection.add(createEnhancedStatCard("Total Tasks", String.valueOf(availableTasks), "🎯", new Color(255, 255, 255), 100)); // White
-        statsSection.add(createEnhancedStatCard("Completed", String.valueOf(completedCount), "🏆", new Color(160, 255, 0), completedPercentage)); // Neon Lime
-        statsSection.add(createEnhancedStatCard("Skipped", String.valueOf(skippedCount), "⏳", new Color(255, 153, 0), totalTasks > 0 ? (skippedCount * 100 / totalTasks) : 0)); // Bright Orange
-        statsSection.add(createEnhancedStatCard("Net XP", String.valueOf(netXP), "⚡", new Color(0, 230, 255), 100)); // Electric Cyan
+        statsSection.add(createEnhancedStatCard("Total Tasks", String.valueOf(totalTasksWithAvailable), "", new Color(255, 255, 255), 100)); // White
+        statsSection.add(createEnhancedStatCard("Completed", String.valueOf(completedCount), "", new Color(160, 255, 0), completedPercentage)); // Neon Lime
+        statsSection.add(createEnhancedStatCard("Skipped", String.valueOf(skippedCount), "", new Color(255, 153, 0), skippedPercentage)); // Bright Orange
+        statsSection.add(createEnhancedStatCard("Net XP", String.valueOf(netXP), "", new Color(0, 230, 255), 100)); // Electric Cyan
         
         mainContainer.add(statsSection);
         mainContainer.add(Box.createVerticalStrut(15));
@@ -846,12 +891,54 @@ public class Dashboard extends JFrame {
         topRow.add(levelLabel, BorderLayout.WEST);
         topRow.add(xpLabel, BorderLayout.EAST);
         
-        // Progress bar (basic Swing)
-        JProgressBar progressBarPanel = new JProgressBar(0, Math.max(1, levelInfo.requiredForNextLevel));
-        progressBarPanel.setValue(Math.max(0, Math.min(levelInfo.requiredForNextLevel, levelInfo.currentLevelXP)));
-        progressBarPanel.setStringPainted(true);
-        progressBarPanel.setString(levelInfo.getProgressPercentage() + "%");
-        progressBarPanel.setPreferredSize(new Dimension(0, 18));
+        // Custom progress bar for level progress
+        JPanel progressBarPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int width = getWidth();
+                int height = getHeight();
+                int progress = (int)((levelInfo.currentLevelXP / (double)levelInfo.requiredForNextLevel) * width);
+                
+                // Draw background
+                g2.setColor(new Color(230, 230, 230));
+                g2.fillRoundRect(0, 0, width, height, 6, 6);
+                
+                // Draw progress
+                g2.setColor(Theme.BRAND_PINK);
+                g2.fillRoundRect(0, 0, progress, height, 6, 6);
+                
+                // Draw border
+                g2.setColor(new Color(200, 200, 200));
+                g2.drawRoundRect(0, 0, width - 1, height - 1, 6, 6);
+                
+                // Draw text
+                String text = levelInfo.getProgressPercentage() + "% Complete";
+                g2.setColor(TEXT_COLOR);
+                Font font = g2.getFont().deriveFont(Font.BOLD, 11f);
+                g2.setFont(font);
+                FontMetrics fm = g2.getFontMetrics();
+                int textWidth = fm.stringWidth(text);
+                
+                // Center text
+                int x = Math.max(5, (width - textWidth) / 2);
+                int y = ((height - fm.getHeight()) / 2) + fm.getAscent();
+                
+                // Draw text shadow for better contrast
+                g2.setColor(new Color(0, 0, 0, 30));
+                g2.drawString(text, x + 1, y + 1);
+                
+                // Draw text
+                g2.setColor(TEXT_COLOR);
+                g2.drawString(text, x, y);
+                
+                g2.dispose();
+            }
+        };
+        progressBarPanel.setPreferredSize(new Dimension(0, 22));
         
         // Bottom info
         JLabel nextLevelLabel = new JLabel("Next level at " + levelInfo.requiredForNextLevel + " XP");
@@ -1029,30 +1116,15 @@ public class Dashboard extends JFrame {
         card.setBackground(Theme.BRAND_PINK);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Theme.BRAND_PINK, 1),
-            new EmptyBorder(15, 20, 20, 20)
+            new EmptyBorder(25, 25, 30, 25)
         ));
-        
-        // Central icon section
-        JPanel iconSection = new JPanel(new BorderLayout());
-        iconSection.setOpaque(false);
-        iconSection.setBorder(new EmptyBorder(5, 0, 5, 0));
         
         // Large number value (this is the actual stat number)
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         valueLabel.setForeground(accentColor);
         valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
         valueLabel.setVerticalAlignment(SwingConstants.CENTER);
-        
-        // Icon emoji (decorative, smaller)
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 24));
-        iconLabel.setForeground(accentColor);
-        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        // Add value to CENTER (main display), icon to SOUTH (small decoration below)
-        iconSection.add(valueLabel, BorderLayout.CENTER);
-        iconSection.add(iconLabel, BorderLayout.SOUTH);
         
         // Title
         JLabel titleLabel = new JLabel(title);
@@ -1060,22 +1132,8 @@ public class Dashboard extends JFrame {
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        // Progress Bar
-        JProgressBar progressBar = new JProgressBar(0, 100);
-        progressBar.setValue(progress);
-        progressBar.setStringPainted(false);
-        progressBar.setPreferredSize(new Dimension(0, 6));
-        progressBar.setBackground(new Color(40, 50, 65));
-        progressBar.setForeground(accentColor);
-        progressBar.setBorderPainted(false);
-        
-        JPanel bottomSection = new JPanel(new BorderLayout(0, 8));
-        bottomSection.setOpaque(false);
-        bottomSection.add(titleLabel, BorderLayout.NORTH);
-        bottomSection.add(progressBar, BorderLayout.SOUTH);
-        
-        card.add(iconSection, BorderLayout.CENTER);
-        card.add(bottomSection, BorderLayout.SOUTH);
+        card.add(valueLabel, BorderLayout.CENTER);
+        card.add(titleLabel, BorderLayout.SOUTH);
         
         return card;
     }
@@ -1529,9 +1587,10 @@ public class Dashboard extends JFrame {
                             profile.setScore(newScore);
                             // controller could update score if implemented
                             
-                            // Reload the view
+                            // Reload the views to show updated stats
                             loadedViews.put(VIEW_TASKS, false);
                             loadedViews.put(VIEW_DASHBOARD, false);
+                            loadedViews.put(VIEW_COMPLETED, false);
                             switchView(VIEW_TASKS);
                             
                             JOptionPane.showMessageDialog(
@@ -2557,7 +2616,7 @@ public class Dashboard extends JFrame {
         JTextField deadlineField = new JTextField(24);
         deadlineField.setForeground(Color.BLACK);
         deadlineField.setBackground(Color.WHITE);
-        deadlineField.setToolTipText("YYYY-MM-DD HH:MM (24h)");
+        deadlineField.setToolTipText("Duration: HH.MM.SS (e.g., 56.24.30 for 56h 24m 30s)");
 
         int r = 0;
         gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Title"), gc);
@@ -2566,7 +2625,7 @@ public class Dashboard extends JFrame {
         gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Description"), gc);
         gc.gridx = 1; form.add(new JScrollPane(descArea), gc);
         r++;
-        gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Deadline"), gc);
+        gc.gridx = 0; gc.gridy = r; form.add(new JLabel("Duration (HH.MM.SS)"), gc);
         gc.gridx = 1; form.add(deadlineField, gc);
         r++;
         gc.gridx = 0; gc.gridy = r; form.add(new JLabel("XP"), gc);
@@ -2588,7 +2647,17 @@ public class Dashboard extends JFrame {
             try {
                 String txt = deadlineField.getText();
                 if (txt != null && !txt.isBlank()) {
-                    deadline = java.time.LocalDateTime.parse(txt.replace(' ', 'T'));
+                    // Parse duration format: HH.MM.SS (e.g., 56.24.30)
+                    String[] parts = txt.split("\\.");
+                    if (parts.length == 3) {
+                        int hours = Integer.parseInt(parts[0]);
+                        int minutes = Integer.parseInt(parts[1]);
+                        int seconds = Integer.parseInt(parts[2]);
+                        
+                        // Calculate deadline as current time + duration
+                        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                        deadline = now.plusHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+                    }
                 }
             } catch (Exception ignore) {}
             if (controller.createGoatedTask(profile.getUsername(), title, desc, deadline, xp)) {

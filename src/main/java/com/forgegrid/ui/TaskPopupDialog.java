@@ -314,7 +314,7 @@ public class TaskPopupDialog extends JDialog {
         int result = JOptionPane.showConfirmDialog(
             this,
             "Skip this task?\n\n" +
-            "⚠️ You will lose 50% of the XP (" + (task.getXpReward() / 2) + " XP penalty)\n\n" +
+            "You will lose 50% of the XP (" + (task.getXpReward() / 2) + " XP penalty)\n\n" +
             "Are you sure?",
             "Skip Task",
             JOptionPane.YES_NO_OPTION,
@@ -330,7 +330,6 @@ public class TaskPopupDialog extends JDialog {
         int elapsedMinutes = Math.max(1, (int) (elapsedMillis / 60000));
         
         // Save skipped task with negative XP
-        DashboardController ctrl = new DashboardController(new com.forgegrid.service.HardcodedTaskService(), new com.forgegrid.service.LevelService());
         PlayerProfile profile = parent.profile;
         
         int xpPenalty = -(task.getXpReward() / 2);
@@ -359,7 +358,7 @@ public class TaskPopupDialog extends JDialog {
             // Show result and ask if they want to continue
             int choice = JOptionPane.showOptionDialog(
                 parent,
-                "⏭ Task skipped\n\n" +
+                "Task skipped\n\n" +
                 "XP penalty: " + xpPenalty + " XP\n" +
                 "Time spent: " + elapsedMinutes + " min\n\n" +
                 "Start next task?",
@@ -372,10 +371,15 @@ public class TaskPopupDialog extends JDialog {
             );
             
             if (choice == 0) {
-                // Refresh view and show next task
+                // Refresh views to show updated stats
+                parent.loadedViews.put(Dashboard.VIEW_TASKS, false);
+                parent.loadedViews.put(Dashboard.VIEW_DASHBOARD, false);
                 parent.switchView(Dashboard.VIEW_TASKS);
                 SwingUtilities.invokeLater(() -> parent.showTaskPopup());
             } else {
+                // Refresh views to show updated stats
+                parent.loadedViews.put(Dashboard.VIEW_TASKS, false);
+                parent.loadedViews.put(Dashboard.VIEW_DASHBOARD, false);
                 parent.switchView(Dashboard.VIEW_TASKS);
             }
         } else {
