@@ -710,15 +710,15 @@ SwingUtilities.invokeLater(() -> {
 });
 ```
 
-## 15) Component inventory (Swing) by file [post-simplification]
+## 15) Component inventory (Swing) by file [post-simplification and optimization]
 - **ui/WelcomeUI.java**: `JPanel`, `JLabel`, `JButton`, `FlowLayout`, `BoxLayout`, `BorderLayout`, `BasicButtonUI`.
-- **ui/AuthUI.java**: `JFrame`, `JPanel`, `JLabel`, `JTextField`, `JPasswordField`, `JCheckBox`, `JButton`, `CardLayout`, `BoxLayout`, `FlowLayout`, `BorderLayout`, `BasicButtonUI`, `SwingWorker`, `JOptionPane`.
+- **ui/AuthUI.java**: `JFrame`, `JPanel`, `JLabel`, `JTextField`, `JPasswordField`, `JCheckBox`, `JButton`, `CardLayout`, `BoxLayout`, `FlowLayout`, `BorderLayout`, `BasicButtonUI`, `SwingWorker`, `JOptionPane`. Enhanced with secure password field behavior.
 - **ui/OnboardingInAppPanel.java**: `JPanel`, `CardLayout`, `JLabel`, `JToggleButton`, `ButtonGroup`, `JButton`, `BoxLayout`, `FlowLayout`, `BorderLayout`, `GridBagLayout`, `BasicButtonUI`.
-- **ui/Dashboard.java**: `JFrame`, `JPanel`, `JLabel`, `JButton`, `JList`, `JTable`, `JScrollPane`, `JProgressBar` (custom-painted/standard), layouts: `BorderLayout`, `FlowLayout`, `BoxLayout`, plus basic borders. All text uses black; backgrounds use default `UIManager` panel color.
-- **ui/TaskPopupDialog.java**: `JDialog`, `JPanel`, `JLabel`, `JButton`, `JTextArea`, `JScrollPane`.
+- **ui/Dashboard.java**: `JFrame`, `JPanel`, `JLabel`, `JButton`, `JList`, `JTable`, `JScrollPane`, `JProgressBar` (custom-painted/standard), layouts: `BorderLayout`, `FlowLayout`, `BoxLayout`, `GridBagLayout`, plus basic borders. All text uses black; backgrounds use default `UIManager` panel color. Enhanced with performance optimizations (double buffering, asynchronous view creation, cached database calls).
+- **ui/TaskPopupDialog.java**: `JDialog`, `JPanel`, `JLabel`, `JButton`, `JTextArea`, `JScrollPane`. Simplified by removing redundant "..." button.
 - **ui/CardContainerPanel.java**: `JPanel` with simple line border; basic white background.
 - **ui/LoadingScreen.java**: `JPanel`, `JLabel`; simple white card.
-- **ui/Theme.java**: Brand color constants.
+- **ui/Theme.java**: Brand color constants. Consolidated duplicate constants.
 
 ## 16) Button click flows (what happens)
 - **WelcomeUI → Start**: Triggers listener → `AuthUI` shows `LOGIN` card.
@@ -788,16 +788,16 @@ public void closeConnection() {
 - **service/LevelService.java**: Reads XP/level (`SELECT`), writes updated totals (`UPDATE`).
 - **db/DatabaseHelper.java**: `CREATE TABLE users`, `CREATE TABLE user_preferences`, index creation.
 
-## 19) GUI file responsibilities (concise)
-- **app/Main.java**: Starts UI on EDT.
+## 19) GUI file responsibilities (concise) [updated with recent changes]
+- **app/Main.java**: Starts UI on EDT. Cleaned up verbose comments.
 - **ui/WelcomeUI.java**: Landing card; Start → login.
-- **ui/AuthUI.java**: Manages cards: WELCOME, LOGIN, SIGNUP, ONBOARDING_PROMPT, LOADING; delegates to controllers/services; swaps in `Dashboard` content.
+- **ui/AuthUI.java**: Manages cards: WELCOME, LOGIN, SIGNUP, ONBOARDING_PROMPT, LOADING; delegates to controllers/services; swaps in `Dashboard` content. Enhanced with secure password field behavior (always shows dots by default).
 - **ui/OnboardingInAppPanel.java**: Q1/Q2/Q3 or Welcome Back; emits completion to caller.
-- **ui/Dashboard.java**: Simplified main UI; sidebar, center cards, task actions, stats; basic Swing colors; text black.
-- **ui/TaskPopupDialog.java**: Minimal dialog for task actions wired to services.
+- **ui/Dashboard.java**: Simplified main UI; sidebar, center cards, task actions, stats; basic Swing colors; text black. Enhanced with performance optimizations (asynchronous view creation, double buffering, cached database calls) and improved profile UI with centered layout.
+- **ui/TaskPopupDialog.java**: Minimal dialog for task actions wired to services. Simplified by removing redundant "..." button.
 - **ui/CardContainerPanel.java**: Simple white bordered card.
 - **ui/LoadingScreen.java**: Minimal loading view.
-- **ui/Theme.java**: Brand colors (pink/yellow/blue/gold).
+- **ui/Theme.java**: Brand colors (pink/yellow/blue/gold). Consolidated duplicate constants.
 
 ## 20) Tasks according to onboarding
 - Onboarding fields stored on `users` table drive catalogs.
@@ -1109,5 +1109,110 @@ new com.forgegrid.service.LevelService().addXP(username, xp);
 - **Solution**: Changed card backgrounds from pink gradient to `PANEL_COLOR` (settings-style gray background) with pink borders
 - **Enhancement**: Updated Profile view layout to center Account Information panel using horizontal `BorderLayout`
 - **Result**: Consistent styling across home page and settings with improved visual balance
+
+---
+
+## 28) Performance Optimizations and Code Cleanup
+
+### 28.1 Dashboard Performance Improvements
+- **Problem**: UI lag when clicking dashboard components due to synchronous operations
+- **Solution**: Implemented asynchronous view creation and optimized rendering
+- **Key Changes**:
+  - `switchView()`: New views created asynchronously using `SwingUtilities.invokeLater()`
+  - `buildSimpleDashboardView()`: Added `panel.setDoubleBuffered(true)` for smoother rendering
+  - Optimized resize listeners to only update layout on significant width changes (>50px)
+  - Cached database calls to avoid repeated queries
+
+### 28.2 Code Cleanup and Simplification
+- **Removed**: Redundant test class files (`TestCTasks.class`, `TestPythonTasks.class`)
+- **Removed**: Unused imports (`java.awt.geom.*`)
+- **Removed**: Verbose comments and debug statements (`System.out.println`)
+- **Consolidated**: Duplicate color constants (`TEXT_SECONDARY` → `TEXT_COLOR`)
+- **Simplified**: Field declarations and removed unnecessary annotations
+
+### 28.3 Password Field Security Enhancement
+- **Problem**: Password field showed plaintext when "Remember Me" was enabled
+- **Solution**: Always display dots (`•`) by default, only reveal password when "Show" button is clicked
+- **Implementation**: Modified `createModernPasswordField()` to initialize `showPassword` client property to `Boolean.FALSE`
+
+### 28.4 Profile UI Improvements
+- **Enhanced**: Profile view with centered account information card
+- **Added**: Change email, programming language, skill level, and preferred time functionality
+- **Improved**: Button sizing and text color consistency (all black text)
+- **Implemented**: Logout functionality that clears "Remember Me" settings
+- **Integrated**: Database updates for all profile changes
+
+### 28.5 Task Management Updates
+- **Removed**: "..." button from Goated Task popup (redundant with close button)
+- **Updated**: Deadline format to `HH.MM.SS` (hours.minutes.seconds) for better user experience
+- **Enhanced**: Real-time dashboard updates after task completion/skipping
+
+---
+
+## 29) Updated Code Snippets (Recent Changes)
+
+### 29.1 Dashboard Performance Optimization
+```java
+// Asynchronous view creation to prevent UI blocking
+private void switchView(String viewName) {
+    SwingUtilities.invokeLater(() -> {
+        // Create new view asynchronously
+        JPanel newView = createView(viewName);
+        centerPanel.add(newView, viewName);
+        cardLayout.show(centerPanel, viewName);
+    });
+}
+
+// Double buffering for smoother rendering
+private JPanel buildSimpleDashboardView() {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setDoubleBuffered(true); // Enable double buffering
+    // ... rest of implementation
+}
+```
+
+### 29.2 Password Field Security Enhancement
+```java
+// Always show dots by default, even with "Remember Me"
+private JPasswordField createModernPasswordField(String placeholder) {
+    JPasswordField field = new JPasswordField();
+    field.putClientProperty("showPassword", Boolean.FALSE); // Always start with dots
+    field.putClientProperty("placeholder", placeholder);
+    return field;
+}
+```
+
+### 29.3 Profile UI Improvements
+```java
+// Centered profile panel with improved layout
+private JPanel buildSimpleProfileView() {
+    JPanel contentPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.anchor = GridBagConstraints.CENTER; // Center the profile panel
+    
+    JPanel profilePanel = new JPanel();
+    profilePanel.setPreferredSize(new Dimension(600, 600)); // Prevent button cutoff
+    profilePanel.setMinimumSize(new Dimension(600, 600));
+    
+    // All text in black for readability
+    labelComponent.setForeground(Color.BLACK);
+    valueComponent.setForeground(Color.BLACK);
+}
+```
+
+### 29.4 Code Cleanup Examples
+```java
+// Removed verbose comments and debug statements
+// Before: System.out.println("Debug: User logged in successfully");
+// After: (removed)
+
+// Consolidated color constants
+// Before: TEXT_SECONDARY constant
+// After: All references changed to TEXT_COLOR
+
+// Removed unused imports
+// Before: import java.awt.geom.*;
+// After: (removed)
+```
 
 
