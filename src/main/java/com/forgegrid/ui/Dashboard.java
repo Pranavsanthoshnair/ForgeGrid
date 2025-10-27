@@ -1708,125 +1708,115 @@ public class Dashboard extends JFrame {
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(ACCENT_COLOR);
         
-        // Get user profile details
-        java.util.Map<String, String> profileDetails = new java.util.HashMap<String, String>();
+        // Get user profile details from database
+        com.forgegrid.service.UserService userService = new com.forgegrid.service.UserService();
+        String[] preferences = userService.getUserPreferences(profile.getUsername());
         
-        // Main content panel with horizontal layout
+        // Main content panel - centered
         JPanel contentPanel = new JPanel();
         contentPanel.setOpaque(false);
-        contentPanel.setLayout(new BorderLayout(30, 0));
-        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        contentPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         
-        // Left side: Profile Stats Cards
-        JPanel leftPanel = new JPanel();
-        leftPanel.setOpaque(false);
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setPreferredSize(new Dimension(400, 0));
-        
-        // Profile Stats Cards (Top Section)
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
-        statsPanel.setOpaque(false);
-        statsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-        
-        // Level Card
-        JPanel levelCard = createProfileStatCard("Level", String.valueOf(currentLevel), "🏆", ACCENT_COLOR);
-        statsPanel.add(levelCard);
-        
-        // XP Card
-        JPanel xpCard = createProfileStatCard("Total XP", String.valueOf(currentXP) + " / " + maxXP, "XP", new Color(255, 215, 0));
-        statsPanel.add(xpCard);
-        
-        // Streak Card
-        JPanel streakCard = createProfileStatCard("Streak", currentStreak + " days", "S", new Color(251, 191, 36));
-        statsPanel.add(streakCard);
-        
-        leftPanel.add(statsPanel);
-        leftPanel.add(Box.createVerticalStrut(20));
-        
-        // Profile Information Card
+        // Account Information Card - centered
         JPanel profilePanel = new JPanel();
         profilePanel.setOpaque(true);
         profilePanel.setBackground(PANEL_COLOR);
         profilePanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(60, 70, 90), 1),
-            new EmptyBorder(25, 25, 25, 25)
+            new EmptyBorder(30, 30, 30, 30)
         ));
         profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
-        profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        profilePanel.setPreferredSize(new Dimension(500, 0));
         
         // Card title
         JLabel cardTitle = new JLabel("Account Information");
-        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         cardTitle.setForeground(TEXT_COLOR);
-        cardTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cardTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
+        cardTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cardTitle.setBorder(new EmptyBorder(0, 0, 25, 0));
         profilePanel.add(cardTitle);
         
-        // Username
+        // Username (read-only)
         JPanel usernamePanel = createProfileField("Username", profile.getUsername(), false, null);
         profilePanel.add(usernamePanel);
-        profilePanel.add(Box.createVerticalStrut(15));
+        profilePanel.add(Box.createVerticalStrut(20));
         
-        // Level
-        JPanel levelPanel = createProfileField("Level", String.valueOf(profile.getLevel()), false, null);
-        profilePanel.add(levelPanel);
-        profilePanel.add(Box.createVerticalStrut(15));
-        
-        // Email
-        JTextField emailField = new JTextField(profileDetails.getOrDefault("email", ""));
-        JPanel emailPanel = createProfileField("Email", null, true, emailField);
+        // Email (editable)
+        JTextField emailField = new JTextField(profile.getEmail() != null ? profile.getEmail() : "");
+        emailField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        emailField.setBackground(Color.WHITE);
+        emailField.setForeground(Color.BLACK);
+        JPanel emailPanel = createProfileFieldWithComponent("Email", emailField);
         profilePanel.add(emailPanel);
-        profilePanel.add(Box.createVerticalStrut(15));
+        profilePanel.add(Box.createVerticalStrut(20));
         
-        // Programming Language
+        // Programming Language (editable)
         String[] languages = {"Java", "Python", "JavaScript", "C++", "C#", "Go", "Rust", "Ruby", "PHP", "Swift"};
         JComboBox<String> languageBox = new JComboBox<>(languages);
-        languageBox.setSelectedItem(profileDetails.getOrDefault("onboarding_language", "Java"));
+        languageBox.setSelectedItem(profile.getOnboardingLanguage() != null ? profile.getOnboardingLanguage() : "Java");
         languageBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         languageBox.setBackground(Color.WHITE);
         languageBox.setForeground(Color.BLACK);
         JPanel languagePanel = createProfileFieldWithComponent("Preferred Language", languageBox);
         profilePanel.add(languagePanel);
-        profilePanel.add(Box.createVerticalStrut(15));
+        profilePanel.add(Box.createVerticalStrut(20));
         
-        // Skill Level
+        // Skill Level (editable)
         String[] skillLevels = {"Beginner", "Intermediate", "Advanced", "Expert"};
         JComboBox<String> skillBox = new JComboBox<>(skillLevels);
-        skillBox.setSelectedItem(profileDetails.getOrDefault("onboarding_skill", "Beginner"));
+        skillBox.setSelectedItem(profile.getOnboardingSkill() != null ? profile.getOnboardingSkill() : "Beginner");
         skillBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         skillBox.setBackground(Color.WHITE);
         skillBox.setForeground(Color.BLACK);
         JPanel skillPanel = createProfileFieldWithComponent("Skill Level", skillBox);
         profilePanel.add(skillPanel);
-        profilePanel.add(Box.createVerticalStrut(15));
+        profilePanel.add(Box.createVerticalStrut(20));
         
-        // Preferred Time for Tasks
+        // Preferred Time for Tasks (editable)
         String[] times = {"Morning (6 AM - 12 PM)", "Afternoon (12 PM - 6 PM)", "Evening (6 PM - 12 AM)", "Night (12 AM - 6 AM)"};
         JComboBox<String> timeBox = new JComboBox<>(times);
-        timeBox.setSelectedItem(profileDetails.getOrDefault("notification_preference", "Morning (6 AM - 12 PM)"));
+        String currentTime = (preferences != null && preferences.length > 3) ? preferences[3] : "Morning (6 AM - 12 PM)";
+        timeBox.setSelectedItem(currentTime);
         timeBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         timeBox.setBackground(Color.WHITE);
         timeBox.setForeground(Color.BLACK);
         JPanel timePanel = createProfileFieldWithComponent("Preferred Time for Tasks", timeBox);
         profilePanel.add(timePanel);
-        profilePanel.add(Box.createVerticalStrut(20));
+        profilePanel.add(Box.createVerticalStrut(30));
+        
+        // Buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonsPanel.setOpaque(false);
         
         // Save button
         JButton saveButton = new JButton("Save Changes");
         saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        saveButton.setForeground(TEXT_COLOR);
+        saveButton.setForeground(Color.WHITE);
         saveButton.setBackground(ACCENT_COLOR);
         saveButton.setFocusPainted(false);
         saveButton.setBorderPainted(false);
+        saveButton.setPreferredSize(new Dimension(140, 40));
         
-        saveButton.setPreferredSize(new Dimension(150, 40));
-        saveButton.setMaximumSize(new Dimension(150, 40));
-        saveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        logoutButton.setForeground(Color.WHITE);
+        logoutButton.setBackground(new Color(220, 53, 69)); // Red color
+        logoutButton.setFocusPainted(false);
+        logoutButton.setBorderPainted(false);
+        logoutButton.setPreferredSize(new Dimension(100, 40));
         
-        // No hover changes
+        buttonsPanel.add(saveButton);
+        buttonsPanel.add(logoutButton);
+        profilePanel.add(buttonsPanel);
         
+        // Add the profile panel to content
+        contentPanel.add(profilePanel);
+        
+        // Action listeners
         saveButton.addActionListener(e -> {
-            String email = emailField.getText();
+            String email = emailField.getText().trim();
             String language = (String) languageBox.getSelectedItem();
             String skill = (String) skillBox.getSelectedItem();
             String time = (String) timeBox.getSelectedItem();
@@ -1836,32 +1826,39 @@ public class Dashboard extends JFrame {
                 return;
             }
             
-            boolean success = true;
+            if (!isValidEmail(email)) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid email address!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update user profile in database
+            boolean success = userService.updateUserProfileDetails(profile.getUsername(), email, language, skill, time);
+            
             if (success) {
+                // Update local profile object
+                profile.setEmail(email);
+                profile.setOnboardingLanguage(language);
+                profile.setOnboardingSkill(skill);
+                
                 JOptionPane.showMessageDialog(this, "Profile updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to update profile!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         
-        profilePanel.add(saveButton);
-        
-        // Right side: Account Information (centered)
-        JPanel rightPanel = new JPanel();
-        rightPanel.setOpaque(false);
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        rightPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        // Center the Account Information panel
-        JPanel centerWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        centerWrapper.setOpaque(false);
-        centerWrapper.add(profilePanel);
-        
-        rightPanel.add(centerWrapper);
-        
-        // Add panels to main content
-        contentPanel.add(leftPanel, BorderLayout.WEST);
-        contentPanel.add(rightPanel, BorderLayout.CENTER);
+        logoutButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to logout?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (result == JOptionPane.YES_OPTION) {
+                handleLogout();
+            }
+        });
         
         // Wrap content in scroll pane
         JScrollPane scrollPane = new JScrollPane(contentPanel);
@@ -1869,12 +1866,20 @@ public class Dashboard extends JFrame {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setOpaque(false);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
         panel.add(title, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
         
         return panel;
+    }
+    
+    /**
+     * Validate email format
+     */
+    private boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$");
     }
     
     /**
