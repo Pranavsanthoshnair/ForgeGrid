@@ -657,15 +657,15 @@ public class Dashboard extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 // Only update if different item is selected
                 if (currentSelectedMenuItem != item) {
-                    // Deselect previous item
+                // Deselect previous item
                     if (currentSelectedMenuItem != null) {
-                        currentSelectedMenuItem.repaint();
-                    }
-                    currentSelectedMenuItem = item;
-                    item.repaint();
-                    
-                    // Switch view
-                    switchView(text);
+                    currentSelectedMenuItem.repaint();
+                }
+                currentSelectedMenuItem = item;
+                item.repaint();
+                
+                // Switch view
+                switchView(text);
                 }
             }
         });
@@ -1742,8 +1742,8 @@ public class Dashboard extends JFrame {
             new EmptyBorder(30, 30, 30, 30)
         ));
         profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
-        profilePanel.setPreferredSize(new Dimension(600, 500)); // Larger size for better visibility
-        profilePanel.setMinimumSize(new Dimension(600, 500));
+        profilePanel.setPreferredSize(new Dimension(600, 600)); // Increased height to prevent button cutoff
+        profilePanel.setMinimumSize(new Dimension(600, 600));
         
         // Card title
         JLabel cardTitle = new JLabel("Account Information");
@@ -1973,7 +1973,7 @@ public class Dashboard extends JFrame {
         
         JLabel labelComponent = new JLabel(label);
         labelComponent.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        labelComponent.setForeground(ACCENT_COLOR);
+        labelComponent.setForeground(Color.BLACK);
         labelComponent.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         if (editable && textField != null) {
@@ -1994,7 +1994,7 @@ public class Dashboard extends JFrame {
         } else {
             JLabel valueComponent = new JLabel(value);
             valueComponent.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            valueComponent.setForeground(TEXT_COLOR);
+            valueComponent.setForeground(Color.BLACK);
             valueComponent.setAlignmentX(Component.LEFT_ALIGNMENT);
             
             panel.add(labelComponent);
@@ -2013,7 +2013,7 @@ public class Dashboard extends JFrame {
         
         JLabel labelComponent = new JLabel(label);
         labelComponent.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        labelComponent.setForeground(ACCENT_COLOR);
+        labelComponent.setForeground(Color.BLACK);
         labelComponent.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         component.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
@@ -3507,9 +3507,9 @@ public class Dashboard extends JFrame {
                 int w = panel.getWidth();
                 // Only update if width actually changed significantly
                 if (Math.abs(w - lastWidth) > 50) {
-                    boolean twoCols = w >= 1050;
-                    contentPanel.setLayout(new GridLayout(twoCols ? 1 : 2, twoCols ? 2 : 1, 20, 20));
-                    contentPanel.revalidate();
+                boolean twoCols = w >= 1050;
+                contentPanel.setLayout(new GridLayout(twoCols ? 1 : 2, twoCols ? 2 : 1, 20, 20));
+                contentPanel.revalidate();
                     lastWidth = w;
                 }
             }
@@ -4316,13 +4316,13 @@ public class Dashboard extends JFrame {
         if (!loadedViews.containsKey(viewName) || !loadedViews.get(viewName)) {
             // Create view in background thread to avoid UI blocking
             SwingUtilities.invokeLater(() -> {
-                centerPanel.add(createViewPanel(viewName), viewName);
-                loadedViews.put(viewName, true);
+            centerPanel.add(createViewPanel(viewName), viewName);
+            loadedViews.put(viewName, true);
                 centerLayout.show(centerPanel, viewName);
             });
         } else {
             // View already exists, just switch to it
-            centerLayout.show(centerPanel, viewName);
+        centerLayout.show(centerPanel, viewName);
         }
     }
     
