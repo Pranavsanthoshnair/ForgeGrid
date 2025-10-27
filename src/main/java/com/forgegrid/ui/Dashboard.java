@@ -52,7 +52,6 @@ public class Dashboard extends JFrame {
     private static final Color PANEL_COLOR = UIManager.getColor("Panel.background");
     private static final Color ACCENT_COLOR = UIManager.getColor("Button.background");
     private static final Color TEXT_COLOR = Color.BLACK;
-    private static final Color TEXT_SECONDARY = Color.BLACK;
     private static final Color HOVER_COLOR = new Color(230, 230, 230);
     
     static final String VIEW_DASHBOARD = "Home";
@@ -222,7 +221,7 @@ public class Dashboard extends JFrame {
         
         levelLabel = new JLabel("Level " + (profile != null ? currentLevel : 1));
         levelLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        levelLabel.setForeground(TEXT_SECONDARY);
+        levelLabel.setForeground(TEXT_COLOR);
         levelLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         userDetails.add(userName);
@@ -703,7 +702,7 @@ public class Dashboard extends JFrame {
             // Help view: wire to open local markdown docs in the system viewer
             JLabel intro = new JLabel("Open documentation:");
             intro.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            intro.setForeground(TEXT_SECONDARY);
+            intro.setForeground(TEXT_COLOR);
             intro.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             JButton userManualBtn = new JButton("Open User Manual (USER_MANUAL.md)");
@@ -734,12 +733,12 @@ public class Dashboard extends JFrame {
         } else {
             JLabel placeholderLabel = new JLabel("This is the " + viewName + " view.");
             placeholderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            placeholderLabel.setForeground(TEXT_SECONDARY);
+            placeholderLabel.setForeground(TEXT_COLOR);
             placeholderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             JLabel infoLabel = new JLabel("Content and functionality will be added here.");
             infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            infoLabel.setForeground(TEXT_SECONDARY);
+            infoLabel.setForeground(TEXT_COLOR);
             infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             contentArea.add(placeholderLabel);
@@ -892,7 +891,7 @@ public class Dashboard extends JFrame {
         
         JLabel xpLabel = new JLabel(levelInfo.currentLevelXP + " / " + levelInfo.requiredForNextLevel + " XP");
         xpLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        xpLabel.setForeground(TEXT_SECONDARY);
+        xpLabel.setForeground(TEXT_COLOR);
         xpLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         
         topRow.add(levelLabel, BorderLayout.WEST);
@@ -1033,7 +1032,7 @@ public class Dashboard extends JFrame {
         
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(TEXT_COLOR);
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         textPanel.add(titleLabel);
@@ -1101,7 +1100,7 @@ public class Dashboard extends JFrame {
         
         JLabel labelText = new JLabel(label);
         labelText.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        labelText.setForeground(TEXT_SECONDARY);
+        labelText.setForeground(TEXT_COLOR);
         
         JLabel valueText = new JLabel(value);
         valueText.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -1178,7 +1177,7 @@ public class Dashboard extends JFrame {
         // Title
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        titleLabel.setForeground(TEXT_SECONDARY);
+        titleLabel.setForeground(TEXT_COLOR);
         
         // Progress Bar
         JProgressBar progressBar = new JProgressBar(0, 100);
@@ -1275,7 +1274,7 @@ public class Dashboard extends JFrame {
         
         JLabel timeLabel = new JLabel(time);
         timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        timeLabel.setForeground(TEXT_SECONDARY);
+        timeLabel.setForeground(TEXT_COLOR);
         
         item.add(activityLabel, BorderLayout.CENTER);
         item.add(timeLabel, BorderLayout.EAST);
@@ -1344,7 +1343,7 @@ public class Dashboard extends JFrame {
         } else {
             JLabel emptyLabel = new JLabel("No task history yet. Click 'Start Next Task' to begin!");
             emptyLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-            emptyLabel.setForeground(TEXT_SECONDARY);
+            emptyLabel.setForeground(TEXT_COLOR);
             emptyLabel.setBorder(new EmptyBorder(20, 20, 20, 20));
             historyList.add(emptyLabel);
         }
@@ -1524,7 +1523,7 @@ public class Dashboard extends JFrame {
         // Task description
         JLabel descLabel = new JLabel("<html><body style='width: 400px'>" + task.getDescription() + "</body></html>");
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(TEXT_COLOR);
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         leftPanel.add(descLabel);
         
@@ -2076,7 +2075,7 @@ public class Dashboard extends JFrame {
                 g3.setFont(new Font("Segoe UI", Font.PLAIN, 12));
                 String sub = "Overall Progress";
                 int sx = (getWidth() - g3.getFontMetrics().stringWidth(sub)) / 2;
-                g3.setColor(TEXT_SECONDARY);
+                g3.setColor(TEXT_COLOR);
                 g3.drawString(sub, sx, ty + 16);
                 g3.dispose();
             }
@@ -2091,7 +2090,7 @@ public class Dashboard extends JFrame {
         info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
         JLabel summary = new JLabel(completedTasks + "/" + totalTasks + " tasks completed");
         summary.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        summary.setForeground(TEXT_SECONDARY);
+        summary.setForeground(TEXT_COLOR);
         summary.setAlignmentX(Component.LEFT_ALIGNMENT);
         info.add(summary);
 
@@ -2148,7 +2147,7 @@ public class Dashboard extends JFrame {
         inner.add(Box.createVerticalStrut(8)); // Space below bar
         JLabel caption = new JLabel(todayDone + "/" + goal + " tasks done");
         caption.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        caption.setForeground(TEXT_SECONDARY);
+        caption.setForeground(TEXT_COLOR);
         caption.setAlignmentX(Component.LEFT_ALIGNMENT);
         inner.add(caption);
 
@@ -2205,7 +2204,7 @@ public class Dashboard extends JFrame {
 
         JLabel empty = new JLabel("No upcoming deadlines");
         empty.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        empty.setForeground(TEXT_SECONDARY);
+        empty.setForeground(TEXT_COLOR);
         empty.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(empty);
 
@@ -2349,7 +2348,7 @@ public class Dashboard extends JFrame {
         
         JLabel progressLabel = new JLabel("Daily Completion Rate (Not Initialized)");
         progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        progressLabel.setForeground(TEXT_SECONDARY);
+        progressLabel.setForeground(TEXT_COLOR);
         progressLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JPanel progressInfo = new JPanel();
@@ -2498,13 +2497,13 @@ public class Dashboard extends JFrame {
                 "  •  XP: " + task.getXp();
         JLabel tSub = new JLabel(subtitle);
         tSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tSub.setForeground(TEXT_SECONDARY);
+        tSub.setForeground(TEXT_COLOR);
         left.add(tSub);
 
         if (task.getDescription() != null && !task.getDescription().isBlank()) {
             JLabel tDesc = new JLabel("<html><body style='width: 500px'>" + task.getDescription() + "</body></html>");
             tDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            tDesc.setForeground(TEXT_SECONDARY);
+            tDesc.setForeground(TEXT_COLOR);
             left.add(Box.createVerticalStrut(4));
             left.add(tDesc);
         }
@@ -2568,7 +2567,7 @@ public class Dashboard extends JFrame {
         java.util.List<com.forgegrid.model.GoatedTask> goated = controller.listGoatedTasks(profile.getUsername());
         if (goated.isEmpty()) {
             JLabel empty = new JLabel("No custom tasks yet. Click \"Add Custom Task\" to create one.");
-            empty.setForeground(TEXT_SECONDARY);
+            empty.setForeground(TEXT_COLOR);
             empty.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(empty);
         } else {
@@ -2851,7 +2850,7 @@ public class Dashboard extends JFrame {
         
         JLabel xpLabel = new JLabel("Level " + currentLevel + " • " + currentXP + "/" + maxXP + " XP");
         xpLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        xpLabel.setForeground(TEXT_SECONDARY);
+        xpLabel.setForeground(TEXT_COLOR);
         xpLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JProgressBar xpBar = new JProgressBar(0, maxXP);
@@ -2922,7 +2921,7 @@ public class Dashboard extends JFrame {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        titleLabel.setForeground(TEXT_SECONDARY);
+        titleLabel.setForeground(TEXT_COLOR);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel valueLabel = new JLabel(value);
@@ -2932,7 +2931,7 @@ public class Dashboard extends JFrame {
         
         JLabel subtitleLabel = new JLabel(subtitle);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        subtitleLabel.setForeground(TEXT_SECONDARY);
+        subtitleLabel.setForeground(TEXT_COLOR);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         card.add(titleLabel);
@@ -2999,7 +2998,7 @@ public class Dashboard extends JFrame {
         
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        descLabel.setForeground(unlocked ? TEXT_SECONDARY : new Color(80, 85, 90));
+        descLabel.setForeground(unlocked ? TEXT_COLOR : new Color(80, 85, 90));
         descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         badge.add(iconLabel);
@@ -3101,7 +3100,7 @@ public class Dashboard extends JFrame {
         for (String day : dayHeaders) {
             JLabel dayLabel = new JLabel(day, JLabel.CENTER);
             dayLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-            dayLabel.setForeground(TEXT_SECONDARY);
+            dayLabel.setForeground(TEXT_COLOR);
             gridPanel.add(dayLabel);
         }
         
@@ -3151,7 +3150,7 @@ public class Dashboard extends JFrame {
         
         JLabel timerTask = new JLabel("System not initialized");
         timerTask.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        timerTask.setForeground(TEXT_SECONDARY);
+        timerTask.setForeground(TEXT_COLOR);
         timerTask.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         timerPanel.add(timerTitle);
@@ -3204,7 +3203,7 @@ public class Dashboard extends JFrame {
             
             JLabel timeLabel = new JLabel(reminder[1]);
             timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-            timeLabel.setForeground(TEXT_SECONDARY);
+            timeLabel.setForeground(TEXT_COLOR);
             
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             rightPanel.setOpaque(false);
@@ -3256,7 +3255,7 @@ public class Dashboard extends JFrame {
         
         JLabel lastSavedLabel = new JLabel("Never saved");
         lastSavedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lastSavedLabel.setForeground(TEXT_SECONDARY);
+        lastSavedLabel.setForeground(TEXT_COLOR);
         lastSavedLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         savePanel.add(lastSavedLabel);
         
@@ -3271,7 +3270,7 @@ public class Dashboard extends JFrame {
         
         JLabel lastLoadedLabel = new JLabel("Last loaded: Never");
         lastLoadedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lastLoadedLabel.setForeground(TEXT_SECONDARY);
+        lastLoadedLabel.setForeground(TEXT_COLOR);
         lastLoadedLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         loadPanel.add(lastLoadedLabel);
         
@@ -3682,7 +3681,7 @@ public class Dashboard extends JFrame {
         
         JTextField searchField = new JTextField("Search Help Topics...");
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        searchField.setForeground(TEXT_SECONDARY);
+        searchField.setForeground(TEXT_COLOR);
         searchField.setBackground(new Color(50, 60, 75));
         searchField.setBorder(new EmptyBorder(8, 12, 8, 12));
         
@@ -3804,7 +3803,7 @@ public class Dashboard extends JFrame {
         
         JLabel answerLabel = new JLabel("A: " + answer);
         answerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        answerLabel.setForeground(TEXT_SECONDARY);
+        answerLabel.setForeground(TEXT_COLOR);
         answerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         faqItem.add(questionLabel);
@@ -4098,7 +4097,7 @@ public class Dashboard extends JFrame {
         
         JLabel descLabel = new JLabel("Help us personalize your ForgeGrid experience");
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        descLabel.setForeground(TEXT_SECONDARY);
+        descLabel.setForeground(TEXT_COLOR);
         
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.add(titleLabel);
@@ -4219,7 +4218,7 @@ public class Dashboard extends JFrame {
         for (String option : options) {
             JRadioButton radio = new JRadioButton(option);
             radio.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            radio.setForeground(TEXT_SECONDARY);
+            radio.setForeground(TEXT_COLOR);
             radio.setBackground(PANEL_COLOR);
             radio.setOpaque(false);
             radio.addActionListener(e -> {
