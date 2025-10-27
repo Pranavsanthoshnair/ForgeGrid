@@ -10,16 +10,6 @@ import java.sql.Statement;
 /**
  * Database helper class for managing MySQL database connections and initialization.
  * Creates and manages the forgegrid database with users table.
- * 
- * MIGRATION NOTE: This class has been updated to support Railway MySQL hosting
- * instead of local XAMPP MySQL. The connection parameters are now loaded from
- * environment variables (.env file or system environment) for security.
- * 
- * Changes made:
- * - Replaced hardcoded localhost connection with Railway MySQL connection
- * - Added environment variable support for credentials
- * - Updated connection URL format for Railway's SSL requirements
- * - Added comprehensive logging for migration tracking
  */
 public class DatabaseHelper {
     

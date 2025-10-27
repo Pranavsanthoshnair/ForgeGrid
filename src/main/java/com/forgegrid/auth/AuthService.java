@@ -44,7 +44,6 @@ public class AuthService {
         
         // Check if username matches any existing email OR email matches any existing username
         if (usernameOrEmailExists(username) || usernameOrEmailExists(email)) {
-            System.out.println("Username or email already exists in the system");
             return false;
         }
         
@@ -69,9 +68,9 @@ public class AuthService {
             // Check if it's a unique constraint violation (username or email already exists)
             if (e.getMessage().contains("UNIQUE constraint failed")) {
                 if (e.getMessage().contains("username")) {
-                    System.out.println("Username already exists: " + username);
+                    // Username already exists
                 } else if (e.getMessage().contains("email")) {
-                    System.out.println("Email already exists: " + email);
+                    // Email already exists
                 }
                 return false;
             }

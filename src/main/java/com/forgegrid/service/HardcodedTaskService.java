@@ -47,7 +47,6 @@ public class HardcodedTaskService {
         try (Connection conn = dbHelper.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(createTableSQL);
-            System.out.println("✓ user_tasks table initialized");
             migrateUserTasksForGoated(stmt);
         } catch (SQLException e) {
             System.err.println("Error creating user_tasks table: " + e.getMessage());

@@ -395,6 +395,8 @@ public class AuthUI extends JFrame {
                 passwordField.setText(savedPassword);
                 passwordField.setForeground(Color.BLACK);
                 passwordField.putClientProperty("placeholderActive", Boolean.FALSE);
+                passwordField.setEchoChar('•'); // Always show dots, even when auto-filled
+                passwordField.putClientProperty("showPassword", Boolean.FALSE); // Ensure password is hidden by default
                 rememberMeCheckbox.setSelected(true);
             }
         }
@@ -598,6 +600,7 @@ public class AuthUI extends JFrame {
 
         // Placeholder behavior
         field.putClientProperty("placeholderActive", Boolean.TRUE);
+        field.putClientProperty("showPassword", Boolean.FALSE); // Initialize password as hidden
         
         // Toggle password visibility with simple click region near right edge
         field.addMouseListener(new java.awt.event.MouseAdapter() {

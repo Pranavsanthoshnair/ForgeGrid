@@ -84,7 +84,6 @@ public class UserService {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                System.out.println("Onboarding data saved successfully for user ID: " + userId);
                 return true;
             }
             
@@ -128,7 +127,6 @@ public class UserService {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                System.out.println("Onboarding data saved successfully for username: " + username);
                 return true;
             }
             

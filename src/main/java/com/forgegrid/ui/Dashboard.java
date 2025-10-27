@@ -11,7 +11,6 @@ import javax.swing.SwingUtilities;
  
 import java.awt.*;
 import java.awt.event.*;
-// removed unused: import java.awt.geom.*;
 
 /**
  * Main application dashboard frame. Presents sidebar navigation and center
@@ -21,35 +20,29 @@ import java.awt.event.*;
 @SuppressWarnings({"unused"})
 public class Dashboard extends JFrame {
 
-    final PlayerProfile profile; // Package-private for TaskPopupDialog access
-    // No direct service usage; all logic via controller
+    final PlayerProfile profile;
     private final DashboardController controller;
     
-    // Task management
     private java.util.List<com.forgegrid.model.HardcodedTask> currentTasks;
-    java.util.List<String> completedTaskNames; // Package-private for TaskPopupDialog access
+    java.util.List<String> completedTaskNames;
     private int currentTaskIndex = 0;
-    private long taskStartTime = 0; // Track when user started current task
+    private long taskStartTime = 0;
     
-    // UI Components
     private JPanel centerPanel;
     private CardLayout centerLayout;
     private JLabel currentViewLabel;
-    private JPanel customizeSection; // Reference to customize section for dynamic hiding
-    private JPanel modalOverlay; // Glass pane overlay for modals to avoid white flash
+    private JPanel customizeSection;
+    private JPanel modalOverlay;
     
-    // Lazy loading for views
-    final java.util.Map<String, Boolean> loadedViews = new java.util.HashMap<>(); // Package-private for TaskPopupDialog access
+    final java.util.Map<String, Boolean> loadedViews = new java.util.HashMap<>();
     
-    // Player stats
     private int currentXP = 0;
     private int maxXP = 100;
     private int currentStreak = 0;
     private boolean onboardingCompleted = false;
     private int currentLevel = 1;
     
-    // References for real-time updates
-    private JPanel xpProgressBar; // Custom painted panel for XP progress
+    private JPanel xpProgressBar;
     private JLabel levelLabel;
     
     // Color scheme - subtle attractive theme
@@ -62,9 +55,8 @@ public class Dashboard extends JFrame {
     private static final Color TEXT_SECONDARY = Color.BLACK;
     private static final Color HOVER_COLOR = new Color(230, 230, 230);
     
-    // View constants
-    static final String VIEW_DASHBOARD = "Home"; // Package-private for TaskPopupDialog
-    static final String VIEW_TASKS = "Tasks"; // Package-private for TaskPopupDialog
+    static final String VIEW_DASHBOARD = "Home";
+    static final String VIEW_TASKS = "Tasks";
     private static final String VIEW_PROFILE = "Profile";
     private static final String VIEW_SETTINGS = "Settings";
     private static final String VIEW_HELP = "Help";
@@ -4311,7 +4303,7 @@ public class Dashboard extends JFrame {
     /**
      * Switches to a different view (with lazy loading)
      */
-    void switchView(String viewName) { // Package-private for TaskPopupDialog
+    void switchView(String viewName) {
         // Lazy load the view if not already loaded
         if (!loadedViews.containsKey(viewName) || !loadedViews.get(viewName)) {
             // Create view in background thread to avoid UI blocking
@@ -4370,6 +4362,5 @@ public class Dashboard extends JFrame {
         // Placeholder for onboarding data integration
         // This will be implemented when we add database functionality
         // For now, just store the values if needed
-        System.out.println("Onboarding applied - Goal: " + goal + ", Language: " + language + ", Skill: " + skill);
     }
 }
