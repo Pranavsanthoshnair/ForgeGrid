@@ -20,7 +20,7 @@ Purpose: A simple entry point to reach authentication.
 Steps
 1) Open the app; the title bar shows "ForgeGrid".
 2) Click "Start" to proceed to the Authentication screen.
-
+<img width="753" height="597" alt="image" src="https://github.com/user-attachments/assets/e406096d-b97d-4a25-8871-fe83a6231ff7" />
 Tips
 - You can resize the window; layout remains readable.
 - If the app shows a brief loading state during transitions, please wait.
@@ -34,11 +34,15 @@ Login
 1) Enter your Username (or Email) and Password.
 2) Press Enter or click "Login".
 3) If successful, first‑time users are taken to Onboarding; returning users go straight to the Dashboard.
+<img width="991" height="940" alt="image" src="https://github.com/user-attachments/assets/498593a5-6f03-4d02-acde-b735d5867649" />
+
 
 Sign Up
 1) Click "New User? Sign Up".
 2) Provide Username, Email, and Password.
 3) Click "Sign Up" to create your account, then log in.
+<img width="961" height="911" alt="image" src="https://github.com/user-attachments/assets/bb3d1b2c-ba18-4171-83d4-c4cc86d4599d" />
+
 
 Convenience & Security
 - Password field shows dots (•) by default. Click "Show" to reveal if needed.
@@ -54,6 +58,8 @@ Troubleshooting
 
 ### Loading Screen
 You may briefly see a loading screen during app startup or when switching major views (e.g., after login, before Dashboard). This is normal and prevents UI freezes while data is fetched.
+<img width="836" height="444" alt="image" src="https://github.com/user-attachments/assets/c702406c-800a-4980-84d2-eae744d2bfd6" />
+
 
 ---
 
@@ -73,6 +79,9 @@ Steps
 Result
 - Preferences are saved and used to adapt tasks and recommendations.
 - Returning users who have completed onboarding are sent directly to the Dashboard.
+<img width="780" height="300" alt="image" src="https://github.com/user-attachments/assets/b2392498-5c51-44c3-8f6b-2d1734937da3" />
+<img width="936" height="419" alt="image" src="https://github.com/user-attachments/assets/41695807-a8c2-4b77-b0ea-9407df21eac5" />
+<img width="948" height="678" alt="image" src="https://github.com/user-attachments/assets/370940f2-adba-4b74-a5df-6bc6e359d2bc" />
 
 ---
 
@@ -109,6 +118,19 @@ Task Popup Dialog
 
 Connectivity Notes
 - If you go offline, some operations (fetching tasks, saving progress) may fail. Reconnect and retry.
+
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/39c030bb-a954-45a7-b3f5-b02a6e3b3f63" />
+<img width="1519" height="1047" alt="image" src="https://github.com/user-attachments/assets/110737d5-e5f2-4cc6-9eba-24dd55eb2f9a" />
+<img width="722" height="511" alt="image" src="https://github.com/user-attachments/assets/54661295-848a-4385-a4f1-20c59b97f336" />
+<img width="909" height="673" alt="image" src="https://github.com/user-attachments/assets/a8e9f3ab-ac73-4197-9bc3-ba8a2b0c1646" />
+<img width="1368" height="969" alt="image" src="https://github.com/user-attachments/assets/8af99fcc-ef4c-4197-81d4-43f905ce7eaa" />
+<img width="1080" height="948" alt="image" src="https://github.com/user-attachments/assets/02d76220-6ab5-4a46-9a19-e0890fb92f9a" />
+<img width="1456" height="1012" alt="image" src="https://github.com/user-attachments/assets/43eebc2e-5c36-42ee-94ac-7fda893ac2b1" />
+
+
+
+
+
 
 ---
 
